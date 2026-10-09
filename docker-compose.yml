@@ -1,0 +1,21 @@
+services:
+  rg-card-app:
+    build: .
+    container_name: rg-card-app
+    env_file:
+      - .env
+    volumes:
+      - ./prisma:/app/prisma
+    expose:
+      - "3000"
+    command: sh -c "npx prisma db push && npx prisma db seed && npm run start"
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: rg-card-nginx
+    depends_on:
+      - rg-card-app
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro

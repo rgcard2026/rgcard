@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id               String     @id @default(cuid())
+  username         String     @unique
+  name             String
+  passwordHash     String
+  role             String     @default("OWNER")
+  permissions      String     @default("ALL")
+  isActive         Boolean    @default(true)
+  currentSessionId String?
+  sessionExpiresAt DateTime?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  auditLogs        AuditLog[]
+}
+
+model User {
+  id                  String              @id @default(cuid())
+  fullName            String
+  idNumber            String              @unique
+  cardNumber          String              @unique
+  idNumberHash        String?             @unique
+  cardNumberHash      String?             @unique
+  idNumberEnc         String?
+  cardNumberEnc       String?
+  passwordHash        String
+  mustChangePassword  Boolean             @default(true)
+  isVip               Boolean             @default(false)
+  membershipClass     String              @default("Regular")
+  isActive            Boolean             @default(true)
+  failedLoginAttempts Int                 @default(0)
+  lockCount           Int                 @default(0)
+  blockedUntil        DateTime?
+  lockedAt            DateTime?
+  expiredAt           DateTime?
+  validUntil          DateTime?
+  currentSessionId    String?
+  sessionExpiresAt    DateTime?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  auditLogs           AuditLog[]
+  customDiscounts     UserPlaceDiscount[]
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  action    String
+  path      String?
+  ip        String?
+  userAgent String?
+  metadata  String?
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  adminId   String?
+  admin     Admin?   @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([adminId, createdAt])
+  @@index([action, createdAt])
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  icon      String?
+  sortOrder Int      @default(0)
+  places    Place[]
+}
+
+model Governorate {
+  id       Int                @id @default(autoincrement())
+  name     String             @unique
+  branches Branch[]
+  places   PlaceGovernorate[]
+}
+
+model Place {
+  id              Int                 @id @default(autoincrement())
+  name            String
+  description     String?
+  discount        String
+  logoUrl         String?
+  coverUrl        String?
+  isActive        Boolean             @default(true)
+  isFeatured      Boolean             @default(false)
+  exclusiveText   String?
+  governoratesConfigured Boolean      @default(false)
+  sortOrder       Int                 @default(0)
+  categoryId      Int
+  category        Category            @relation(fields: [categoryId], references: [id])
+  branches        Branch[]
+  governorates    PlaceGovernorate[]
+  offers          Offer[]
+  userDiscounts   UserPlaceDiscount[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+}
+
+model NewArrival {
+  id        Int      @id @default(autoincrement())
+  title     String
+  logoUrl   String
+  targetUrl String
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+model UserPlaceDiscount {
+  id           Int      @id @default(autoincrement())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  placeId      Int
+  place        Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  discountText String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, placeId])
+  @@index([placeId])
+}
+
+model Branch {
+  id             Int          @id @default(autoincrement())
+  name           String
+  address        String?
+  phone          String?
+  mapUrl         String?
+  placeId        Int
+  place          Place        @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  governorateId  Int
+  governorate    Governorate  @relation(fields: [governorateId], references: [id])
+}
+
+model PlaceGovernorate {
+  placeId       Int
+  governorateId Int
+  place         Place       @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  governorate   Governorate @relation(fields: [governorateId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  @@id([placeId, governorateId])
+  @@index([governorateId])
+}
+
+model Offer {
+  id           Int       @id @default(autoincrement())
+  title        String
+  description  String?
+  discountText String
+  validUntil   DateTime?
+  isActive     Boolean   @default(true)
+  isFeatured   Boolean   @default(false)
+  bannerText   String?
+  placeId      Int
+  place        Place     @relation(fields: [placeId], references: [id], onDelete: Cascade)
+}
+
+
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

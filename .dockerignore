@@ -1,0 +1,12 @@
+.git
+node_modules
+.next
+.env
+*.zip
+*.log
+prisma/dev.db
+prisma/dev.db-*
+prisma/*.db-journal
+public/uploads
+backups
+.patch-backups
