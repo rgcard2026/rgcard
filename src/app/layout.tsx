@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import Providers from './providers';
-import './globals.css';
 import '../styles/ui.css';
+import '../styles/admin.css';
 
 export const metadata: Metadata = {
   title: { default: 'RG-Card', template: '%s · RG-Card' },

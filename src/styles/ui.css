@@ -1,8 +1,8 @@
 /* ==========================================================================
-   RG-Card UI — design system for the member-facing site.
+   RG-Card UI — design system shared by the member site and the admin console
+   (admin-specific layout lives in admin.css).
    Palette "Onyx & Champagne": deep ink neutrals, one champagne-gold accent.
-   Every rule is scoped under .ui-* class names so it never fights the legacy
-   globals.css; legacy pages keep working until each one is migrated.
+   All values are --ui-* tokens; the Design Studio overrides them at runtime.
    ========================================================================== */
 
 :root,
@@ -74,6 +74,15 @@
   --ui-aurora-1: rgba(201, 162, 92, 0.18);
   --ui-aurora-2: rgba(120, 110, 255, 0.07);
   color-scheme: light;
+}
+
+/* ---------- Global basics ---------- */
+:where(a) { color: inherit; text-decoration: none; }
+/* Member pages carrying the card number cannot be selected or printed. */
+.rg-protected-page { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+@media print {
+  body.rg-protected-page * { visibility: hidden !important; }
+  body.rg-protected-page::before { content: 'Printing is disabled for RG-Card protected pages'; visibility: visible; display: block; padding: 40px; font-size: 24px; }
 }
 
 /* Tokens the Design Studio can override at runtime (see DesignThemeRuntime.tsx).
@@ -150,21 +159,6 @@
 .ui-root :where(img) { max-width: 100%; }
 .ui-root ::selection { background: var(--ui-gold); color: var(--ui-gold-ink); }
 
-/* Pages built on .ui-root own the whole canvas: neutralise the legacy body paint
-   and the legacy dark-mode input fills that globals.css applies with !important. */
-html:has(.ui-root), html:has(.ui-root) body { background: var(--ui-bg) !important; background-image: none !important; }
-html .ui-root .ui-input { background: transparent !important; border: 0 !important; box-shadow: none !important; color: var(--ui-text) !important; }
-html .ui-root .ui-select { background-color: var(--ui-bg-raised) !important; color: var(--ui-text) !important; }
-
-/* globals.css pins h1–h3 size/weight/font with !important for the Design Studio;
-   the member UI uses its own type scale, so re-assert it on .ui-root headings. */
-.ui-root :is(h1, h2, h3, h4) { font-style: var(--ui-style-heading) !important; letter-spacing: inherit !important; font-family: var(--ui-font-display) !important; font-weight: var(--ui-weight-heading) !important; }
-.ui-root .ui-display { font-size: clamp(min(30px, var(--ui-fs-h1)), 4.6vw, var(--ui-fs-h1)) !important; line-height: 1.15 !important; }
-.ui-root .ui-place-info .ui-display { font-size: clamp(min(26px, var(--ui-fs-h1)), 3.6vw, calc(var(--ui-fs-h1) * 0.78)) !important; }
-.ui-root .ui-auth-tagline .ui-display { font-size: clamp(min(26px, var(--ui-fs-h1)), 2.8vw, calc(var(--ui-fs-h1) * 0.7)) !important; }
-.ui-root .ui-h2 { font-size: clamp(min(22px, var(--ui-fs-h2)), 2.6vw, var(--ui-fs-h2)) !important; line-height: 1.25 !important; }
-.ui-root .ui-auth-head .ui-h2 { font-size: clamp(min(26px, var(--ui-fs-h2)), 3vw, calc(var(--ui-fs-h2) * 1.13)) !important; }
-.ui-root .ui-h3 { font-size: var(--ui-fs-h3) !important; line-height: 1.35 !important; }
 
 /* Ambient light behind content. Fixed so it never adds scroll height. */
 .ui-ambient {
@@ -208,16 +202,14 @@ html .ui-root .ui-select { background-color: var(--ui-bg-raised) !important; col
 }
 .ui-eyebrow::before { content: ''; width: 18px; height: 1px; background: currentColor; opacity: 0.7; }
 /* Typography is prefixed with .ui-root so legacy h1–h6 rules in globals.css never win. */
-.ui-root .ui-display {
-  font-family: var(--ui-font-display);
-  font-weight: 600;
-  font-size: clamp(30px, 4.6vw, 54px);
-  line-height: 1.15;
-  letter-spacing: -0.015em;
-  margin: 0;
-}
-.ui-root .ui-h2 { font-family: var(--ui-font-display); font-weight: 600; font-size: clamp(22px, 2.6vw, 30px); line-height: 1.25; margin: 0; letter-spacing: -0.01em; color: inherit; }
-.ui-root .ui-h3 { font-family: var(--ui-font-display); font-weight: 600; font-size: 18px; line-height: 1.35; margin: 0; color: inherit; }
+/* Heading font, weight and sizes come from the Design Studio tokens. */
+.ui-root :is(h1, h2, h3, h4, .ui-display, .ui-h2, .ui-h3) { font-family: var(--ui-font-display); font-weight: var(--ui-weight-heading); font-style: var(--ui-style-heading); }
+.ui-root .ui-display { font-size: clamp(min(30px, var(--ui-fs-h1)), 4.6vw, var(--ui-fs-h1)); line-height: 1.15; letter-spacing: -0.015em; margin: 0; }
+.ui-root .ui-place-info .ui-display { font-size: clamp(min(26px, var(--ui-fs-h1)), 3.6vw, calc(var(--ui-fs-h1) * 0.78)); }
+.ui-root .ui-auth-tagline .ui-display { font-size: clamp(min(26px, var(--ui-fs-h1)), 2.8vw, calc(var(--ui-fs-h1) * 0.7)); }
+.ui-root .ui-h2 { font-size: clamp(min(22px, var(--ui-fs-h2)), 2.6vw, var(--ui-fs-h2)); line-height: 1.25; margin: 0; letter-spacing: -0.01em; color: inherit; }
+.ui-root .ui-auth-head .ui-h2 { font-size: clamp(min(26px, var(--ui-fs-h2)), 3vw, calc(var(--ui-fs-h2) * 1.13)); }
+.ui-root .ui-h3 { font-size: var(--ui-fs-h3); line-height: 1.35; margin: 0; color: inherit; }
 .ui-root .ui-lead { color: var(--ui-text-2); font-size: clamp(15px, 1.4vw, 17px); margin: 0; max-width: 60ch; }
 .ui-muted { color: var(--ui-muted); }
 .ui-gold-text { background: var(--ui-gold-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -795,7 +787,7 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
 .ui-place-info .ui-display { font-size: clamp(26px, 3.6vw, 42px); overflow-wrap: anywhere; }
 .ui-place-tags { display: flex; flex-wrap: wrap; gap: 8px; }
 .ui-discount { display: grid; justify-items: center; gap: 4px; padding: 18px 22px; border-radius: var(--ui-radius-lg); background: var(--ui-gold-grad); color: var(--ui-gold-ink); min-width: 150px; text-align: center; box-shadow: 0 16px 40px rgba(216, 178, 106, 0.25); }
-.ui-root .ui-discount small { font-size: 12px !important; font-weight: 600; opacity: 0.75; color: var(--ui-gold-ink) !important; }
+.ui-discount small { font-size: 12px; font-weight: 600; opacity: 0.75; }
 .ui-discount strong { font-family: var(--ui-font-display); font-size: clamp(22px, 2.6vw, 30px); font-weight: 700; line-height: 1.2; max-width: 220px; overflow-wrap: anywhere; }
 .ui-place-grid { margin-top: 20px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 20px; align-items: start; }
 .ui-panel-title { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
@@ -840,7 +832,7 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
 .ui-status-mark { width: 180px; aspect-ratio: 610 / 418; background: var(--ui-emblem) center / contain no-repeat; filter: drop-shadow(0 16px 40px rgba(216, 178, 106, 0.2)); }
 
 /* Boot screen (legacy class, restyled) */
-html .rg-app-boot { background: var(--ui-bg) !important; }
+.rg-app-boot { background: var(--ui-bg); }
 .rg-app-boot .ui-loader-mark { width: 120px; height: 84px; animation: ui-breathe 1.6s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
