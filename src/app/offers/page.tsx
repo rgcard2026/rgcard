@@ -330,41 +330,52 @@ export default function OffersPage() {
     return Array.from({ length: repeats }, () => bannerArrivals).flat();
   }, [bannerArrivals]);
 
-  // Endless ticker: a floating-point offset wraps at the exact width of the first of two
-  // identical sequences, so there is no visible reset. Pauses while hovered.
+  // Endless ticker moving right → left. The track holds two identical groups and is moved
+  // with a sub-pixel translate3d; when the first group has fully passed, the offset wraps by
+  // exactly one group width, so the loop is seamless. Hovering eases the speed down to a stop
+  // (and back up on leave) instead of halting abruptly. Edge fades come from the CSS mask.
   useEffect(() => {
     const viewport = arrivalViewportRef.current;
-    if (!viewport || !bannerVisualItems.length || reduce) return;
+    const track = viewport?.querySelector<HTMLElement>('.ui-arrivals-track');
+    const primaryGroup = viewport?.querySelector<HTMLElement>('[data-arrival-sequence="primary"]');
+    if (!viewport || !track || !primaryGroup || !bannerVisualItems.length) return;
 
+    // Always moves (it is the point of the strip); slower when the OS asks for less motion.
+    const cruiseSpeed = reduce ? 22 : 42; // px per second
+    let speed = cruiseSpeed;
+    let targetSpeed = cruiseSpeed;
+    let offset = 0;
+    let groupWidth = primaryGroup.offsetWidth;
+    let previous = 0;
     let frameId = 0;
-    let previousTime = 0;
-    let logicalOffset = 0;
-    let paused = false;
-    const speedPixelsPerSecond = 26;
-    const primaryGroup = viewport.querySelector<HTMLElement>('[data-arrival-sequence="primary"]');
-    const pause = () => { paused = true; };
-    const resume = () => { paused = false; };
-    viewport.addEventListener('pointerenter', pause);
-    viewport.addEventListener('pointerleave', resume);
+
+    const measure = new ResizeObserver(() => { groupWidth = primaryGroup.offsetWidth; });
+    measure.observe(primaryGroup);
+    const slowDown = () => { targetSpeed = 0; };
+    const speedUp = () => { targetSpeed = cruiseSpeed; };
+    viewport.addEventListener('pointerenter', slowDown);
+    viewport.addEventListener('pointerleave', speedUp);
 
     const tick = (now: number) => {
-      if (!previousTime) previousTime = now;
-      const elapsedSeconds = Math.min((now - previousTime) / 1000, 0.05);
-      previousTime = now;
-      const loopWidth = primaryGroup?.getBoundingClientRect().width || 0;
-      if (loopWidth > 0 && !paused) {
-        logicalOffset = (logicalOffset + speedPixelsPerSecond * elapsedSeconds) % loopWidth;
-        viewport.scrollLeft = logicalOffset;
+      const dt = previous ? Math.min((now - previous) / 1000, 0.05) : 0;
+      previous = now;
+      speed += (targetSpeed - speed) * Math.min(1, dt * 5);
+      if (targetSpeed === 0 && speed < 0.5) speed = 0; // settle to a true stop
+      if (groupWidth > 0) {
+        offset -= speed * dt;
+        if (offset <= -groupWidth) offset += groupWidth;
+        track.style.transform = `translate3d(${offset}px, 0, 0)`;
       }
-      frameId = window.requestAnimationFrame(tick);
+      frameId = requestAnimationFrame(tick);
     };
+    frameId = requestAnimationFrame(tick);
 
-    const startTimer = window.setTimeout(() => { frameId = window.requestAnimationFrame(tick); }, 80);
     return () => {
-      window.clearTimeout(startTimer);
-      window.cancelAnimationFrame(frameId);
-      viewport.removeEventListener('pointerenter', pause);
-      viewport.removeEventListener('pointerleave', resume);
+      cancelAnimationFrame(frameId);
+      measure.disconnect();
+      viewport.removeEventListener('pointerenter', slowDown);
+      viewport.removeEventListener('pointerleave', speedUp);
+      track.style.transform = '';
     };
   }, [bannerVisualItems.length, reduce]);
 

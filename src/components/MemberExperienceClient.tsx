@@ -60,7 +60,7 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
   }, []);
   const { scrollYProgress } = useScroll({ target: storyRef, offset: ['start start', 'end end'] });
   const { scrollY } = useScroll();
-  const pinnedProgress = useTransform(scrollYProgress, [0.06, 0.82], [0, 1], { clamp: true });
+  const pinnedProgress = useTransform(scrollYProgress, [0.04, 0.92], [0, 1], { clamp: true });
   const freeProgress = useTransform(scrollY, [20, 220], [0, 1], { clamp: true });
   const pinnedSpring = useSpring(pinnedProgress, { stiffness: 140, damping: 26, mass: 0.6 });
   const freeSpring = useSpring(freeProgress, { stiffness: 140, damping: 26, mass: 0.6 });
@@ -85,7 +85,7 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
     <PublicShell watermarkText={cardNumber} page="valid">
       <main className="ui-main">
         {/* Scroll story: on desktop the hero is pinned while scrolling flips the card front → back. */}
-        <section ref={storyRef} className={`ui-card-story ${reduce ? 'is-static' : ''}`}>
+        <section ref={storyRef} className="ui-card-story">
           <div className="ui-card-story-sticky">
             <div className="ui-container">
               <section className="ui-member-hero">
@@ -127,8 +127,8 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
                             <MemberCard cardNumber={cardNumber} isVip={isVip} membershipClass={membershipClass} validUntil={validUntil || null} layout={layout} />
                           </div>
                           <div className="ui-flip-face ui-flip-back" aria-hidden="true">
-                            <span className="ui-flip-back-mark" />
-                            <span className="ui-flip-back-number">{cardNumber}</span>
+                            <img src="/card-back.png" alt="" />
+                            <span className="ui-flip-back-number">NO.{cardNumber}</span>
                           </div>
                         </motion.div>
                       </motion.div>
@@ -136,29 +136,25 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
                   )}
                   {webgl && (
                     <motion.div style={{ position: 'absolute', inset: 0, zIndex: 1 }} initial={{ opacity: 0 }} animate={{ opacity: card3dReady ? 1 : 0 }} transition={{ duration: 0.8 }}>
-                      <MemberCard3D cardNumber={cardNumber} isVip={isVip} membershipClass={membershipClass} validUntil={validUntil} layout={layout} onReady={onReady} scrollProgress={reduce ? undefined : progress} />
+                      <MemberCard3D cardNumber={cardNumber} isVip={isVip} membershipClass={membershipClass} validUntil={validUntil} layout={layout} onReady={onReady} scrollProgress={progress} />
                     </motion.div>
                   )}
                   <div className="ui-card-caption">
                     <span className="ui-card-face-label">
                       {showingBack ? (isArabic ? 'ظهر البطاقة' : 'Card back') : (isArabic ? 'وجه البطاقة' : 'Card front')}
                     </span>
-                    {!reduce && <span className="ui-card-progress" aria-hidden="true"><motion.span style={{ scaleX: progress }} /></span>}
+                    <span className="ui-card-progress" aria-hidden="true"><motion.span style={{ scaleX: progress }} /></span>
                     <span className="ui-card-hint">
                       <ThreeSixtyRoundedIcon />
-                      {reduce
-                        ? (isArabic ? 'اسحب لتدوير البطاقة، أو اضغط لقلبها' : 'Drag to rotate, tap to flip')
-                        : (isArabic ? 'مرّر لأسفل لقلب البطاقة، أو اسحبها لتدويرها' : 'Scroll to flip the card, or drag to rotate')}
+                      {isArabic ? 'مرّر لأسفل لقلب البطاقة، أو اسحبها لتدويرها' : 'Scroll to flip the card, or drag to rotate'}
                     </span>
                   </div>
                 </div>
               </section>
             </div>
-            {!reduce && (
-              <motion.div className="ui-scroll-cue" style={{ opacity: cueOpacity }} aria-hidden="true">
-                <KeyboardArrowDownRoundedIcon />
-              </motion.div>
-            )}
+            <motion.div className="ui-scroll-cue" style={{ opacity: cueOpacity }} aria-hidden="true">
+              <KeyboardArrowDownRoundedIcon />
+            </motion.div>
           </div>
         </section>
 

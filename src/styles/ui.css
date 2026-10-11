@@ -629,8 +629,6 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
 .ui-card-story { position: relative; height: 230vh; }
 .ui-card-story-sticky { position: sticky; top: var(--ui-header-h); height: calc(100vh - var(--ui-header-h)); height: calc(100dvh - var(--ui-header-h)); display: flex; flex-direction: column; justify-content: center; }
 .ui-card-story-sticky > .ui-container { width: min(var(--ui-max), 100% - 32px); }
-.ui-card-story.is-static { height: auto; }
-.ui-card-story.is-static .ui-card-story-sticky { position: static; height: auto; }
 /* Fixed to the viewport; it fades out as soon as scrolling starts. */
 .ui-scroll-cue { position: fixed; z-index: 30; pointer-events: none; bottom: 18px; left: 50%; transform: translateX(-50%); color: var(--ui-gold); animation: ui-bob 1.8s ease-in-out infinite; }
 .ui-scroll-cue svg { width: 30px; height: 30px; }
@@ -642,9 +640,10 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
 .ui-flip { position: relative; transform-style: preserve-3d; }
 .ui-flip-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 4.5% / 7%; overflow: hidden; box-shadow: var(--ui-shadow-lg); }
 .ui-flip-face .rg-member-card, .ui-flip-face svg { display: block; width: 100%; height: auto; }
-.ui-flip-back { position: absolute; inset: 0; transform: rotateY(180deg); display: grid; place-content: center; justify-items: center; gap: 6%; background: radial-gradient(circle at 50% 45%, #1b1813, #060606); border: 1px solid rgba(216, 178, 106, 0.35); }
-.ui-flip-back-mark { width: 38%; aspect-ratio: 610 / 418; background: url('/brand/rg-emblem-gold.png') center / contain no-repeat; }
-.ui-flip-back-number { font: 700 clamp(14px, 2vw, 20px) Arial, sans-serif; letter-spacing: 0.3em; color: #d8b26a; direction: ltr; }
+.ui-flip-back { position: absolute; inset: 0; transform: rotateY(180deg); background: #050609; }
+.ui-flip-back img { display: block; width: 100%; height: 100%; }
+/* Number sits in the artwork's bottom-right frame (x 1070–1515, y 852–940 of 1573×1000). */
+.ui-flip-back-number { position: absolute; left: 68%; top: 85.2%; width: 28.3%; height: 8.8%; display: grid; place-items: center; font: 900 clamp(9px, 1.6vw, 17px) Arial, sans-serif; letter-spacing: 0.08em; color: #f2c15f; direction: ltr; }
 
 .ui-section { margin-top: clamp(36px, 6vw, 72px); display: grid; gap: 20px; }
 .ui-section-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
@@ -703,9 +702,9 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
 .ui-arrivals-label { display: grid; gap: 2px; padding: 0 22px; height: 100%; align-content: center; border-inline-end: 1px solid var(--ui-line); background: linear-gradient(180deg, var(--ui-gold-soft), transparent); min-width: 150px; }
 .ui-arrivals-label strong { font-family: var(--ui-font-display); font-size: 15px; font-weight: 600; color: var(--ui-gold); }
 .ui-arrivals-label span { font-size: 12px; color: var(--ui-muted); }
-.ui-arrivals-viewport { overflow: hidden; direction: ltr; padding: 14px 0; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
-.ui-arrivals-viewport::-webkit-scrollbar { display: none; }
-.ui-arrivals-track { display: flex; width: max-content; }
+/* Tiles fade out gradually at the left edge and fade in at the right edge as they loop. */
+.ui-arrivals-viewport { overflow: hidden; direction: ltr; padding: 14px 0; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14%, #000 86%, transparent 100%); mask-image: linear-gradient(90deg, transparent 0, #000 14%, #000 86%, transparent 100%); }
+.ui-arrivals-track { display: flex; width: max-content; will-change: transform; }
 .ui-arrivals-group { display: flex; gap: 12px; padding-inline-end: 12px; }
 .ui-arrival { flex: 0 0 auto; width: 136px; height: 84px; perspective: 700px; display: block; }
 .ui-arrival-inner { position: relative; display: block; width: 100%; height: 100%; transform-style: preserve-3d; }
@@ -873,6 +872,8 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
 .rg-app-boot { background: var(--ui-bg); }
 .rg-app-boot .ui-loader-mark { width: 120px; height: 84px; animation: ui-breathe 1.6s ease-in-out infinite; }
 
+/* Less motion requested by the OS: stop purely decorative loops, keep user-driven motion gentle. */
 @media (prefers-reduced-motion: reduce) {
-  .ui-root *, .ui-root *::before, .ui-root *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  .ui-dot--pulse, .ui-scroll-cue, .ui-skeleton::after { animation: none; }
+  .ui-arrival:hover .ui-arrival-inner { animation-duration: 5s; }
 }

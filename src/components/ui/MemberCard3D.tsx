@@ -97,58 +97,26 @@ async function drawFront(tpl: CardRenderLayout, cardNumber: string, classText: s
   return canvas;
 }
 
-/** Back face: a quiet branded reverse with the emblem and member number. */
+/** Back face: public/card-back.png (built by scripts/build-card-back.cjs) + the member number. */
 async function drawBack(width: number, height: number, cardNumber: string) {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext('2d') as Ctx2D;
-  const bg = ctx.createRadialGradient(width * 0.5, height * 0.45, 40, width * 0.5, height * 0.5, width * 0.7);
-  bg.addColorStop(0, '#1b1813');
-  bg.addColorStop(1, '#060606');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, width, height);
-
-  // Fine diagonal guilloche texture.
-  ctx.globalAlpha = 0.05;
-  ctx.strokeStyle = '#d8b26a';
-  ctx.lineWidth = 1;
-  for (let i = -height; i < width; i += 14) {
-    ctx.beginPath();
-    ctx.moveTo(i, 0);
-    ctx.lineTo(i + height, height);
-    ctx.stroke();
-  }
-  ctx.globalAlpha = 1;
-
-  // Magnetic stripe and gold hairlines.
-  ctx.fillStyle = '#141414';
-  ctx.fillRect(0, 110, width, 150);
-  const gold = ctx.createLinearGradient(0, 0, width, 0);
-  gold.addColorStop(0, '#8a6528');
-  gold.addColorStop(0.5, '#f2dba4');
-  gold.addColorStop(1, '#8a6528');
-  ctx.fillStyle = gold;
-  ctx.fillRect(0, 300, width, 4);
-  ctx.fillRect(0, height - 150, width, 3);
-
-  const emblem = await loadImage('/brand/rg-emblem-gold.png').catch(() => null);
-  if (emblem) {
-    const ew = 520;
-    ctx.drawImage(emblem, (width - ew) / 2, 360, ew, (emblem.height / emblem.width) * ew);
-  }
-
+  const art = await loadImage('/card-back.png');
+  ctx.drawImage(art, 0, 0, width, height);
+  // Number inside the bottom-right gold frame (artwork coords: x 1070–1515, y 852–940 on 1573×1000).
+  const sx = width / 1573;
+  const sy = height / 1000;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#d8b26a';
-  ctx.font = '700 46px Arial, Helvetica, sans-serif';
-  ctx.letterSpacing = '10px';
-  ctx.fillText(cardNumber, width / 2, height - 82);
-  ctx.globalAlpha = 0.55;
-  ctx.font = '600 22px Arial, Helvetica, sans-serif';
-  ctx.letterSpacing = '8px';
-  ctx.fillText('ROYAL MEMBERSHIP · PERSONAL & NON-TRANSFERABLE', width / 2, height - 190);
-  ctx.globalAlpha = 1;
+  ctx.font = `900 ${Math.round(34 * sy)}px Arial, Helvetica, sans-serif`;
+  ctx.letterSpacing = `${(2.4 * sx).toFixed(1)}px`;
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(0,0,0,.4)';
+  ctx.strokeText(`NO.${cardNumber}`, 1292 * sx, 896 * sy);
+  ctx.fillStyle = '#f2c15f';
+  ctx.fillText(`NO.${cardNumber}`, 1292 * sx, 896 * sy);
   return canvas;
 }
 
@@ -228,7 +196,8 @@ export default function MemberCard3D({ cardNumber, isVip, membershipClass, valid
     resize();
 
     // Interaction: drag rotates, tap flips, hover tilts.
-    const spin = { target: 0, current: -0.9, dragging: false, startX: 0, startTarget: 0, moved: 0 };
+    // The card always starts square to the viewer (rotation 0); scroll then drives the flip.
+    const spin = { target: 0, current: 0, dragging: false, startX: 0, startTarget: 0, moved: 0 };
     const pointer = { x: 0, y: 0 };
     const canvas = renderer.domElement;
     const onDown = (e: PointerEvent) => {
@@ -270,14 +239,16 @@ export default function MemberCard3D({ cardNumber, isVip, membershipClass, valid
         intro = Math.min(1, intro + delta * 0.9);
         const ease = 1 - Math.pow(1 - intro, 3);
         spin.current += (spin.target - spin.current) * (spin.dragging ? 0.35 : 0.08);
-        // Scroll drives the flip; drag/tap add on top. Mid-flip the card lifts and tilts for depth.
+        // Scroll drives a full front → back flip; drag/tap add on top. At rest (p = 0 or 1) the card
+        // is perfectly square; mid-flip it lifts slightly and leans back for depth.
         const p = Math.min(1, Math.max(0, progressRef.current?.get() ?? 0));
         const arc = Math.sin(p * Math.PI);
-        card.rotation.y = p * Math.PI + spin.current + (spin.dragging ? 0 : pointer.x * 0.22);
-        card.rotation.x = (spin.dragging ? 0 : -pointer.y * 0.16) + Math.sin(t * 0.8) * 0.025 - arc * 0.18;
-        card.rotation.z = Math.sin(t * 0.5) * 0.012 + arc * 0.06;
-        card.position.y = Math.sin(t * 0.9) * 0.05 + (1 - ease) * -0.4 + arc * 0.12;
-        card.scale.setScalar(fitScale * (0.86 + 0.14 * ease) * (1 - arc * 0.08));
+        const hover = spin.dragging ? 0 : 1;
+        card.rotation.y = p * Math.PI + spin.current + pointer.x * 0.12 * hover;
+        card.rotation.x = -pointer.y * 0.1 * hover - arc * 0.14;
+        card.rotation.z = 0;
+        card.position.y = Math.sin(t * 0.9) * 0.03 + (1 - ease) * -0.25 + arc * 0.1;
+        card.scale.setScalar(fitScale * (0.92 + 0.08 * ease) * (1 - arc * 0.06));
       }
       renderer.render(scene, camera);
       frame = requestAnimationFrame(tick);

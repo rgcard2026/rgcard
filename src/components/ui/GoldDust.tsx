@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import * as THREE from 'three';
+import { prefersReducedMotion } from './useMotionCapabilities';
 
 const COUNT = 900;
 
@@ -97,9 +98,10 @@ export default function GoldDust() {
     window.addEventListener('pointermove', onPointer, { passive: true });
 
     const clock = new THREE.Clock();
+    const pace = prefersReducedMotion() ? 0.35 : 1; // gentler drift when the OS asks for less motion
     let frame = 0;
     const tick = () => {
-      material.uniforms.uTime.value += clock.getDelta();
+      material.uniforms.uTime.value += clock.getDelta() * pace;
       group.rotation.y += (pointer.x * 0.18 - group.rotation.y) * 0.04;
       group.rotation.x += (-pointer.y * 0.12 - group.rotation.x) * 0.04;
       renderer.render(scene, camera);
