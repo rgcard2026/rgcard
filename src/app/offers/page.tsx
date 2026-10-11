@@ -307,13 +307,22 @@ export default function OffersPage() {
   const safePage = Math.min(currentPage, totalPages);
   const visiblePlaces = filteredPlaces.slice((safePage - 1) * pageSize, safePage * pageSize);
   const pageItems = buildPageItems(safePage - 1, totalPages);
-  // The banner is controlled only by /admin/new-arrivals.
-  const bannerArrivals = useMemo(
-    () => newArrivals.filter((item) => textOf(item?.logoUrl) && textOf(item?.targetUrl)),
-    [newArrivals]
-  );
+  // Banner = admin-curated "New Arrival / Coming Soon" items first, then the 8 most
+  // recently added places that have a logo (linking to their details page).
+  const bannerArrivals = useMemo(() => {
+    const curated = newArrivals
+      .filter((item) => textOf(item?.logoUrl) && textOf(item?.targetUrl))
+      .map((item) => ({ key: `n-${item.id}`, title: textOf(item.title), logoUrl: textOf(item.logoUrl), href: textOf(item.targetUrl), external: true }));
+    const curatedNames = new Set(curated.map((item) => normalizeArabicSearch(item.title)));
+    const latest = places
+      .filter((place) => pickLogo(place) && !curatedNames.has(normalizeArabicSearch(pickName(place))))
+      .sort((a, b) => (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0) || Number(b.id || 0) - Number(a.id || 0))
+      .slice(0, 8)
+      .map((place) => ({ key: `p-${place.id}`, title: pickName(place), logoUrl: pickLogo(place), href: `/places/${place.id}`, external: false }));
+    return [...curated, ...latest];
+  }, [newArrivals, places]);
   const bannerVisualItems = useMemo(() => {
-    if (!bannerArrivals.length) return [] as AnyItem[];
+    if (!bannerArrivals.length) return [] as typeof bannerArrivals;
     // A sufficiently long, repeated sequence guarantees that the viewport is always
     // filled even when the admin has only one logo in the standalone banner.
     const minimumCardsPerGroup = 14;
@@ -412,7 +421,7 @@ export default function OffersPage() {
             >
               <div className="ui-arrivals-label">
                 <strong>{isArabic ? 'وصل حديثًا' : 'New arrivals'}</strong>
-                <span>{isArabic ? 'وقريبًا في الشبكة' : '& coming soon'}</span>
+                <span>{isArabic ? 'أحدث العلامات في الشبكة' : 'Latest brands in the network'}</span>
               </div>
               <div className="ui-arrivals-viewport" ref={arrivalViewportRef}>
                 <div className="ui-arrivals-track">
@@ -422,17 +431,24 @@ export default function OffersPage() {
                         const duplicate = groupIndex === 1 || index >= bannerArrivals.length;
                         return (
                           <a
-                            key={`arrival-${groupIndex}-${arrival.id || arrival.title}-${index}`}
-                            href={textOf(arrival.targetUrl)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label={`${isArabic ? 'فتح رابط' : 'Open link'} ${textOf(arrival.title) || 'New Arrival'}`}
+                            key={`arrival-${groupIndex}-${arrival.key}-${index}`}
+                            href={arrival.href}
+                            {...(arrival.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                            aria-label={`${t('openDetails')}: ${arrival.title}`}
                             aria-hidden={duplicate || undefined}
                             tabIndex={duplicate ? -1 : undefined}
                             className="ui-arrival"
+                            title={arrival.title}
                             data-rg-logo-transition="true"
                           >
-                            <LogoImage item={arrival} />
+                            {/* Two-sided tile: spins while hovered (the ticker pauses). */}
+                            <span className="ui-arrival-inner">
+                              <span className="ui-arrival-face"><LogoImage item={arrival} /></span>
+                              <span className="ui-arrival-face ui-arrival-back">
+                                <span className="ui-arrival-mark" aria-hidden="true" />
+                                <span className="ui-arrival-name">{arrival.title}</span>
+                              </span>
+                            </span>
                           </a>
                         );
                       })}

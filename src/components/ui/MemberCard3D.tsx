@@ -3,6 +3,7 @@
 import * as React from 'react';
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import type { MotionValue } from 'framer-motion';
 import { CARD_TEMPLATE, type CardRenderLayout, formatCardExpiry, membershipLabel } from '@/lib/card-layout';
 
 type Props = {
@@ -12,6 +13,8 @@ type Props = {
   validUntil?: string | null;
   layout?: CardRenderLayout;
   onReady?: () => void;
+  /** 0 → 1 scroll progress; flips the card from front (0) to back (1). */
+  scrollProgress?: MotionValue<number>;
 };
 
 const CARD_W = 3.146;
@@ -157,10 +160,12 @@ function toTexture(canvas: HTMLCanvasElement, anisotropy: number) {
 }
 
 /** Interactive 3D membership card: drag to rotate, tap to flip, gentle pointer tilt. */
-export default function MemberCard3D({ cardNumber, isVip, membershipClass, validUntil, layout, onReady }: Props) {
+export default function MemberCard3D({ cardNumber, isVip, membershipClass, validUntil, layout, onReady, scrollProgress }: Props) {
   const host = React.useRef<HTMLDivElement | null>(null);
   const readyRef = React.useRef(onReady);
   readyRef.current = onReady;
+  const progressRef = React.useRef(scrollProgress);
+  progressRef.current = scrollProgress;
 
   React.useEffect(() => {
     const el = host.current;
@@ -265,11 +270,14 @@ export default function MemberCard3D({ cardNumber, isVip, membershipClass, valid
         intro = Math.min(1, intro + delta * 0.9);
         const ease = 1 - Math.pow(1 - intro, 3);
         spin.current += (spin.target - spin.current) * (spin.dragging ? 0.35 : 0.08);
-        card.rotation.y = spin.current + (spin.dragging ? 0 : pointer.x * 0.22);
-        card.rotation.x = (spin.dragging ? 0 : -pointer.y * 0.16) + Math.sin(t * 0.8) * 0.025;
-        card.rotation.z = Math.sin(t * 0.5) * 0.012;
-        card.position.y = Math.sin(t * 0.9) * 0.05 + (1 - ease) * -0.4;
-        card.scale.setScalar(fitScale * (0.86 + 0.14 * ease));
+        // Scroll drives the flip; drag/tap add on top. Mid-flip the card lifts and tilts for depth.
+        const p = Math.min(1, Math.max(0, progressRef.current?.get() ?? 0));
+        const arc = Math.sin(p * Math.PI);
+        card.rotation.y = p * Math.PI + spin.current + (spin.dragging ? 0 : pointer.x * 0.22);
+        card.rotation.x = (spin.dragging ? 0 : -pointer.y * 0.16) + Math.sin(t * 0.8) * 0.025 - arc * 0.18;
+        card.rotation.z = Math.sin(t * 0.5) * 0.012 + arc * 0.06;
+        card.position.y = Math.sin(t * 0.9) * 0.05 + (1 - ease) * -0.4 + arc * 0.12;
+        card.scale.setScalar(fitScale * (0.86 + 0.14 * ease) * (1 - arc * 0.08));
       }
       renderer.render(scene, camera);
       frame = requestAnimationFrame(tick);

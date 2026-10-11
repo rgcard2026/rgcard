@@ -3,12 +3,13 @@
 import * as React from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion';
 import LocalOfferRoundedIcon from '@mui/icons-material/LocalOfferRounded';
 import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import ThreeSixtyRoundedIcon from '@mui/icons-material/ThreeSixtyRounded';
+import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import PublicShell from './PublicShell';
 import MemberCard from './MemberCard';
 import Reveal, { usePointerSpotlight } from './ui/Reveal';
@@ -46,6 +47,29 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
   const spotlight = usePointerSpotlight<HTMLAnchorElement>();
   const supportLink = useSupportLink(cardNumber);
 
+  // Scroll-driven flip. Desktop: progress through the pinned story section.
+  // Phones (no pinning): the flip completes over the first ~200px of scroll, while the card is still on screen.
+  const storyRef = React.useRef<HTMLElement | null>(null);
+  const [pinned, setPinned] = React.useState(true);
+  React.useEffect(() => {
+    const mq = window.matchMedia('(min-width: 901px)');
+    const update = () => setPinned(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+  const { scrollYProgress } = useScroll({ target: storyRef, offset: ['start start', 'end end'] });
+  const { scrollY } = useScroll();
+  const pinnedProgress = useTransform(scrollYProgress, [0.06, 0.82], [0, 1], { clamp: true });
+  const freeProgress = useTransform(scrollY, [20, 220], [0, 1], { clamp: true });
+  const pinnedSpring = useSpring(pinnedProgress, { stiffness: 140, damping: 26, mass: 0.6 });
+  const freeSpring = useSpring(freeProgress, { stiffness: 140, damping: 26, mass: 0.6 });
+  const progress = pinned ? pinnedSpring : freeSpring;
+  const flipDeg = useTransform(progress, (v) => v * 180);
+  const cueOpacity = useTransform(progress, [0, 0.08], [1, 0]);
+  const [showingBack, setShowingBack] = React.useState(false);
+  useMotionValueEvent(progress, 'change', (v) => setShowingBack(v > 0.5));
+
   const tier = classLabel || (isArabic ? 'عضوية أساسية' : 'Standard');
   const firstName = (name || '').trim();
 
@@ -60,55 +84,85 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
   return (
     <PublicShell watermarkText={cardNumber} page="valid">
       <main className="ui-main">
-        <div className="ui-container">
-          <section className="ui-member-hero">
-            <div className="ui-member-copy ui-box">
-              <motion.span className="ui-chip ui-chip--success" style={{ width: 'fit-content' }} {...fade(0.05)}>
-                <span className="ui-dot ui-dot--pulse" />
-                {t('activeMembership')}
-              </motion.span>
-              <motion.h1 className="ui-display" {...fade(0.12)}>
-                {isArabic ? 'أهلًا،' : 'Welcome,'}<br />
-                <span className="ui-gold-text">{firstName}</span>
-              </motion.h1>
-              <motion.p className="ui-lead" {...fade(0.2)}>
-                {isArabic ? 'بطاقتك الرقمية جاهزة. اعرضها في أي مكان من شبكة RG-Card لتحصل على خصمك فورًا.' : 'Your digital card is ready. Show it anywhere in the RG-Card network to redeem your discount instantly.'}
-              </motion.p>
-              <motion.dl className="ui-member-meta" {...fade(0.28)}>
-                <div><dt>{isArabic ? 'رقم البطاقة' : 'Card number'}</dt><dd className="ui-ltr">{cardNumber}</dd></div>
-                <div><dt>{isArabic ? 'الفئة' : 'Tier'}</dt><dd>{tier}</dd></div>
-                <div><dt>{isArabic ? 'صالحة حتى' : 'Valid until'}</dt><dd>{formatDate(validUntil, language)}</dd></div>
-              </motion.dl>
-              <motion.div className="ui-member-actions" {...fade(0.36)}>
-                <Link href="/offers" className="ui-btn ui-btn--primary"><LocalOfferRoundedIcon />{t('viewOffers')}</Link>
-                <Link href="/member-card-pdf" className="ui-btn ui-btn--ghost"><PictureAsPdfRoundedIcon />{t('downloadPdf')}</Link>
-              </motion.div>
-            </div>
-
-            <div className="ui-card-stage" aria-label={t('memberCard')}>
-              {/* The flat card shows instantly and stays as the fallback; the 3D scene fades in over it. */}
-              {(!webgl || !card3dReady) && (
-                <div className="ui-card-fallback">
-                  <motion.div
-                    className="ui-card-fallback-inner"
-                    initial={reduce ? false : { opacity: 0, rotateX: 18, y: 20 }}
-                    animate={{ opacity: webgl === true ? 0.0001 : 1, rotateX: 0, y: 0 }}
-                    transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    <MemberCard cardNumber={cardNumber} isVip={isVip} membershipClass={membershipClass} validUntil={validUntil || null} layout={layout} />
+        {/* Scroll story: on desktop the hero is pinned while scrolling flips the card front → back. */}
+        <section ref={storyRef} className={`ui-card-story ${reduce ? 'is-static' : ''}`}>
+          <div className="ui-card-story-sticky">
+            <div className="ui-container">
+              <section className="ui-member-hero">
+                <div className="ui-member-copy ui-box">
+                  <motion.span className="ui-chip ui-chip--success" style={{ width: 'fit-content' }} {...fade(0.05)}>
+                    <span className="ui-dot ui-dot--pulse" />
+                    {t('activeMembership')}
+                  </motion.span>
+                  <motion.h1 className="ui-display" {...fade(0.12)}>
+                    {isArabic ? 'أهلًا،' : 'Welcome,'}<br />
+                    <span className="ui-gold-text">{firstName}</span>
+                  </motion.h1>
+                  <motion.p className="ui-lead" {...fade(0.2)}>
+                    {isArabic ? 'بطاقتك الرقمية جاهزة. اعرضها في أي مكان من شبكة RG-Card لتحصل على خصمك فورًا.' : 'Your digital card is ready. Show it anywhere in the RG-Card network to redeem your discount instantly.'}
+                  </motion.p>
+                  <motion.dl className="ui-member-meta" {...fade(0.28)}>
+                    <div><dt>{isArabic ? 'رقم البطاقة' : 'Card number'}</dt><dd className="ui-ltr">{cardNumber}</dd></div>
+                    <div><dt>{isArabic ? 'الفئة' : 'Tier'}</dt><dd>{tier}</dd></div>
+                    <div><dt>{isArabic ? 'صالحة حتى' : 'Valid until'}</dt><dd>{formatDate(validUntil, language)}</dd></div>
+                  </motion.dl>
+                  <motion.div className="ui-member-actions" {...fade(0.36)}>
+                    <Link href="/offers" className="ui-btn ui-btn--primary"><LocalOfferRoundedIcon />{t('viewOffers')}</Link>
+                    <Link href="/member-card-pdf" className="ui-btn ui-btn--ghost"><PictureAsPdfRoundedIcon />{t('downloadPdf')}</Link>
                   </motion.div>
                 </div>
-              )}
-              {webgl && (
-                <motion.div style={{ position: 'absolute', inset: 0, zIndex: 1 }} initial={{ opacity: 0 }} animate={{ opacity: card3dReady ? 1 : 0 }} transition={{ duration: 0.8 }}>
-                  <MemberCard3D cardNumber={cardNumber} isVip={isVip} membershipClass={membershipClass} validUntil={validUntil} layout={layout} onReady={onReady} />
-                </motion.div>
-              )}
-              {webgl && card3dReady && (
-                <span className="ui-card-hint"><ThreeSixtyRoundedIcon />{isArabic ? 'اسحب لتدوير البطاقة، أو اضغط لقلبها' : 'Drag to rotate, tap to flip'}</span>
-              )}
+
+                <div className="ui-card-stage" aria-label={t('memberCard')}>
+                  {/* The flat card shows instantly and stays as the fallback; the 3D scene fades in over it. */}
+                  {(!webgl || !card3dReady) && (
+                    <div className="ui-card-fallback">
+                      <motion.div
+                        className="ui-card-fallback-inner"
+                        initial={reduce ? false : { opacity: 0, y: 20 }}
+                        animate={{ opacity: webgl === true ? 0.0001 : 1, y: 0 }}
+                        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                      >
+                        <motion.div className="ui-flip" style={{ rotateY: flipDeg }}>
+                          <div className="ui-flip-face">
+                            <MemberCard cardNumber={cardNumber} isVip={isVip} membershipClass={membershipClass} validUntil={validUntil || null} layout={layout} />
+                          </div>
+                          <div className="ui-flip-face ui-flip-back" aria-hidden="true">
+                            <span className="ui-flip-back-mark" />
+                            <span className="ui-flip-back-number">{cardNumber}</span>
+                          </div>
+                        </motion.div>
+                      </motion.div>
+                    </div>
+                  )}
+                  {webgl && (
+                    <motion.div style={{ position: 'absolute', inset: 0, zIndex: 1 }} initial={{ opacity: 0 }} animate={{ opacity: card3dReady ? 1 : 0 }} transition={{ duration: 0.8 }}>
+                      <MemberCard3D cardNumber={cardNumber} isVip={isVip} membershipClass={membershipClass} validUntil={validUntil} layout={layout} onReady={onReady} scrollProgress={reduce ? undefined : progress} />
+                    </motion.div>
+                  )}
+                  <div className="ui-card-caption">
+                    <span className="ui-card-face-label">
+                      {showingBack ? (isArabic ? 'ظهر البطاقة' : 'Card back') : (isArabic ? 'وجه البطاقة' : 'Card front')}
+                    </span>
+                    {!reduce && <span className="ui-card-progress" aria-hidden="true"><motion.span style={{ scaleX: progress }} /></span>}
+                    <span className="ui-card-hint">
+                      <ThreeSixtyRoundedIcon />
+                      {reduce
+                        ? (isArabic ? 'اسحب لتدوير البطاقة، أو اضغط لقلبها' : 'Drag to rotate, tap to flip')
+                        : (isArabic ? 'مرّر لأسفل لقلب البطاقة، أو اسحبها لتدويرها' : 'Scroll to flip the card, or drag to rotate')}
+                    </span>
+                  </div>
+                </div>
+              </section>
             </div>
-          </section>
+            {!reduce && (
+              <motion.div className="ui-scroll-cue" style={{ opacity: cueOpacity }} aria-hidden="true">
+                <KeyboardArrowDownRoundedIcon />
+              </motion.div>
+            )}
+          </div>
+        </section>
+
+        <div className="ui-container">
 
           <section className="ui-section">
             <Reveal className="ui-section-head">

@@ -35,7 +35,8 @@
   --ui-glow: 0 0 0 1px var(--ui-gold-line), 0 18px 50px rgba(216, 178, 106, 0.14);
   --ui-plate: #ffffff;
   --ui-emblem: url('/brand/rg-emblem-gold.png');
-  --ui-watermark: rgba(216, 178, 106, 0.075);
+  --ui-watermark: rgba(216, 178, 106, 0.2);
+  --ui-watermark-edge: rgba(0, 0, 0, 0.3);
   --ui-aurora-1: rgba(216, 178, 106, 0.16);
   --ui-aurora-2: rgba(120, 140, 190, 0.06);
   color-scheme: dark;
@@ -70,7 +71,8 @@
   --ui-glow: 0 0 0 1px var(--ui-gold-line), 0 18px 44px rgba(156, 116, 50, 0.14);
   --ui-plate: #ffffff;
   --ui-emblem: url('/brand/rg-emblem-deep.png');
-  --ui-watermark: rgba(22, 20, 15, 0.055);
+  --ui-watermark: rgba(22, 20, 15, 0.14);
+  --ui-watermark-edge: rgba(255, 255, 255, 0.4);
   --ui-aurora-1: rgba(201, 162, 92, 0.18);
   --ui-aurora-2: rgba(120, 110, 255, 0.07);
   color-scheme: light;
@@ -480,16 +482,19 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
   transform: rotate(-24deg);
   overflow: hidden;
 }
+/* Two-tone text (fill + contrasting outline) stays readable over light pages,
+   dark pages, white logo plates and the black card alike. */
 .ui-watermark span {
-  font: 700 26px/1 var(--ui-font-display);
-  letter-spacing: 0.18em;
+  font: 800 30px/1 var(--ui-font-display);
+  letter-spacing: 0.16em;
   color: var(--ui-watermark);
+  -webkit-text-stroke: 1px var(--ui-watermark-edge);
   white-space: nowrap;
 }
 .ui-watermark span:nth-child(even) { transform: translateX(60px); }
 @media (max-width: 760px) {
   .ui-watermark { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); grid-auto-rows: 96px; }
-  .ui-watermark span { font-size: 20px; }
+  .ui-watermark span { font-size: 22px; }
 }
 @media print { .ui-watermark span { color: rgba(0, 0, 0, 0.25); } }
 
@@ -612,13 +617,34 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
 }
 .ui-card-stage canvas { z-index: 1; cursor: grab; }
 .ui-card-stage canvas:active { cursor: grabbing; }
-.ui-card-hint { position: absolute; bottom: 4px; inset-inline: 0; text-align: center; font-size: 12.5px; color: var(--ui-muted); display: flex; justify-content: center; gap: 6px; align-items: center; z-index: 2; pointer-events: none; }
+.ui-card-caption { position: absolute; inset-inline: 0; bottom: 0; z-index: 2; display: grid; justify-items: center; gap: 8px; pointer-events: none; }
+.ui-card-face-label { font-family: var(--ui-font-display); font-size: 13px; font-weight: 600; color: var(--ui-gold); letter-spacing: 0.04em; }
+.ui-card-progress { width: 120px; height: 3px; border-radius: 99px; background: var(--ui-surface-3); overflow: hidden; }
+.ui-card-progress > span { display: block; height: 100%; background: var(--ui-gold-grad); transform-origin: left; }
+[dir='rtl'] .ui-card-progress > span { transform-origin: right; }
+.ui-card-hint { font-size: 12.5px; color: var(--ui-muted); display: flex; justify-content: center; gap: 6px; align-items: center; }
 .ui-card-hint svg { width: 16px; height: 16px; }
 
-/* 2D fallback card (no WebGL / reduced motion) */
-.ui-card-fallback { position: relative; z-index: 1; height: 100%; display: grid; place-items: center; perspective: 1400px; }
-.ui-card-fallback-inner { width: 88%; transition: transform 0.5s var(--ui-ease); transform-style: preserve-3d; border-radius: 4.5% / 7%; box-shadow: var(--ui-shadow-lg); overflow: hidden; }
-.ui-card-fallback-inner .rg-member-card, .ui-card-fallback-inner svg { display: block; width: 100%; height: auto; }
+/* Scroll story: the hero stays pinned while scrolling flips the card (desktop). */
+.ui-card-story { position: relative; height: 230vh; }
+.ui-card-story-sticky { position: sticky; top: var(--ui-header-h); height: calc(100vh - var(--ui-header-h)); height: calc(100dvh - var(--ui-header-h)); display: flex; flex-direction: column; justify-content: center; }
+.ui-card-story-sticky > .ui-container { width: min(var(--ui-max), 100% - 32px); }
+.ui-card-story.is-static { height: auto; }
+.ui-card-story.is-static .ui-card-story-sticky { position: static; height: auto; }
+/* Fixed to the viewport; it fades out as soon as scrolling starts. */
+.ui-scroll-cue { position: fixed; z-index: 30; pointer-events: none; bottom: 18px; left: 50%; transform: translateX(-50%); color: var(--ui-gold); animation: ui-bob 1.8s ease-in-out infinite; }
+.ui-scroll-cue svg { width: 30px; height: 30px; }
+@keyframes ui-bob { 50% { transform: translate(-50%, 8px); } }
+
+/* 2D card (no WebGL / while 3D loads): two faces flipped by the same scroll progress. */
+.ui-card-fallback { position: relative; z-index: 1; height: 100%; display: grid; place-items: center; perspective: 1600px; }
+.ui-card-fallback-inner { width: 88%; }
+.ui-flip { position: relative; transform-style: preserve-3d; }
+.ui-flip-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 4.5% / 7%; overflow: hidden; box-shadow: var(--ui-shadow-lg); }
+.ui-flip-face .rg-member-card, .ui-flip-face svg { display: block; width: 100%; height: auto; }
+.ui-flip-back { position: absolute; inset: 0; transform: rotateY(180deg); display: grid; place-content: center; justify-items: center; gap: 6%; background: radial-gradient(circle at 50% 45%, #1b1813, #060606); border: 1px solid rgba(216, 178, 106, 0.35); }
+.ui-flip-back-mark { width: 38%; aspect-ratio: 610 / 418; background: url('/brand/rg-emblem-gold.png') center / contain no-repeat; }
+.ui-flip-back-number { font: 700 clamp(14px, 2vw, 20px) Arial, sans-serif; letter-spacing: 0.3em; color: #d8b26a; direction: ltr; }
 
 .ui-section { margin-top: clamp(36px, 6vw, 72px); display: grid; gap: 20px; }
 .ui-section-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
@@ -649,9 +675,13 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
 [dir='ltr'] .ui-flip-ltr { transform: scaleX(-1); }
 
 @media (max-width: 900px) {
+  /* Phones: no pinning; the card flips as the page scrolls past it. */
+  .ui-card-story { height: auto; }
+  .ui-card-story-sticky { position: static; height: auto; }
+  .ui-scroll-cue { display: none; }
   .ui-member-hero { grid-template-columns: 1fr; min-height: 0; gap: 8px; }
   .ui-member-copy { order: 2; }
-  .ui-card-stage { order: 1; aspect-ratio: 1.25; }
+  .ui-card-stage { order: 1; aspect-ratio: 1.08; }
   .ui-action-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 520px) {
@@ -677,9 +707,17 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
 .ui-arrivals-viewport::-webkit-scrollbar { display: none; }
 .ui-arrivals-track { display: flex; width: max-content; }
 .ui-arrivals-group { display: flex; gap: 12px; padding-inline-end: 12px; }
-.ui-arrival { flex: 0 0 auto; width: 128px; height: 76px; border-radius: 14px; background: var(--ui-plate); display: grid; place-items: center; padding: 10px; border: 1px solid var(--ui-line); transition: transform 0.3s var(--ui-ease), box-shadow 0.3s; }
-.ui-arrival:hover { transform: translateY(-2px); box-shadow: var(--ui-glow); }
-.ui-arrival img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.ui-arrival { flex: 0 0 auto; width: 136px; height: 84px; perspective: 700px; display: block; }
+.ui-arrival-inner { position: relative; display: block; width: 100%; height: 100%; transform-style: preserve-3d; }
+.ui-arrival-face { position: absolute; inset: 0; display: grid; place-items: center; padding: 10px; border-radius: 14px; background: var(--ui-plate); border: 1px solid var(--ui-line); backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; }
+.ui-arrival-face img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.ui-arrival-back { transform: rotateY(180deg); background: radial-gradient(circle at 50% 35%, #1b1813, #070707); border-color: rgba(216, 178, 106, 0.4); align-content: center; gap: 4px; padding: 8px; }
+.ui-arrival-mark { width: 46px; aspect-ratio: 610 / 418; background: url('/brand/rg-emblem-gold.png') center / contain no-repeat; }
+.ui-arrival-name { max-width: 100%; color: #f2dba4; font-size: 11.5px; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Hovered tile keeps spinning while the ticker is paused. */
+.ui-arrival:hover .ui-arrival-inner, .ui-arrival:focus-visible .ui-arrival-inner { animation: ui-arrival-spin 2.8s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+.ui-arrival:hover .ui-arrival-face { box-shadow: var(--ui-glow); }
+@keyframes ui-arrival-spin { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
 
 /* Filter bar */
 .ui-filters { position: sticky; top: calc(var(--ui-header-h) + 10px); z-index: 30; margin-top: 18px; padding: 12px; display: grid; gap: 12px; border-radius: var(--ui-radius-lg); }
@@ -702,7 +740,7 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
   .ui-stat { justify-items: start; text-align: start; grid-auto-flow: column; align-items: baseline; justify-content: start; gap: 8px; }
   .ui-arrivals { grid-template-columns: 1fr; }
   .ui-arrivals-label { border-inline-end: 0; border-bottom: 1px solid var(--ui-line); padding: 10px 16px; grid-auto-flow: column; justify-content: start; gap: 10px; align-items: baseline; min-width: 0; }
-  .ui-arrival { width: 104px; height: 64px; }
+  .ui-arrival { width: 112px; height: 70px; }
   .ui-filters { position: relative; top: 0; }
   .ui-select { height: 44px; font-size: 13.5px; }
 }
