@@ -183,6 +183,9 @@
 .rg-admin-header-actions > .MuiButton-root { flex: 1 1 168px; }
 .rg-admin-bulk-actions > .MuiButton-root { flex: 0 1 auto; }
 .rg-admin-directory-header { margin-bottom: 4px; }
+/* Header action buttons keep their label on one line ("Export", "All cards PDF"); the row wraps instead. */
+.rg-admin-directory-header .MuiButton-root, .rg-admin-header-actions .MuiButton-root { white-space: nowrap; flex-shrink: 0; }
+.rg-admin-directory-header .MuiStack-root:has(> .MuiButton-root) { flex-wrap: wrap; }
 .rg-admin-pagination { margin-top: 24px !important; }
 .rg-admin-pagination .MuiPagination-ul { flex-wrap: wrap; justify-content: center; row-gap: 7px; }
 
