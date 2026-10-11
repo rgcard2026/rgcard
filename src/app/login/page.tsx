@@ -11,6 +11,7 @@ import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
 import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
 import QrCode2RoundedIcon from '@mui/icons-material/QrCode2Rounded';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
+import { AnimatePresence, motion } from 'framer-motion';
 import AuthLayout from '@/components/ui/AuthLayout';
 import { useUiPreferences } from '@/components/UiPreferences';
 import { useSupportLink } from '@/components/ui/useSupportLink';
@@ -32,6 +33,7 @@ export default function LoginPage() {
   const [error, setError] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
+  const [signedIn, setSignedIn] = React.useState(false);
   const [banner, setBanner] = React.useState(defaultBanner);
   const supportLink = useSupportLink(idNumber);
 
@@ -68,6 +70,7 @@ export default function LoginPage() {
         setLoading(false);
         return setError(responseBody.message || (isArabic ? 'بيانات الدخول غير صحيحة' : 'Invalid sign-in details'));
       }
+      setSignedIn(true);
       router.push(responseBody.redirectTo || '/valid');
     } catch {
       setLoading(false);
@@ -123,6 +126,14 @@ export default function LoginPage() {
           {!loading && <ArrowBackRoundedIcon className="ui-flip-ltr" />}
         </button>
       </form>
+      <AnimatePresence>
+        {signedIn && (
+          <motion.div className="ui-welcome" role="status" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }}>
+            <motion.span className="ui-welcome-mark" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }} />
+            <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>{isArabic ? 'مرحبًا بعودتك' : 'Welcome back'}</motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </AuthLayout>
   );
 }

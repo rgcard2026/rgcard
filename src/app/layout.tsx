@@ -4,8 +4,18 @@ import './globals.css';
 import '../styles/ui.css';
 
 export const metadata: Metadata = {
-  title: 'RG-Card',
-  description: 'RG-Card discounts and offers membership web app'
+  title: { default: 'RG-Card', template: '%s · RG-Card' },
+  description: 'RG-Card — عضوية الامتيازات والخصومات الحصرية',
+  applicationName: 'RG-Card',
+  appleWebApp: { capable: true, title: 'RG-Card', statusBarStyle: 'black-translucent' },
+  openGraph: {
+    title: 'RG-Card',
+    description: 'عضوية الامتيازات والخصومات الحصرية',
+    images: [{ url: '/brand/rg-icon-512.png', width: 512, height: 512 }],
+    locale: 'ar_EG',
+    type: 'website'
+  },
+  robots: { index: false, follow: false }
 };
 
 export const viewport: Viewport = {

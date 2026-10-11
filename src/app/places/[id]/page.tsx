@@ -3,6 +3,11 @@ import PlaceDetailsClient from '@/components/PlaceDetailsClient';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/session';
 
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  const place = await prisma.place.findFirst({ where: { id: Number(params.id), isActive: true }, select: { name: true } });
+  return { title: place?.name || 'تفاصيل المكان' };
+}
+
 export default async function PlaceDetails({ params }: { params: { id: string } }) {
   const session = await getSession('user');
   if (!session) redirect('/login');

@@ -172,9 +172,8 @@ export default function UiPreferencesProvider({ children }: { children: React.Re
         <ThemeProvider theme={theme}>
           <CssBaseline />
           {ready ? children : (
-            <div className="rg-app-boot" role="status" aria-live="polite" aria-busy="true">
-              <span className="rg-app-boot-spinner" aria-hidden="true" />
-              <span>RG-Card</span>
+            <div className="rg-app-boot" role="status" aria-live="polite" aria-busy="true" aria-label="RG-Card">
+              <span className="ui-loader-mark" aria-hidden="true" />
             </div>
           )}
         </ThemeProvider>

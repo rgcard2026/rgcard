@@ -8,6 +8,7 @@ import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import TravelExploreRoundedIcon from '@mui/icons-material/TravelExploreRounded';
 import PublicShell from '@/components/PublicShell';
+import CountUp from '@/components/ui/CountUp';
 import { useUiPreferences } from '@/components/UiPreferences';
 
 type AnyItem = Record<string, any>;
@@ -396,7 +397,7 @@ export default function OffersPage() {
               <p className="ui-lead">{isArabic ? 'ابحث بالاسم أو العنوان أو أي تفصيلة، ثم افتح المكان لترى الخصم والفروع.' : 'Search by name, address or any detail, then open a place to see its discount and branches.'}</p>
             </div>
             <div className="ui-stat">
-              <strong>{loading ? '—' : places.length}</strong>
+              <strong>{loading ? '—' : <CountUp value={places.length} />}</strong>
               <span>{isArabic ? 'مكان وعرض متاح' : 'places & offers'}</span>
             </div>
           </motion.header>

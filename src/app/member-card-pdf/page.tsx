@@ -3,6 +3,8 @@ import PublicShell from '@/components/PublicShell';
 import PdfPreview from '@/components/PdfPreview';
 import { getSession } from '@/lib/session';
 
+export const metadata = { title: 'نسخة PDF' };
+
 export default async function MemberCardPdfPage() {
   const session = await getSession('user');
   if (!session) redirect('/login');

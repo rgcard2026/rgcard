@@ -781,14 +781,6 @@ html[data-theme="dark"] .rg-theme-toggle { border-color: rgba(255,255,255,.2); }
   --rg-touch-target: 44px;
 }
 
-/* One quiet route transition is used across public and admin navigation. */
-#\__next, body > div:first-child { transition: opacity var(--rg-motion-fast) ease, transform var(--rg-motion-fast) ease; }
-html.rg-route-is-changing #\__next,
-html.rg-route-is-changing body > div:first-child { opacity: .72; transform: translateY(2px); }
-@media (prefers-reduced-motion: reduce) {
-  #\__next, body > div:first-child, html.rg-route-is-changing #\__next, html.rg-route-is-changing body > div:first-child { transition: none !important; transform: none !important; }
-}
-
 /* Interactive elements always provide hover/press feedback without scaling logos beyond their source quality. */
 .rg-admin-shell button,
 .rg-admin-shell a.rg-admin-nav-button,
@@ -1235,27 +1227,13 @@ small {
 }
 
 /* v3.9.66 — hydration-safe admin actions, complete dark mode and live card settings preview */
+/* First-paint splash while UI preferences load (emblem styled in ui.css). */
 .rg-app-boot {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  background: #fcfcfa;
-  color: #111827;
-  font-family: "IBM Plex Sans Arabic", "Segoe UI", Arial, sans-serif;
-  font-size: 18px;
-  font-weight: 900;
 }
-.rg-app-boot-spinner {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 3px solid rgba(46,82,242,.18);
-  border-top-color: #2e52f2;
-  animation: rg-app-boot-spin .75s linear infinite;
-}
-@keyframes rg-app-boot-spin { to { transform: rotate(360deg); } }
 
 /* Explicitly keep interactive controls clickable after drawers and dialogs close. */
 .rg-admin-shell {
@@ -1303,7 +1281,6 @@ html[data-theme="dark"] {
   --rg-input-bg: #111827 !important;
   color-scheme: dark;
 }
-html[data-theme="dark"] .rg-app-boot,
 html[data-theme="dark"] body,
 html[data-theme="dark"] #__next,
 html[data-theme="dark"] .rg-admin-shell,
