@@ -39,7 +39,7 @@ export default function PlaceDetailsClient({ cardNumber, place, discount, hasCus
             {isArabic ? 'كل الأماكن' : 'All places'}
           </Link>
 
-          <Reveal className="ui-panel ui-hairline-top ui-place-hero">
+          <Reveal className="ui-panel ui-hairline-top ui-place-hero ui-box">
             <div className="ui-place-logo">
               {place.logoUrl && !logoFailed
                 ? <img src={place.logoUrl} alt={place.name} onError={() => setLogoFailed(true)} />

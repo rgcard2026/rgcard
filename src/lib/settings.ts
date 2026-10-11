@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
 import { CARD_TEMPLATE } from "./card-layout";
+import { DESIGN_DEFAULTS } from "./design-defaults";
 import { decryptValue, encryptValue } from "./vault";
 
 const DEFAULT_WHATSAPP_NUMBER =
@@ -12,76 +13,6 @@ const DEFAULT_CARD_TEMPLATE_URL =
 const WEBHOOK_URL_KEY = "securityAlertWebhookUrlEnc";
 const WEBHOOK_TOKEN_KEY = "securityAlertWebhookTokenEnc";
 const EMAIL_TO_KEY = "securityAlertEmailToEnc";
-
-const DESIGN_DEFAULTS = {
-  designPrimaryColor: "#1E9A96",
-  designSecondaryColor: "#2E52F2",
-  designAccentColor: "#53A69A",
-  designBackgroundColor: "#FFFFFF",
-  designSurfaceColor: "#FFFFFF",
-  designTextColor: "#101319",
-  designMutedTextColor: "#5F6875",
-  designButtonTextColor: "#FFFFFF",
-  designInputBackgroundColor: "#FFFFFF",
-  designSuccessColor: "#16864A",
-  designDangerColor: "#D93939",
-  designFontFamily: "IBM Plex Sans Arabic",
-  designHeadingFontFamily: "IBM Plex Sans Arabic",
-  designButtonFontFamily: "IBM Plex Sans Arabic",
-  designFontWeight: 700,
-  designHeadingWeight: 900,
-  designButtonWeight: 800,
-  designFontStyle: "normal",
-  designHeadingStyle: "normal",
-  designButtonStyle: "normal",
-  designBodyFontSize: 16,
-  designH1FontSize: 38,
-  designH2FontSize: 30,
-  designH3FontSize: 24,
-  designCardTitleFontSize: 19,
-  designButtonFontSize: 15,
-  designInputFontSize: 15,
-  designNavFontSize: 15,
-  designCaptionFontSize: 12,
-  designLineHeightPercent: 170,
-  designLetterSpacing: 0,
-  designButtonRadius: 14,
-  designCardRadius: 24,
-  designInputRadius: 14,
-  designButtonShadow: 14,
-  designButtonPaddingX: 18,
-  designPlaceLogoScale: 100,
-  designCardOpacity: 100,
-  designCardWidth: 0,
-  designCardHeight: 0,
-  designBoxOpacity: 100,
-  designBoxWidth: 0,
-  designBoxHeight: 0,
-  designFieldOpacity: 100,
-  designFieldWidth: 0,
-  designFieldHeight: 0,
-  designButtonOpacity: 100,
-  designButtonWidth: 0,
-  designButtonHeight: 0,
-  designBackgroundImageUrl: "",
-  designBackgroundImageEnabled: false,
-  designBackgroundSize: "cover",
-  designBackgroundOverlay: 12,
-  designLoginBannerTitle: "RG-Card",
-  designLoginBannerSubtitleAr: "برنامج الخصومات والعروض",
-  designLoginBannerSubtitleEn: "Discounts & offers membership",
-  designLoginBannerLogo: "♛",
-  designLoginBannerShowLogo: true,
-  designLoginBannerStartColor: "#168B8A",
-  designLoginBannerEndColor: "#2847D4",
-  designLoginBannerTextColor: "#FFFFFF",
-  designLoginBannerHeight: 304,
-  designLoginBannerRadius: 72,
-  designLoginBannerOpacity: 100,
-  designLoginBannerContentAlign: "center",
-  designLoginBannerImageUrl: "",
-  designLoginBannerImageEnabled: false,
-};
 
 function cleanHexColor(value: unknown, fallback: string) {
   const raw = String(value || "").trim();

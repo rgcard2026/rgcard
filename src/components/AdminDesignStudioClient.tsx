@@ -30,75 +30,10 @@ import { applyDesignSettings } from './DesignThemeRuntime';
 import { TRANSLATION_KEYS, DEFAULT_COPY } from './UiPreferences';
 import MemberCard from './MemberCard';
 import { CARD_TEMPLATE, type CardRenderLayout } from '@/lib/card-layout';
+import { DESIGN_DEFAULTS } from '@/lib/design-defaults';
 
 const defaults = {
-  designPrimaryColor: '#1E9A96',
-  designSecondaryColor: '#2E52F2',
-  designAccentColor: '#53A69A',
-  designBackgroundColor: '#FFFFFF',
-  designSurfaceColor: '#FFFFFF',
-  designTextColor: '#101319',
-  designMutedTextColor: '#5F6875',
-  designButtonTextColor: '#FFFFFF',
-  designInputBackgroundColor: '#FFFFFF',
-  designSuccessColor: '#16864A',
-  designDangerColor: '#D93939',
-  designFontFamily: 'IBM Plex Sans Arabic',
-  designHeadingFontFamily: 'IBM Plex Sans Arabic',
-  designButtonFontFamily: 'IBM Plex Sans Arabic',
-  designFontWeight: 700,
-  designHeadingWeight: 900,
-  designButtonWeight: 800,
-  designFontStyle: 'normal',
-  designHeadingStyle: 'normal',
-  designButtonStyle: 'normal',
-  designBodyFontSize: 16,
-  designH1FontSize: 38,
-  designH2FontSize: 30,
-  designH3FontSize: 24,
-  designCardTitleFontSize: 19,
-  designButtonFontSize: 15,
-  designInputFontSize: 15,
-  designNavFontSize: 15,
-  designCaptionFontSize: 12,
-  designLineHeightPercent: 170,
-  designLetterSpacing: 0,
-  designButtonRadius: 14,
-  designCardRadius: 24,
-  designInputRadius: 14,
-  designButtonShadow: 14,
-  designButtonPaddingX: 18,
-  designPlaceLogoScale: 100,
-  designBackgroundImageUrl: '',
-  designBackgroundImageEnabled: false,
-  designBackgroundSize: 'cover',
-  designBackgroundOverlay: 12,
-  designLoginBannerTitle: 'RG-Card',
-  designLoginBannerSubtitleAr: 'برنامج الخصومات والعروض',
-  designLoginBannerSubtitleEn: 'Discounts & offers membership',
-  designLoginBannerLogo: '♛',
-  designLoginBannerShowLogo: true,
-  designLoginBannerStartColor: '#168B8A',
-  designLoginBannerEndColor: '#2847D4',
-  designLoginBannerTextColor: '#FFFFFF',
-  designLoginBannerHeight: 304,
-  designLoginBannerRadius: 72,
-  designLoginBannerOpacity: 100,
-  designLoginBannerContentAlign: 'center',
-  designLoginBannerImageUrl: '',
-  designLoginBannerImageEnabled: false,
-  designCardOpacity: 100,
-  designCardWidth: 0,
-  designCardHeight: 0,
-  designBoxOpacity: 100,
-  designBoxWidth: 0,
-  designBoxHeight: 0,
-  designFieldOpacity: 100,
-  designFieldWidth: 0,
-  designFieldHeight: 0,
-  designButtonOpacity: 100,
-  designButtonWidth: 0,
-  designButtonHeight: 0,
+  ...DESIGN_DEFAULTS,
   cardCanvasWidth: CARD_TEMPLATE.width,
   cardCanvasHeight: CARD_TEMPLATE.height,
   cardTemplateUrl: CARD_TEMPLATE.templateUrl || '/card-template.png',
@@ -188,13 +123,13 @@ function RangeField({
   onChange: (value: number) => void;
 }) {
   return (
-    <Box>
+    <div>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography fontWeight={850}>{label}</Typography>
         <Typography color="text.secondary" fontWeight={800}>{value}{suffix}</Typography>
       </Stack>
       <Slider value={value} min={min} max={max} step={step} onChange={(_, next) => onChange(Number(next))} />
-    </Box>
+    </div>
   );
 }
 
@@ -706,7 +641,7 @@ export default function AdminDesignStudioClient() {
           <Typography color="text.secondary" fontSize={13} sx={{ mb: 1.5 }}>
             عدّل أي نص في الواجهة باللغتين. اترك الحقل فارغًا لاستخدام النص الافتراضي. تظهر التعديلات مباشرة بعد الحفظ.
           </Typography>
-          <Box sx={{ maxHeight: 420, overflowY: 'auto', pr: 1 }}>
+          <div style={{ maxHeight: 420, overflowY: 'auto', paddingInlineEnd: 8 }}>
             <Grid container spacing={1.5}>
               {TRANSLATION_KEYS.map((key) => (
                 <React.Fragment key={key}>
@@ -720,7 +655,7 @@ export default function AdminDesignStudioClient() {
                 </React.Fragment>
               ))}
             </Grid>
-          </Box>
+          </div>
         </CardContent>
       </Card>
 

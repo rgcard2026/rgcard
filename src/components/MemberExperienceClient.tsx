@@ -62,7 +62,7 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
       <main className="ui-main">
         <div className="ui-container">
           <section className="ui-member-hero">
-            <div className="ui-member-copy">
+            <div className="ui-member-copy ui-box">
               <motion.span className="ui-chip ui-chip--success" style={{ width: 'fit-content' }} {...fade(0.05)}>
                 <span className="ui-dot ui-dot--pulse" />
                 {t('activeMembership')}

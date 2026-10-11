@@ -20,7 +20,9 @@ const enableLoginEncryption = process.env.NEXT_PUBLIC_ENABLE_LOGIN_ENCRYPTION ==
 const defaultBanner = {
   designLoginBannerTitle: 'RG-Card',
   designLoginBannerSubtitleAr: 'برنامج الخصومات والعروض',
-  designLoginBannerSubtitleEn: 'Discounts & offers membership'
+  designLoginBannerSubtitleEn: 'Discounts & offers membership',
+  designLoginBannerShowLogo: true,
+  designLoginBannerContentAlign: 'start' as 'start' | 'center' | 'end'
 };
 
 export default function LoginPage() {
@@ -91,6 +93,8 @@ export default function LoginPage() {
       subtitle={isArabic ? 'ادخل رقم البطاقة أو الرقم التعريفي وكلمة المرور.' : 'Enter your card number or ID with your password.'}
       brandTitle={banner.designLoginBannerTitle || 'RG-Card'}
       brandSubtitle={isArabic ? banner.designLoginBannerSubtitleAr : banner.designLoginBannerSubtitleEn}
+      align={banner.designLoginBannerContentAlign}
+      showLogo={banner.designLoginBannerShowLogo}
       footer={footer}
     >
       <form className="ui-auth-form" onSubmit={submit} noValidate={false}>

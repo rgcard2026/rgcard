@@ -386,7 +386,7 @@ export default function OffersPage() {
       <main className="ui-main">
         <div className="ui-container">
           <motion.header
-            className="ui-catalog-head"
+            className="ui-catalog-head ui-box"
             initial={reduce ? false : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
