@@ -5031,3 +5031,135 @@ html[data-theme="dark"] .rg-place-category-chip-v41 {
 .rg-place-card-v23 { min-height: 196px; }
 .rg-place-card-link-v23 { transition: transform .16s ease; }
 .rg-place-card-link-v23:hover { transform: translateY(-4px); }
+
+/* Design Studio component sizing and transparency controls. */
+.MuiCard-root {
+  opacity: var(--rg-ui-card-opacity, 1);
+}
+.rg-design-studio-editor-card {
+  opacity: 1 !important;
+}
+
+html[data-rg-card-width="custom"] .MuiCard-root:not(.rg-design-studio-editor-card) {
+  width: var(--rg-ui-card-width) !important;
+  max-width: 100%;
+  margin-inline: auto;
+}
+html[data-rg-card-height="custom"] .MuiCard-root:not(.rg-design-studio-editor-card) {
+  height: var(--rg-ui-card-height) !important;
+}
+
+.rg-admin-hero,
+.rg-design-preview-surface,
+.rg-card-story-copy {
+  opacity: var(--rg-ui-box-opacity, 1);
+}
+html[data-rg-box-width="custom"] .rg-admin-hero,
+html[data-rg-box-width="custom"] .rg-design-preview-surface,
+html[data-rg-box-width="custom"] .rg-card-story-copy {
+  width: var(--rg-ui-box-width) !important;
+  max-width: 100%;
+  margin-inline: auto;
+}
+html[data-rg-box-height="custom"] .rg-admin-hero,
+html[data-rg-box-height="custom"] .rg-design-preview-surface,
+html[data-rg-box-height="custom"] .rg-card-story-copy {
+  height: var(--rg-ui-box-height) !important;
+}
+
+html[data-rg-field-width="custom"] .MuiTextField-root {
+  width: var(--rg-ui-field-width) !important;
+  max-width: 100%;
+}
+.rg-design-studio-editor-card .MuiTextField-root {
+  width: 100% !important;
+}
+
+.MuiOutlinedInput-root,
+.MuiInputBase-root {
+  opacity: var(--rg-ui-field-opacity, 1);
+}
+.rg-design-studio-editor-card .MuiOutlinedInput-root,
+.rg-design-studio-editor-card .MuiInputBase-root {
+  opacity: 1;
+}
+html[data-rg-field-height="custom"] .MuiOutlinedInput-root,
+html[data-rg-field-height="custom"] .MuiInputBase-root {
+  height: var(--rg-ui-field-height);
+}
+.rg-design-studio-editor-card .MuiOutlinedInput-root,
+.rg-design-studio-editor-card .MuiInputBase-root {
+  height: auto !important;
+}
+
+.MuiButton-root {
+  opacity: var(--rg-ui-button-opacity, 1);
+}
+.rg-design-studio-editor-card .MuiButton-root {
+  opacity: 1 !important;
+  width: auto !important;
+  height: auto !important;
+}
+html[data-rg-button-width="custom"] .MuiButton-root {
+  width: var(--rg-ui-button-width);
+}
+html[data-rg-button-height="custom"] .MuiButton-root {
+  height: var(--rg-ui-button-height);
+}
+
+.rg-login-hero,
+.rg-login-hero-preview {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: var(--rg-login-banner-height, 304px);
+  padding-block: 24px;
+  color: var(--rg-login-banner-text, #fff);
+  border-bottom-left-radius: var(--rg-login-banner-radius, 72px);
+  border-bottom-right-radius: var(--rg-login-banner-radius, 72px);
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--rg-login-banner-start, #168b8a), var(--rg-login-banner-end, #2847d4));
+}
+.rg-login-hero {
+  background: transparent !important;
+  color: var(--rg-login-banner-text, #fff) !important;
+}
+
+.rg-login-hero::before,
+.rg-login-hero-preview::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: var(--rg-login-banner-opacity, 1);
+  background-image:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--rg-login-banner-start, #168b8a) 88%, transparent),
+      color-mix(in srgb, var(--rg-login-banner-end, #2847d4) 88%, transparent)
+    ),
+    var(--rg-login-banner-image, none),
+    linear-gradient(135deg, var(--rg-login-banner-start, #168b8a), var(--rg-login-banner-end, #2847d4));
+  background-size: cover;
+  background-position: center;
+}
+
+.rg-login-hero .rg-brand-title,
+.rg-login-hero .rg-brand-subtitle,
+.rg-login-hero-preview .rg-brand-title,
+.rg-login-hero-preview .rg-brand-subtitle {
+  color: var(--rg-login-banner-text, #fff) !important;
+}
+
+.rg-login-hero .MuiContainer-root,
+.rg-login-hero-preview .MuiContainer-root {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+.rg-login-hero-preview .rg-crown-mark {
+  flex: 0 0 auto;
+}

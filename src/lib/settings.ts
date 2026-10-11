@@ -51,10 +51,36 @@ const DESIGN_DEFAULTS = {
   designButtonShadow: 14,
   designButtonPaddingX: 18,
   designPlaceLogoScale: 100,
+  designCardOpacity: 100,
+  designCardWidth: 0,
+  designCardHeight: 0,
+  designBoxOpacity: 100,
+  designBoxWidth: 0,
+  designBoxHeight: 0,
+  designFieldOpacity: 100,
+  designFieldWidth: 0,
+  designFieldHeight: 0,
+  designButtonOpacity: 100,
+  designButtonWidth: 0,
+  designButtonHeight: 0,
   designBackgroundImageUrl: "",
   designBackgroundImageEnabled: false,
   designBackgroundSize: "cover",
   designBackgroundOverlay: 12,
+  designLoginBannerTitle: "RG-Card",
+  designLoginBannerSubtitleAr: "برنامج الخصومات والعروض",
+  designLoginBannerSubtitleEn: "Discounts & offers membership",
+  designLoginBannerLogo: "♛",
+  designLoginBannerShowLogo: true,
+  designLoginBannerStartColor: "#168B8A",
+  designLoginBannerEndColor: "#2847D4",
+  designLoginBannerTextColor: "#FFFFFF",
+  designLoginBannerHeight: 304,
+  designLoginBannerRadius: 72,
+  designLoginBannerOpacity: 100,
+  designLoginBannerContentAlign: "center",
+  designLoginBannerImageUrl: "",
+  designLoginBannerImageEnabled: false,
 };
 
 function cleanHexColor(value: unknown, fallback: string) {
@@ -97,6 +123,16 @@ function cleanDesignFont(value: unknown, fallback = DESIGN_DEFAULTS.designFontFa
 function cleanBackgroundImageUrl(value: unknown) {
   const raw = String(value || "").trim();
   return raw.startsWith("/uploads/design-background/") ? raw : "";
+}
+
+function cleanLoginBannerImageUrl(value: unknown) {
+  const raw = String(value || "").trim();
+  return raw.startsWith("/uploads/design-login-banner/") ? raw : "";
+}
+
+function cleanText(value: unknown, fallback: string, maxLength: number) {
+  const text = String(value ?? "").replace(/[\r\n]+/g, " ").trim().slice(0, maxLength);
+  return text || fallback;
 }
 
 // UI text overrides let an admin rename buttons / labels per language without a
@@ -251,6 +287,18 @@ function designSettingsFromMap(map: Record<string, string>) {
     designButtonShadow: intSetting(map.designButtonShadow, DESIGN_DEFAULTS.designButtonShadow, 0, 40),
     designButtonPaddingX: intSetting(map.designButtonPaddingX, DESIGN_DEFAULTS.designButtonPaddingX, 8, 40),
     designPlaceLogoScale: intSetting(map.designPlaceLogoScale, DESIGN_DEFAULTS.designPlaceLogoScale, 60, 180),
+    designCardOpacity: intSetting(map.designCardOpacity, DESIGN_DEFAULTS.designCardOpacity, 0, 100),
+    designCardWidth: intSetting(map.designCardWidth, DESIGN_DEFAULTS.designCardWidth, 0, 100),
+    designCardHeight: intSetting(map.designCardHeight, DESIGN_DEFAULTS.designCardHeight, 0, 800),
+    designBoxOpacity: intSetting(map.designBoxOpacity, DESIGN_DEFAULTS.designBoxOpacity, 0, 100),
+    designBoxWidth: intSetting(map.designBoxWidth, DESIGN_DEFAULTS.designBoxWidth, 0, 100),
+    designBoxHeight: intSetting(map.designBoxHeight, DESIGN_DEFAULTS.designBoxHeight, 0, 800),
+    designFieldOpacity: intSetting(map.designFieldOpacity, DESIGN_DEFAULTS.designFieldOpacity, 0, 100),
+    designFieldWidth: intSetting(map.designFieldWidth, DESIGN_DEFAULTS.designFieldWidth, 0, 100),
+    designFieldHeight: intSetting(map.designFieldHeight, DESIGN_DEFAULTS.designFieldHeight, 0, 100),
+    designButtonOpacity: intSetting(map.designButtonOpacity, DESIGN_DEFAULTS.designButtonOpacity, 0, 100),
+    designButtonWidth: intSetting(map.designButtonWidth, DESIGN_DEFAULTS.designButtonWidth, 0, 100),
+    designButtonHeight: intSetting(map.designButtonHeight, DESIGN_DEFAULTS.designButtonHeight, 0, 100),
     designBackgroundImageUrl: cleanBackgroundImageUrl(
       map.designBackgroundImageUrl,
     ),
@@ -269,6 +317,22 @@ function designSettingsFromMap(map: Record<string, string>) {
       0,
       90,
     ),
+    designLoginBannerTitle: cleanText(map.designLoginBannerTitle, DESIGN_DEFAULTS.designLoginBannerTitle, 60),
+    designLoginBannerSubtitleAr: cleanText(map.designLoginBannerSubtitleAr, DESIGN_DEFAULTS.designLoginBannerSubtitleAr, 120),
+    designLoginBannerSubtitleEn: cleanText(map.designLoginBannerSubtitleEn, DESIGN_DEFAULTS.designLoginBannerSubtitleEn, 120),
+    designLoginBannerLogo: cleanText(map.designLoginBannerLogo, DESIGN_DEFAULTS.designLoginBannerLogo, 4),
+    designLoginBannerShowLogo: boolSetting(map.designLoginBannerShowLogo, DESIGN_DEFAULTS.designLoginBannerShowLogo),
+    designLoginBannerStartColor: cleanHexColor(map.designLoginBannerStartColor, DESIGN_DEFAULTS.designLoginBannerStartColor),
+    designLoginBannerEndColor: cleanHexColor(map.designLoginBannerEndColor, DESIGN_DEFAULTS.designLoginBannerEndColor),
+    designLoginBannerTextColor: cleanHexColor(map.designLoginBannerTextColor, DESIGN_DEFAULTS.designLoginBannerTextColor),
+    designLoginBannerHeight: intSetting(map.designLoginBannerHeight, DESIGN_DEFAULTS.designLoginBannerHeight, 120, 700),
+    designLoginBannerRadius: intSetting(map.designLoginBannerRadius, DESIGN_DEFAULTS.designLoginBannerRadius, 0, 180),
+    designLoginBannerOpacity: intSetting(map.designLoginBannerOpacity, DESIGN_DEFAULTS.designLoginBannerOpacity, 0, 100),
+    designLoginBannerContentAlign: ["start", "center", "end"].includes(map.designLoginBannerContentAlign || "")
+      ? map.designLoginBannerContentAlign
+      : DESIGN_DEFAULTS.designLoginBannerContentAlign,
+    designLoginBannerImageUrl: cleanLoginBannerImageUrl(map.designLoginBannerImageUrl),
+    designLoginBannerImageEnabled: boolSetting(map.designLoginBannerImageEnabled, false),
   };
 }
 
@@ -472,22 +536,47 @@ export async function getCardRenderSettings() {
   const map = await getSettingMap();
   return {
     ...CARD_TEMPLATE,
+    width: intSetting(map.cardCanvasWidth, CARD_TEMPLATE.width, 600, 2400),
+    height: intSetting(map.cardCanvasHeight, CARD_TEMPLATE.height, 400, 1600),
     templateUrl: cleanCardTemplateUrl(map.cardTemplateUrl),
+    templateOpacity: intSetting(map.cardTemplateOpacity, 100, 0, 100) / 100,
     qr: {
-      x: intSetting(map.cardQrX, CARD_TEMPLATE.qr.x, 900, 1350),
-      y: intSetting(map.cardQrY, CARD_TEMPLATE.qr.y, 330, 670),
-      size: intSetting(map.cardQrSize, CARD_TEMPLATE.qr.size, 120, 330),
+      x: intSetting(map.cardQrX, CARD_TEMPLATE.qr.x, 0, 2400),
+      y: intSetting(map.cardQrY, CARD_TEMPLATE.qr.y, 0, 1600),
+      size: intSetting(map.cardQrSize, CARD_TEMPLATE.qr.size, 60, 600),
+      opacity: intSetting(map.cardQrOpacity, 100, 0, 100) / 100,
+    },
+    id: {
+      ...CARD_TEMPLATE.id,
+      x: intSetting(map.cardIdX, CARD_TEMPLATE.id.x, 0, 2400),
+      y: intSetting(map.cardIdY, CARD_TEMPLATE.id.y, 0, 1600),
+      width: intSetting(map.cardIdWidth, CARD_TEMPLATE.id.width, 40, 1200),
+      height: intSetting(map.cardIdHeight, CARD_TEMPLATE.id.height, 20, 400),
+      fontSize: intSetting(map.cardIdFontSize, CARD_TEMPLATE.id.fontSize, 8, 120),
+      opacity: intSetting(map.cardIdOpacity, 100, 0, 100) / 100,
+    },
+    membershipClass: {
+      ...CARD_TEMPLATE.membershipClass,
+      x: intSetting(map.cardMembershipX, CARD_TEMPLATE.membershipClass.x, 0, 2400),
+      y: intSetting(map.cardMembershipY, CARD_TEMPLATE.membershipClass.y, 0, 1600),
+      width: intSetting(map.cardMembershipWidth, CARD_TEMPLATE.membershipClass.width, 40, 1200),
+      height: intSetting(map.cardMembershipHeight, CARD_TEMPLATE.membershipClass.height, 20, 400),
+      fontSize: intSetting(map.cardMembershipFontSize, CARD_TEMPLATE.membershipClass.fontSize, 8, 120),
+      opacity: intSetting(map.cardMembershipOpacity, 100, 0, 100) / 100,
     },
     expiry: {
       ...CARD_TEMPLATE.expiry,
-      x: intSetting(map.cardExpiryX, CARD_TEMPLATE.expiry.x, 20, 520),
-      y: intSetting(map.cardExpiryY, CARD_TEMPLATE.expiry.y, 770, 930),
+      x: intSetting(map.cardExpiryX, CARD_TEMPLATE.expiry.x, 0, 2400),
+      y: intSetting(map.cardExpiryY, CARD_TEMPLATE.expiry.y, 0, 1600),
+      width: intSetting(map.cardExpiryWidth, CARD_TEMPLATE.expiry.width, 40, 1200),
+      height: intSetting(map.cardExpiryHeight, CARD_TEMPLATE.expiry.height, 20, 400),
       fontSize: intSetting(
         map.cardExpiryFontSize,
         CARD_TEMPLATE.expiry.fontSize,
-        12,
-        42,
+        8,
+        120,
       ),
+      opacity: intSetting(map.cardExpiryOpacity, 100, 0, 100) / 100,
     },
   };
 }
@@ -501,12 +590,31 @@ export async function getAdminSettings() {
   return {
     ...publicSettings,
     cardTemplateUrl: cardLayout.templateUrl,
+    cardCanvasWidth: cardLayout.width,
+    cardCanvasHeight: cardLayout.height,
+    cardTemplateOpacity: Math.round((cardLayout.templateOpacity ?? 1) * 100),
     cardQrX: cardLayout.qr.x,
     cardQrY: cardLayout.qr.y,
     cardQrSize: cardLayout.qr.size,
+    cardQrOpacity: Math.round((cardLayout.qr.opacity ?? 1) * 100),
+    cardIdX: cardLayout.id.x,
+    cardIdY: cardLayout.id.y,
+    cardIdWidth: cardLayout.id.width,
+    cardIdHeight: cardLayout.id.height,
+    cardIdFontSize: cardLayout.id.fontSize,
+    cardIdOpacity: Math.round((cardLayout.id.opacity ?? 1) * 100),
+    cardMembershipX: cardLayout.membershipClass.x,
+    cardMembershipY: cardLayout.membershipClass.y,
+    cardMembershipWidth: cardLayout.membershipClass.width,
+    cardMembershipHeight: cardLayout.membershipClass.height,
+    cardMembershipFontSize: cardLayout.membershipClass.fontSize,
+    cardMembershipOpacity: Math.round((cardLayout.membershipClass.opacity ?? 1) * 100),
     cardExpiryX: cardLayout.expiry.x,
     cardExpiryY: cardLayout.expiry.y,
+    cardExpiryWidth: cardLayout.expiry.width,
+    cardExpiryHeight: cardLayout.expiry.height,
     cardExpiryFontSize: cardLayout.expiry.fontSize,
+    cardExpiryOpacity: Math.round((cardLayout.expiry.opacity ?? 1) * 100),
     sessionMinutes: sessionMinutesFromMap(map),
     securityAlertEnabled: boolSetting(map.securityAlertEnabled, false),
     securityAlertCooldownMinutes: intSetting(
@@ -539,12 +647,31 @@ export async function getAdminSettings() {
 type AdminSettingInput = {
   whatsappNumber?: string;
   whatsappMessage?: string;
+  cardCanvasWidth?: unknown;
+  cardCanvasHeight?: unknown;
+  cardTemplateOpacity?: unknown;
   cardQrX?: unknown;
   cardQrY?: unknown;
   cardQrSize?: unknown;
+  cardQrOpacity?: unknown;
+  cardIdX?: unknown;
+  cardIdY?: unknown;
+  cardIdWidth?: unknown;
+  cardIdHeight?: unknown;
+  cardIdFontSize?: unknown;
+  cardIdOpacity?: unknown;
+  cardMembershipX?: unknown;
+  cardMembershipY?: unknown;
+  cardMembershipWidth?: unknown;
+  cardMembershipHeight?: unknown;
+  cardMembershipFontSize?: unknown;
+  cardMembershipOpacity?: unknown;
   cardExpiryX?: unknown;
   cardExpiryY?: unknown;
+  cardExpiryWidth?: unknown;
+  cardExpiryHeight?: unknown;
   cardExpiryFontSize?: unknown;
+  cardExpiryOpacity?: unknown;
   sessionMinutes?: unknown;
   securityAlertEnabled?: unknown;
   securityAlertCooldownMinutes?: unknown;
@@ -588,11 +715,37 @@ type AdminSettingInput = {
   designButtonShadow?: unknown;
   designButtonPaddingX?: unknown;
   designPlaceLogoScale?: unknown;
+  designCardOpacity?: unknown;
+  designCardWidth?: unknown;
+  designCardHeight?: unknown;
+  designBoxOpacity?: unknown;
+  designBoxWidth?: unknown;
+  designBoxHeight?: unknown;
+  designFieldOpacity?: unknown;
+  designFieldWidth?: unknown;
+  designFieldHeight?: unknown;
+  designButtonOpacity?: unknown;
+  designButtonWidth?: unknown;
+  designButtonHeight?: unknown;
   uiTextOverrides?: unknown;
   designBackgroundImageUrl?: unknown;
   designBackgroundImageEnabled?: unknown;
   designBackgroundSize?: unknown;
   designBackgroundOverlay?: unknown;
+  designLoginBannerTitle?: unknown;
+  designLoginBannerSubtitleAr?: unknown;
+  designLoginBannerSubtitleEn?: unknown;
+  designLoginBannerLogo?: unknown;
+  designLoginBannerShowLogo?: unknown;
+  designLoginBannerStartColor?: unknown;
+  designLoginBannerEndColor?: unknown;
+  designLoginBannerTextColor?: unknown;
+  designLoginBannerHeight?: unknown;
+  designLoginBannerRadius?: unknown;
+  designLoginBannerOpacity?: unknown;
+  designLoginBannerContentAlign?: unknown;
+  designLoginBannerImageUrl?: unknown;
+  designLoginBannerImageEnabled?: unknown;
 };
 
 export async function saveAdminSettings(values: AdminSettingInput) {
@@ -607,32 +760,73 @@ export async function saveAdminSettings(values: AdminSettingInput) {
       key: "whatsappMessage",
       value: cleanWhatsAppMessage(values.whatsappMessage),
     });
+  const cardIntegerFields: Array<[keyof AdminSettingInput, string, number, number, number]> = [
+    ["cardCanvasWidth", "cardCanvasWidth", CARD_TEMPLATE.width, 600, 2400],
+    ["cardCanvasHeight", "cardCanvasHeight", CARD_TEMPLATE.height, 400, 1600],
+    ["cardIdX", "cardIdX", CARD_TEMPLATE.id.x, 0, 2400],
+    ["cardIdY", "cardIdY", CARD_TEMPLATE.id.y, 0, 1600],
+    ["cardIdWidth", "cardIdWidth", CARD_TEMPLATE.id.width, 40, 1200],
+    ["cardIdHeight", "cardIdHeight", CARD_TEMPLATE.id.height, 20, 400],
+    ["cardIdFontSize", "cardIdFontSize", CARD_TEMPLATE.id.fontSize, 8, 120],
+    ["cardMembershipX", "cardMembershipX", CARD_TEMPLATE.membershipClass.x, 0, 2400],
+    ["cardMembershipY", "cardMembershipY", CARD_TEMPLATE.membershipClass.y, 0, 1600],
+    ["cardMembershipWidth", "cardMembershipWidth", CARD_TEMPLATE.membershipClass.width, 40, 1200],
+    ["cardMembershipHeight", "cardMembershipHeight", CARD_TEMPLATE.membershipClass.height, 20, 400],
+    ["cardMembershipFontSize", "cardMembershipFontSize", CARD_TEMPLATE.membershipClass.fontSize, 8, 120],
+    ["cardExpiryWidth", "cardExpiryWidth", CARD_TEMPLATE.expiry.width, 40, 1200],
+    ["cardExpiryHeight", "cardExpiryHeight", CARD_TEMPLATE.expiry.height, 20, 400],
+  ];
+  for (const [inputKey, storageKey, fallback, min, max] of cardIntegerFields) {
+    const value = values[inputKey];
+    if (value !== undefined) {
+      updates.push({
+        key: storageKey,
+        value: String(intSetting(String(value), fallback, min, max)),
+      });
+    }
+  }
+  const cardOpacityFields: Array<[keyof AdminSettingInput, string]> = [
+    ["cardTemplateOpacity", "cardTemplateOpacity"],
+    ["cardQrOpacity", "cardQrOpacity"],
+    ["cardIdOpacity", "cardIdOpacity"],
+    ["cardMembershipOpacity", "cardMembershipOpacity"],
+    ["cardExpiryOpacity", "cardExpiryOpacity"],
+  ];
+  for (const [inputKey, storageKey] of cardOpacityFields) {
+    const value = values[inputKey];
+    if (value !== undefined) {
+      updates.push({
+        key: storageKey,
+        value: String(intSetting(String(value), 100, 0, 100)),
+      });
+    }
+  }
   if (values.cardQrX !== undefined)
     updates.push({
       key: "cardQrX",
       value: String(
-        intSetting(String(values.cardQrX), CARD_TEMPLATE.qr.x, 900, 1350),
+        intSetting(String(values.cardQrX), CARD_TEMPLATE.qr.x, 0, 2400),
       ),
     });
   if (values.cardQrY !== undefined)
     updates.push({
       key: "cardQrY",
       value: String(
-        intSetting(String(values.cardQrY), CARD_TEMPLATE.qr.y, 330, 670),
+        intSetting(String(values.cardQrY), CARD_TEMPLATE.qr.y, 0, 1600),
       ),
     });
   if (values.cardQrSize !== undefined)
     updates.push({
       key: "cardQrSize",
       value: String(
-        intSetting(String(values.cardQrSize), CARD_TEMPLATE.qr.size, 120, 330),
+        intSetting(String(values.cardQrSize), CARD_TEMPLATE.qr.size, 60, 600),
       ),
     });
   if (values.cardExpiryX !== undefined)
     updates.push({
       key: "cardExpiryX",
       value: String(
-        intSetting(String(values.cardExpiryX), CARD_TEMPLATE.expiry.x, 20, 520),
+        intSetting(String(values.cardExpiryX), CARD_TEMPLATE.expiry.x, 0, 2400),
       ),
     });
   if (values.cardExpiryY !== undefined)
@@ -642,8 +836,8 @@ export async function saveAdminSettings(values: AdminSettingInput) {
         intSetting(
           String(values.cardExpiryY),
           CARD_TEMPLATE.expiry.y,
-          770,
-          930,
+          0,
+          1600,
         ),
       ),
     });
@@ -654,8 +848,8 @@ export async function saveAdminSettings(values: AdminSettingInput) {
         intSetting(
           String(values.cardExpiryFontSize),
           CARD_TEMPLATE.expiry.fontSize,
-          12,
-          42,
+          8,
+          120,
         ),
       ),
     });
@@ -825,6 +1019,72 @@ export async function saveAdminSettings(values: AdminSettingInput) {
     updates.push({ key: "designButtonPaddingX", value: String(intSetting(String(values.designButtonPaddingX), DESIGN_DEFAULTS.designButtonPaddingX, 8, 40)) });
   if (values.designPlaceLogoScale !== undefined)
     updates.push({ key: "designPlaceLogoScale", value: String(intSetting(String(values.designPlaceLogoScale), DESIGN_DEFAULTS.designPlaceLogoScale, 60, 180)) });
+  const designLayoutFields: Array<[keyof typeof DESIGN_DEFAULTS, unknown, number, number]> = [
+    ["designCardOpacity", values.designCardOpacity, 0, 100],
+    ["designCardWidth", values.designCardWidth, 0, 100],
+    ["designCardHeight", values.designCardHeight, 0, 800],
+    ["designBoxOpacity", values.designBoxOpacity, 0, 100],
+    ["designBoxWidth", values.designBoxWidth, 0, 100],
+    ["designBoxHeight", values.designBoxHeight, 0, 800],
+    ["designFieldOpacity", values.designFieldOpacity, 0, 100],
+    ["designFieldWidth", values.designFieldWidth, 0, 100],
+    ["designFieldHeight", values.designFieldHeight, 0, 100],
+    ["designButtonOpacity", values.designButtonOpacity, 0, 100],
+    ["designButtonWidth", values.designButtonWidth, 0, 100],
+    ["designButtonHeight", values.designButtonHeight, 0, 100],
+  ];
+  for (const [key, value, min, max] of designLayoutFields) {
+    if (value !== undefined) {
+      updates.push({
+        key,
+        value: String(intSetting(String(value), Number(DESIGN_DEFAULTS[key]), min, max)),
+      });
+    }
+    const loginBannerTextFields: Array<[keyof AdminSettingInput, string, string, number]> = [
+      ["designLoginBannerTitle", "designLoginBannerTitle", DESIGN_DEFAULTS.designLoginBannerTitle, 60],
+      ["designLoginBannerSubtitleAr", "designLoginBannerSubtitleAr", DESIGN_DEFAULTS.designLoginBannerSubtitleAr, 120],
+      ["designLoginBannerSubtitleEn", "designLoginBannerSubtitleEn", DESIGN_DEFAULTS.designLoginBannerSubtitleEn, 120],
+      ["designLoginBannerLogo", "designLoginBannerLogo", DESIGN_DEFAULTS.designLoginBannerLogo, 4],
+    ];
+    for (const [inputKey, storageKey, fallback, maxLength] of loginBannerTextFields) {
+      const value = values[inputKey];
+      if (value !== undefined) updates.push({ key: storageKey, value: cleanText(value, fallback, maxLength) });
+    }
+    const loginBannerColors: Array<[keyof AdminSettingInput, string]> = [
+      ["designLoginBannerStartColor", "designLoginBannerStartColor"],
+      ["designLoginBannerEndColor", "designLoginBannerEndColor"],
+      ["designLoginBannerTextColor", "designLoginBannerTextColor"],
+    ];
+    for (const [inputKey, storageKey] of loginBannerColors) {
+      const value = values[inputKey];
+      if (value !== undefined) {
+        const fallback = DESIGN_DEFAULTS[storageKey as keyof typeof DESIGN_DEFAULTS] as string;
+        updates.push({ key: storageKey, value: cleanHexColor(value, fallback) });
+      }
+    }
+    const loginBannerNumberFields: Array<[keyof AdminSettingInput, string, number, number, number]> = [
+      ["designLoginBannerHeight", "designLoginBannerHeight", DESIGN_DEFAULTS.designLoginBannerHeight, 120, 700],
+      ["designLoginBannerRadius", "designLoginBannerRadius", DESIGN_DEFAULTS.designLoginBannerRadius, 0, 180],
+      ["designLoginBannerOpacity", "designLoginBannerOpacity", DESIGN_DEFAULTS.designLoginBannerOpacity, 0, 100],
+    ];
+    for (const [inputKey, storageKey, fallback, min, max] of loginBannerNumberFields) {
+      const value = values[inputKey];
+      if (value !== undefined) updates.push({ key: storageKey, value: String(intSetting(String(value), fallback, min, max)) });
+    }
+    if (values.designLoginBannerShowLogo !== undefined)
+      updates.push({ key: "designLoginBannerShowLogo", value: boolSetting(String(values.designLoginBannerShowLogo), true) ? "true" : "false" });
+    if (values.designLoginBannerImageEnabled !== undefined)
+      updates.push({ key: "designLoginBannerImageEnabled", value: boolSetting(String(values.designLoginBannerImageEnabled), false) ? "true" : "false" });
+    if (values.designLoginBannerImageUrl !== undefined)
+      updates.push({ key: "designLoginBannerImageUrl", value: cleanLoginBannerImageUrl(values.designLoginBannerImageUrl) });
+    if (values.designLoginBannerContentAlign !== undefined)
+      updates.push({
+        key: "designLoginBannerContentAlign",
+        value: ["start", "center", "end"].includes(String(values.designLoginBannerContentAlign))
+          ? String(values.designLoginBannerContentAlign)
+          : DESIGN_DEFAULTS.designLoginBannerContentAlign,
+      });
+  }
   if (values.uiTextOverrides !== undefined)
     updates.push({ key: "uiTextOverrides", value: cleanUiTextOverrides(values.uiTextOverrides) });
   if (values.designBackgroundImageUrl !== undefined)

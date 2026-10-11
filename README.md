@@ -62,16 +62,42 @@ Mona Test,555777999,Welcome@123,no
 
 The system creates a unique random 6-digit card number for every row.
 
-## Railway persistent SQLite option
+## Deploy to Railway
 
-Create a Railway Volume mounted at `/data`, then set:
+The repository includes a Railway configuration and Dockerfile. Railway builds the
+Dockerfile and starts the app with the persistent-storage startup script.
 
-```env
-DATABASE_URL=file:/data/dev.db
-NEXT_PUBLIC_WHATSAPP_NUMBER=201000033494
-```
+1. Push this repository to GitHub and create a Railway project using **Deploy from
+   GitHub Repo**.
+2. In the app service, add a Railway Volume mounted at `/data`. The app stores its
+   SQLite database at `/data/rg-card.db` and uploaded files at `/data/uploads`.
+   Keep this Volume attached to the service across deployments.
+3. Add these variables in **Service → Variables**. Use new, independently
+   generated secrets; do not copy values from `.env.example` or commit `.env`.
 
-The Dockerfile initializes the DB on first start only if `/data/dev.db` does not exist.
+   ```env
+   AUTH_SECRET=<unique-long-random-secret>
+   SESSION_SECRET=<different-unique-long-random-secret>
+   DATA_ENCRYPTION_SECRET=<unique-random-secret-at-least-32-characters>
+   ```
+
+   Keep `DATA_ENCRYPTION_SECRET` unchanged after the app has stored encrypted
+   data. The Docker image configures the database and upload paths for `/data`.
+4. Deploy, then use **Settings → Networking → Generate Domain** to create a public
+   URL. Set `RG_CARD_PUBLIC_URL` to that complete HTTPS URL in **Service → Variables**.
+   This is used in QR codes and generated card PDFs; do not use Railway's internal
+   container address.
+5. Wait for the deployment health check to pass, then open `<your-domain>/login`
+   (admin login: `<your-domain>/admin/login`). Change the seeded admin password
+   immediately if using the default seed data.
+
+The startup script initializes the database on first launch and runs Prisma schema
+updates on later launches. Do not run the seed command against an existing
+production database. Back up the Railway Volume regularly; it contains the
+database and uploaded files.
+
+For instructions on transferring an existing local database and uploads, see
+[the Railway deployment guide](./docs/v3.9.36-railway-ready.md).
 
 
 ## v16 QR alignment note
@@ -100,4 +126,6 @@ The security alert webhook can be configured from `/admin/security-alerts`; the 
 
 ## v3.9.36 Railway deployment
 
-This release is Railway-ready. Read `docs/v3.9.36-railway-ready.md` before deploying. Attach one Volume at `/data`; the production database is `/data/rg-card.db` and uploads are `/data/uploads`.
+The production database is `/data/rg-card.db` and uploads are `/data/uploads`.
+See [Deploy to Railway](#deploy-to-railway) and
+[the Railway deployment guide](./docs/v3.9.36-railway-ready.md).

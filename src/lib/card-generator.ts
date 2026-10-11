@@ -20,20 +20,20 @@ function fitTextSize(font: any, text: string, maxWidth: number, preferredSize: n
   return size;
 }
 
-function drawCenteredTextInBox(page: any, font: any, text: string, box: { x: number; y: number; width: number; height: number; fontSize: number }, pageHeight: number, options?: { letterSpacing?: number }) {
+function drawCenteredTextInBox(page: any, font: any, text: string, box: { x: number; y: number; width: number; height: number; fontSize: number; opacity?: number }, pageHeight: number, options?: { letterSpacing?: number }) {
   const fontSize = fitTextSize(font, text, box.width - 28, box.fontSize);
   const textWidth = font.widthOfTextAtSize(text, fontSize);
   const textHeight = font.heightAtSize(fontSize);
   const textX = box.x + (box.width - textWidth) / 2;
   const textY = pageHeight - box.y - ((box.height - textHeight) / 2) - textHeight + 4;
-  page.drawText(text, { x: textX, y: textY, size: fontSize, font, color: rgb(0.96, 0.78, 0.42), characterSpacing: options?.letterSpacing || 0 });
+  page.drawText(text, { x: textX, y: textY, size: fontSize, font, color: rgb(0.96, 0.78, 0.42), characterSpacing: options?.letterSpacing || 0, opacity: box.opacity ?? 1 });
 }
 
-function drawLeftTextInBox(page: any, font: any, text: string, box: { x: number; y: number; width: number; height: number; fontSize: number }, pageHeight: number) {
+function drawLeftTextInBox(page: any, font: any, text: string, box: { x: number; y: number; width: number; height: number; fontSize: number; opacity?: number }, pageHeight: number) {
   const fontSize = fitTextSize(font, text, box.width, box.fontSize);
   const textHeight = font.heightAtSize(fontSize);
   const textY = pageHeight - box.y - ((box.height - textHeight) / 2) - textHeight + 4;
-  page.drawText(text, { x: box.x, y: textY, size: fontSize, font, color: rgb(0.96, 0.78, 0.42) });
+  page.drawText(text, { x: box.x, y: textY, size: fontSize, font, color: rgb(0.96, 0.78, 0.42), opacity: box.opacity ?? 1 });
 }
 
 export async function drawMemberCardPage(
@@ -59,10 +59,10 @@ export async function drawMemberCardPage(
   const qr = await pdf.embedPng(qrBytes);
   const page = pdf.addPage([tpl.width, tpl.height]);
 
-  page.drawImage(image, { x: 0, y: 0, width: tpl.width, height: tpl.height });
+  page.drawImage(image, { x: 0, y: 0, width: tpl.width, height: tpl.height, opacity: tpl.templateOpacity ?? 1 });
 
   const qrY = tpl.height - tpl.qr.y - tpl.qr.size;
-  page.drawImage(qr, { x: tpl.qr.x, y: qrY, width: tpl.qr.size, height: tpl.qr.size });
+  page.drawImage(qr, { x: tpl.qr.x, y: qrY, width: tpl.qr.size, height: tpl.qr.size, opacity: tpl.qr.opacity ?? 1 });
 
   const font = await pdf.embedFont(StandardFonts.HelveticaBold);
   drawCenteredTextInBox(page, font, `ID NO.${cardNumber}`, tpl.id, tpl.height, { letterSpacing: 1.5 });

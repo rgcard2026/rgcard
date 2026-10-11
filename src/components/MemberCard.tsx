@@ -23,18 +23,18 @@ export default function MemberCard({ cardNumber, qrSrc = '/api/member-card/qr', 
   const expiryCenterY = tpl.expiry.y + tpl.expiry.height / 2;
 
   return (
-    <Box className={`rg-member-card ${className || ''}`.trim()}>
-      <svg className="rg-member-card-svg" viewBox={`0 0 ${tpl.width} ${tpl.height}`} role="img" aria-label={`RG-Card ${cardNumber}`} preserveAspectRatio="xMidYMid meet">
+    <Box className={`rg-member-card ${className || ''}`.trim()} style={{ aspectRatio: `${tpl.width} / ${tpl.height}` }}>
+      <svg className="rg-member-card-svg" viewBox={`0 0 ${tpl.width} ${tpl.height}`} role="img" aria-label={`RG-Card ${cardNumber}`} preserveAspectRatio="xMidYMid meet" style={{ aspectRatio: `${tpl.width} / ${tpl.height}` }}>
         <defs>
           <clipPath id="rgQrClip">
             <rect x={tpl.qr.x} y={tpl.qr.y} width={tpl.qr.size} height={tpl.qr.size} rx="0" ry="0" />
           </clipPath>
         </defs>
-        <image href={templateUrl} x="0" y="0" width={tpl.width} height={tpl.height} preserveAspectRatio="none" />
-        <image href={qrSrc} x={tpl.qr.x} y={tpl.qr.y} width={tpl.qr.size} height={tpl.qr.size} preserveAspectRatio="none" clipPath="url(#rgQrClip)" />
-        <text x={idCenterX} y={idCenterY} textAnchor="middle" dominantBaseline="middle" direction="ltr" unicodeBidi="bidi-override" fontFamily="Arial, Helvetica, sans-serif" fontSize={tpl.id.fontSize} fontWeight="900" letterSpacing="2.4" fill="#f2c15f" stroke="rgba(0,0,0,.35)" strokeWidth="1" paintOrder="stroke fill">{idText}</text>
-        {classText && <text x={tpl.membershipClass.x} y={classCenterY} dominantBaseline="middle" direction="ltr" unicodeBidi="bidi-override" fontFamily="Arial, Helvetica, sans-serif" fontSize={tpl.membershipClass.fontSize} fontWeight="900" fill="#f2c15f" stroke="rgba(0,0,0,.45)" strokeWidth="1" paintOrder="stroke fill">{classText}</text>}
-        {expiryText && <text x={tpl.expiry.x} y={expiryCenterY} dominantBaseline="middle" direction="ltr" unicodeBidi="bidi-override" fontFamily="Arial, Helvetica, sans-serif" fontSize={tpl.expiry.fontSize} fontWeight="900" letterSpacing="1.2" fill="#f2c15f" stroke="rgba(0,0,0,.40)" strokeWidth="1" paintOrder="stroke fill">{expiryText}</text>}
+        <image href={templateUrl} x="0" y="0" width={tpl.width} height={tpl.height} opacity={tpl.templateOpacity ?? 1} preserveAspectRatio="none" />
+        <image href={qrSrc} x={tpl.qr.x} y={tpl.qr.y} width={tpl.qr.size} height={tpl.qr.size} opacity={tpl.qr.opacity ?? 1} preserveAspectRatio="none" clipPath="url(#rgQrClip)" />
+        <text x={idCenterX} y={idCenterY} textAnchor="middle" dominantBaseline="middle" direction="ltr" unicodeBidi="bidi-override" fontFamily="Arial, Helvetica, sans-serif" fontSize={tpl.id.fontSize} fontWeight="900" letterSpacing="2.4" fill="#f2c15f" stroke="rgba(0,0,0,.35)" strokeWidth="1" opacity={tpl.id.opacity ?? 1} paintOrder="stroke fill">{idText}</text>
+        {classText && <text x={tpl.membershipClass.x} y={classCenterY} dominantBaseline="middle" direction="ltr" unicodeBidi="bidi-override" fontFamily="Arial, Helvetica, sans-serif" fontSize={tpl.membershipClass.fontSize} fontWeight="900" fill="#f2c15f" stroke="rgba(0,0,0,.45)" strokeWidth="1" opacity={tpl.membershipClass.opacity ?? 1} paintOrder="stroke fill">{classText}</text>}
+        {expiryText && <text x={tpl.expiry.x} y={expiryCenterY} dominantBaseline="middle" direction="ltr" unicodeBidi="bidi-override" fontFamily="Arial, Helvetica, sans-serif" fontSize={tpl.expiry.fontSize} fontWeight="900" letterSpacing="1.2" fill="#f2c15f" stroke="rgba(0,0,0,.40)" strokeWidth="1" opacity={tpl.expiry.opacity ?? 1} paintOrder="stroke fill">{expiryText}</text>}
       </svg>
     </Box>
   );
