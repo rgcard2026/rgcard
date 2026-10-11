@@ -588,7 +588,7 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   align-items: center;
   gap: clamp(20px, 4vw, 56px);
-  min-height: min(640px, calc(100vh - var(--ui-header-h) - 40px));
+  min-height: min(560px, calc(100vh - var(--ui-header-h) - 60px));
 }
 .ui-member-copy { display: grid; gap: 22px; align-content: center; }
 .ui-member-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--ui-line); border: 1px solid var(--ui-line); border-radius: var(--ui-radius); overflow: hidden; }
@@ -625,10 +625,14 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
 .ui-card-hint { font-size: 12.5px; color: var(--ui-muted); display: flex; justify-content: center; gap: 6px; align-items: center; }
 .ui-card-hint svg { width: 16px; height: 16px; }
 
-/* Scroll story: the hero stays pinned while scrolling flips the card (desktop). */
-.ui-card-story { position: relative; height: 230vh; }
-.ui-card-story-sticky { position: sticky; top: var(--ui-header-h); height: calc(100vh - var(--ui-header-h)); height: calc(100dvh - var(--ui-header-h)); display: flex; flex-direction: column; justify-content: center; }
+/* Scroll story (desktop): the hero is pinned just below the header at its natural height,
+   and the spacer after it provides the scroll distance over which the card flips. */
+.ui-card-story { position: relative; }
+.ui-card-story-sticky { position: sticky; top: var(--ui-header-h); padding-block: clamp(10px, 2.5vh, 28px); }
 .ui-card-story-sticky > .ui-container { width: min(var(--ui-max), 100% - 32px); }
+.ui-card-story-spacer { height: 80vh; }
+.ui-main:has(> .ui-card-story) { padding-top: 0; }
+.ui-card-story + .ui-container > .ui-section:first-child { margin-top: clamp(8px, 1.5vw, 20px); }
 /* Fixed to the viewport; it fades out as soon as scrolling starts. */
 .ui-scroll-cue { position: fixed; z-index: 30; pointer-events: none; bottom: 18px; left: 50%; transform: translateX(-50%); color: var(--ui-gold); animation: ui-bob 1.8s ease-in-out infinite; }
 .ui-scroll-cue svg { width: 30px; height: 30px; }
@@ -675,8 +679,10 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
 
 @media (max-width: 900px) {
   /* Phones: no pinning; the card flips as the page scrolls past it. */
-  .ui-card-story { height: auto; }
-  .ui-card-story-sticky { position: static; height: auto; }
+  .ui-card-story-sticky { position: static; padding-block: 0; }
+  .ui-card-story-spacer { display: none; }
+  .ui-main:has(> .ui-card-story) { padding-top: clamp(20px, 4vw, 44px); }
+  .ui-card-story + .ui-container > .ui-section:first-child { margin-top: clamp(36px, 6vw, 72px); }
   .ui-scroll-cue { display: none; }
   .ui-member-hero { grid-template-columns: 1fr; min-height: 0; gap: 8px; }
   .ui-member-copy { order: 2; }

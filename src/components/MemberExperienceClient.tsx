@@ -58,9 +58,26 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
     mq.addEventListener('change', update);
     return () => mq.removeEventListener('change', update);
   }, []);
-  const { scrollYProgress } = useScroll({ target: storyRef, offset: ['start start', 'end end'] });
+  // Desktop progress runs exactly while the hero is pinned: from the moment the story reaches the
+  // header until the spacer below it has been scrolled through.
+  const spacerRef = React.useRef<HTMLDivElement | null>(null);
+  const pinRange = React.useRef({ start: 0, distance: 1 });
+  React.useEffect(() => {
+    const measure = () => {
+      const story = storyRef.current;
+      const spacer = spacerRef.current;
+      if (!story || !spacer) return;
+      const header = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui-header-h')) || 68;
+      pinRange.current = { start: Math.max(0, story.getBoundingClientRect().top + window.scrollY - header), distance: Math.max(1, spacer.offsetHeight) };
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    if (storyRef.current) observer.observe(storyRef.current);
+    window.addEventListener('resize', measure);
+    return () => { observer.disconnect(); window.removeEventListener('resize', measure); };
+  }, []);
   const { scrollY } = useScroll();
-  const pinnedProgress = useTransform(scrollYProgress, [0.04, 0.92], [0, 1], { clamp: true });
+  const pinnedProgress = useTransform(scrollY, (y) => Math.min(1, Math.max(0, (y - pinRange.current.start) / pinRange.current.distance)));
   const freeProgress = useTransform(scrollY, [20, 220], [0, 1], { clamp: true });
   const pinnedSpring = useSpring(pinnedProgress, { stiffness: 140, damping: 26, mass: 0.6 });
   const freeSpring = useSpring(freeProgress, { stiffness: 140, damping: 26, mass: 0.6 });
@@ -156,6 +173,7 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
               <KeyboardArrowDownRoundedIcon />
             </motion.div>
           </div>
+          <div ref={spacerRef} className="ui-card-story-spacer" aria-hidden="true" />
         </section>
 
         <div className="ui-container">
