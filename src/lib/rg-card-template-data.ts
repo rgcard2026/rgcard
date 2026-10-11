@@ -1707,5 +1707,3 @@ export const RG_CARD_TEMPLATE_PLACES: RgCardTemplatePlace[] = [
     "logoUrl": "/rg-card-template-logos/image1.png"
   }
 ];
-
-export const RG_CARD_TEMPLATE_SUMMARY = { places: 167, categories: 22, logos: 167 } as const;
