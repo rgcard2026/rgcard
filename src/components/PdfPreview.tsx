@@ -1,12 +1,17 @@
 'use client';
 
 import * as React from 'react';
-import { Alert, Box, Button, Card, CardContent, Stack, Typography } from '@mui/material';
-import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
+import Link from 'next/link';
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
+import { useUiPreferences } from './UiPreferences';
 
 export default function PdfPreview() {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
-  const [status, setStatus] = React.useState('جاري تحميل PDF.js...');
+  const [state, setState] = React.useState<'loading' | 'ready' | 'error'>('loading');
+  const { language } = useUiPreferences();
+  const isArabic = language === 'ar';
 
   React.useEffect(() => {
     let cancelled = false;
@@ -18,7 +23,7 @@ export default function PdfPreview() {
         pdfjs.GlobalWorkerOptions.workerSrc = worker;
         const pdf = await pdfjs.getDocument('/api/member-card/pdf').promise;
         const page = await pdf.getPage(1);
-        const viewport = page.getViewport({ scale: 1.05 });
+        const viewport = page.getViewport({ scale: 1.6 });
         const canvas = canvasRef.current;
         if (!canvas || cancelled) return;
         const ctx = canvas.getContext('2d');
@@ -26,9 +31,9 @@ export default function PdfPreview() {
         canvas.width = viewport.width;
         canvas.height = viewport.height;
         await page.render({ canvasContext: ctx, viewport }).promise;
-        setStatus('تم عرض الكارت الخاص بالمستخدم باستخدام PDF.js');
-      } catch (e) {
-        setStatus('تعذر تحميل الكارت، تأكد من تسجيل الدخول ومن تشغيل API الخاص بالكارت.');
+        if (!cancelled) setState('ready');
+      } catch {
+        if (!cancelled) setState('error');
       }
     }
     renderPdf();
@@ -36,18 +41,23 @@ export default function PdfPreview() {
   }, []);
 
   return (
-    <Card sx={{ border: '1px solid rgba(20,184,166,.22)' }}>
-      <CardContent sx={{ p: 3 }}>
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-          <PictureAsPdfRoundedIcon color="error" />
-          <Typography variant="h5" fontWeight={900}>PDF.js Preview</Typography>
-        </Stack>
-        <Alert severity="info" sx={{ mb: 2 }}>{status}</Alert>
-        <Box sx={{ overflow: 'auto', bgcolor: '#111827', borderRadius: 4, p: 2, border: '1px solid rgba(15,23,42,.08)' }}>
-          <canvas ref={canvasRef} style={{ maxWidth: '100%', height: 'auto', display: 'block', margin: '0 auto' }} />
-        </Box>
-        <Button href="/api/member-card/pdf" target="_blank" variant="contained" sx={{ mt: 2 }}>فتح ملف PDF</Button>
-      </CardContent>
-    </Card>
+    <section>
+      <Link href="/valid" className="ui-back">
+        <ArrowForwardRoundedIcon className="ui-flip-ltr" />
+        {isArabic ? 'بطاقتي' : 'My card'}
+      </Link>
+      <div className="ui-section-head">
+        <div style={{ display: 'grid', gap: 8 }}>
+          <span className="ui-eyebrow">PDF</span>
+          <h1 className="ui-h2">{isArabic ? 'نسخة البطاقة للطباعة' : 'Printable card copy'}</h1>
+        </div>
+        <a href="/api/member-card/pdf" target="_blank" rel="noopener noreferrer" className="ui-btn ui-btn--primary"><DownloadRoundedIcon />{isArabic ? 'فتح ملف PDF' : 'Open PDF file'}</a>
+      </div>
+      {state === 'error' && <div className="ui-alert ui-alert--error" style={{ marginTop: 16 }}><ErrorOutlineRoundedIcon />{isArabic ? 'تعذر تحميل البطاقة. تأكد من تسجيل الدخول وحاول مرة أخرى.' : 'Could not load your card. Make sure you are signed in and try again.'}</div>}
+      <div className="ui-pdf-frame">
+        {state === 'loading' && <div className="ui-skeleton" style={{ aspectRatio: '1.6', maxWidth: 760, margin: '0 auto' }} />}
+        <canvas ref={canvasRef} style={{ display: state === 'ready' ? 'block' : 'none' }} />
+      </div>
+    </section>
   );
 }

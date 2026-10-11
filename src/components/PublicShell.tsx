@@ -2,46 +2,30 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { AppBar, Box, Button, Container, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import { usePathname } from 'next/navigation';
+import { motion } from 'framer-motion';
+import CreditCardRoundedIcon from '@mui/icons-material/CreditCardRounded';
 import LocalOfferRoundedIcon from '@mui/icons-material/LocalOfferRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
-import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import ClientProtection from './ClientProtection';
-import UiControls from './UiControls';
+import PreferenceButtons from './ui/PreferenceButtons';
 import { useUiPreferences } from './UiPreferences';
-
-function buildWhatsAppMessage(template?: string, identifier?: string) {
-  const cleanId = (identifier || '').trim();
-  const base = template?.trim() || 'مرحبًا، أحتاج مساعدة بخصوص حساب RG-Card\nCard / ID: {{id}}';
-  return base
-    .replace(/{{\s*id\s*}}/gi, cleanId)
-    .replace(/{{\s*cardNumber\s*}}/gi, cleanId)
-    .replace(/{{\s*name\s*}}/gi, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-}
-
-function whatsappUrl(identifier?: string, supportNumber?: string, template?: string) {
-  const number = supportNumber || process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '201000033494';
-  return `https://wa.me/${number}?text=${encodeURIComponent(buildWhatsAppMessage(template, identifier))}`;
-}
+import { useSupportLink } from './ui/useSupportLink';
 
 type PendingLogoNavigation = { href: string; popup: Window | null };
 
 export default function PublicShell({ children, watermarkText, page = 'public' }: { children: React.ReactNode; watermarkText?: string; page?: string }) {
-  const [whatsappNumber, setWhatsappNumber] = React.useState(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '201000033494');
-  const [whatsappMessage, setWhatsappMessage] = React.useState('مرحبًا، أحتاج مساعدة بخصوص حساب RG-Card\nCard / ID: {{id}}');
   const [logoLoading, setLogoLoading] = React.useState(false);
   const pendingLogoNavigation = React.useRef<PendingLogoNavigation | null>(null);
   const navigationTimer = React.useRef<number | null>(null);
-  const { language, t } = useUiPreferences();
+  const pathname = usePathname() || '';
+  const { language, dir, t } = useUiPreferences();
+  const isArabic = language === 'ar';
+
+  const support = useSupportLink(watermarkText);
 
   React.useEffect(() => {
-    fetch('/api/settings').then((r) => r.json()).then((body) => {
-      if (body?.data?.whatsappNumber) setWhatsappNumber(body.data.whatsappNumber);
-      if (body?.data?.whatsappMessage) setWhatsappMessage(body.data.whatsappMessage);
-    }).catch(() => null);
     return () => {
       if (navigationTimer.current) window.clearTimeout(navigationTimer.current);
     };
@@ -52,6 +36,7 @@ export default function PublicShell({ children, watermarkText, page = 'public' }
     window.location.href = '/login';
   }
 
+  // Logo links show a short branded loader before navigating (existing behaviour).
   function handleLogoNavigation(event: React.MouseEvent<HTMLElement>) {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || logoLoading) return;
     const source = event.target as Element | null;
@@ -81,70 +66,79 @@ export default function PublicShell({ children, watermarkText, page = 'public' }
         return;
       }
       window.location.assign(pending.href);
-    }, 460);
+    }, 420);
   }
 
-  return (
-    <Box onClickCapture={handleLogoNavigation} className={`rg-public-shell rg-public-shell-${page}`} sx={{ minHeight: '100vh', bgcolor: 'background.default', position: 'relative' }}>
-      <ClientProtection watermarkText={watermarkText} page={page} />
-      <AppBar position="sticky" elevation={0} className="rg-topbar">
-        <ToolbarContainer>
-          <Link href="/valid" aria-label="RG-Card">
-            <Stack direction="row" alignItems="center" spacing={1.25}>
-              <Box className="rg-mini-crown">♛</Box>
-              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                <Typography fontWeight={950} fontSize={19} lineHeight={1}>RG-Card</Typography>
-                <Typography color="text.secondary" fontSize={12}>{language === 'ar' ? 'امتيازات وعروض مختارة' : 'Royal privileges & offers'}</Typography>
-              </Box>
-            </Stack>
-          </Link>
-          <Box sx={{ flex: 1 }} />
-          <UiControls compact />
-          <Tooltip title={t('whatsapp')}>
-            <IconButton component="a" href={whatsappUrl(watermarkText, whatsappNumber, whatsappMessage)} target="_blank" rel="noopener noreferrer" color="success" aria-label={t('whatsapp')}>
-              <WhatsAppIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={t('offers')}>
-            <Button component={Link} href="/offers" startIcon={<LocalOfferRoundedIcon />} variant="text" className="rg-nav-button rg-mobile-action">
-              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>{t('offers')}</Box>
-            </Button>
-          </Tooltip>
-          <Tooltip title={t('logout')}>
-            <Button onClick={logout} startIcon={<LogoutRoundedIcon />} variant="outlined" color="inherit" className="rg-logout-button rg-mobile-action">
-              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>{t('logout')}</Box>
-            </Button>
-          </Tooltip>
-        </ToolbarContainer>
-      </AppBar>
-      <Box className="rg-royal-banner">
-        <Container maxWidth="lg">
-          <Stack direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between" spacing={2}>
-            <Box>
-              <Typography className="rg-banner-kicker">RG-Card Royal Membership</Typography>
-              <Typography className="rg-banner-title">{language === 'ar' ? 'خصومات مختارة بتجربة راقية' : 'Curated privileges, delivered beautifully'}</Typography>
-            </Box>
-            <Typography className="rg-banner-copy">{language === 'ar' ? 'استخدم عضويتك للوصول للعروض الحصرية والفروع المعتمدة.' : 'Use your membership to access exclusive offers and verified branches.'}</Typography>
-          </Stack>
-        </Container>
-      </Box>
-      <Box sx={{ position: 'relative', zIndex: 1 }}>{children}</Box>
-      {logoLoading && (
-        <Box className="rg-logo-route-loader" role="status" aria-live="polite" aria-label={language === 'ar' ? 'جاري فتح التفاصيل' : 'Opening details'}>
-          <Box className="rg-logo-route-loader-card">
-            <Box className="rg-logo-route-loader-ring"><AutoAwesomeRoundedIcon /></Box>
-            <Typography className="rg-logo-route-loader-text">{language === 'ar' ? 'جاري تحميل التفاصيل...' : 'Loading details...'}</Typography>
-          </Box>
-        </Box>
-      )}
-    </Box>
-  );
-}
+  const nav = [
+    { href: '/valid', label: isArabic ? 'بطاقتي' : 'My card', icon: <CreditCardRoundedIcon />, match: (p: string) => p === '/valid' || p.startsWith('/member-card') },
+    { href: '/offers', label: t('offers'), icon: <LocalOfferRoundedIcon />, match: (p: string) => p.startsWith('/offers') || p.startsWith('/places') }
+  ];
 
-function ToolbarContainer({ children }: { children: React.ReactNode }) {
   return (
-    <Container maxWidth="lg" sx={{ display: 'flex', alignItems: 'center', minHeight: { xs: 58, sm: 68 }, gap: { xs: .45, sm: 1 }, px: { xs: 1.25, sm: 2 } }}>
-      {children}
-    </Container>
+    <div onClickCapture={handleLogoNavigation} className={`ui-root rg-public-shell-${page}`} dir={dir}>
+      <div className="ui-ambient" aria-hidden="true" />
+      <ClientProtection watermarkText={watermarkText} page={page} />
+
+      <header className="ui-header">
+        <div className="ui-container ui-header-inner">
+          <Link href="/valid" className="ui-brand" aria-label="RG-Card">
+            <span className="ui-brand-mark" aria-hidden="true" />
+            <span>
+              <span className="ui-brand-name">RG-Card</span>
+              <span className="ui-brand-sub">{isArabic ? 'امتيازات العضوية' : 'Membership privileges'}</span>
+            </span>
+          </Link>
+
+          <nav className="ui-nav" aria-label={isArabic ? 'التنقل الرئيسي' : 'Main navigation'}>
+            {nav.map((item) => {
+              const active = item.match(pathname);
+              return (
+                <Link key={item.href} href={item.href} className="ui-nav-link" aria-current={active ? 'page' : undefined}>
+                  {active && <motion.span layoutId="ui-nav-pill" className="ui-nav-pill" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+                  {item.icon}
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="ui-header-actions">
+            <PreferenceButtons />
+            <a className="ui-icon-btn ui-icon-btn--whatsapp" href={support} target="_blank" rel="noopener noreferrer" aria-label={t('whatsapp')} title={t('whatsapp')}>
+              <WhatsAppIcon />
+            </a>
+            <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm ui-hide-sm" onClick={logout}>
+              <LogoutRoundedIcon className="ui-flip-ltr" />
+              {t('logout')}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div style={{ position: 'relative', zIndex: 1 }}>{children}</div>
+
+      <nav className="ui-tabbar" aria-label={isArabic ? 'التنقل' : 'Navigation'}>
+        {nav.map((item) => {
+          const active = item.match(pathname);
+          return (
+            <Link key={item.href} href={item.href} className="ui-tab" aria-current={active ? 'page' : undefined}>
+              {active && <motion.span layoutId="ui-tab-pill" className="ui-nav-pill" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+              {item.icon}
+              {item.label}
+            </Link>
+          );
+        })}
+        <button type="button" className="ui-tab" onClick={logout} style={{ background: 'none', border: 0, font: 'inherit', cursor: 'pointer' }}>
+          <LogoutRoundedIcon className="ui-flip-ltr" />
+          {t('logout')}
+        </button>
+      </nav>
+
+      {logoLoading && (
+        <div className="ui-loader" role="status" aria-live="polite" aria-label={isArabic ? 'جاري فتح التفاصيل' : 'Opening details'}>
+          <span className="ui-loader-mark" />
+        </div>
+      )}
+    </div>
   );
 }

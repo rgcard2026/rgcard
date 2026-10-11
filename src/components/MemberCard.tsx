@@ -1,4 +1,3 @@
-import { Box } from '@mui/material';
 import { CARD_TEMPLATE, type CardRenderLayout, formatCardExpiry, membershipLabel } from '@/lib/card-layout';
 
 type MemberCardProps = {
@@ -23,7 +22,7 @@ export default function MemberCard({ cardNumber, qrSrc = '/api/member-card/qr', 
   const expiryCenterY = tpl.expiry.y + tpl.expiry.height / 2;
 
   return (
-    <Box className={`rg-member-card ${className || ''}`.trim()} style={{ aspectRatio: `${tpl.width} / ${tpl.height}` }}>
+    <div className={`rg-member-card ${className || ''}`.trim()} style={{ aspectRatio: `${tpl.width} / ${tpl.height}` }}>
       <svg className="rg-member-card-svg" viewBox={`0 0 ${tpl.width} ${tpl.height}`} role="img" aria-label={`RG-Card ${cardNumber}`} preserveAspectRatio="xMidYMid meet" style={{ aspectRatio: `${tpl.width} / ${tpl.height}` }}>
         <defs>
           <clipPath id="rgQrClip">
@@ -36,6 +35,6 @@ export default function MemberCard({ cardNumber, qrSrc = '/api/member-card/qr', 
         {classText && <text x={tpl.membershipClass.x} y={classCenterY} dominantBaseline="middle" direction="ltr" unicodeBidi="bidi-override" fontFamily="Arial, Helvetica, sans-serif" fontSize={tpl.membershipClass.fontSize} fontWeight="900" fill="#f2c15f" stroke="rgba(0,0,0,.45)" strokeWidth="1" opacity={tpl.membershipClass.opacity ?? 1} paintOrder="stroke fill">{classText}</text>}
         {expiryText && <text x={tpl.expiry.x} y={expiryCenterY} dominantBaseline="middle" direction="ltr" unicodeBidi="bidi-override" fontFamily="Arial, Helvetica, sans-serif" fontSize={tpl.expiry.fontSize} fontWeight="900" letterSpacing="1.2" fill="#f2c15f" stroke="rgba(0,0,0,.40)" strokeWidth="1" opacity={tpl.expiry.opacity ?? 1} paintOrder="stroke fill">{expiryText}</text>}
       </svg>
-    </Box>
+    </div>
   );
 }

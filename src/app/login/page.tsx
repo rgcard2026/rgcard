@@ -3,40 +3,24 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { encryptForLogin } from '@/lib/clientEncryption';
-import { Alert, Box, Button, Card, CardContent, Container, Divider, IconButton, InputAdornment, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import BadgeRoundedIcon from '@mui/icons-material/BadgeRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
-import UiControls from '@/components/UiControls';
+import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
+import QrCode2RoundedIcon from '@mui/icons-material/QrCode2Rounded';
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
+import AuthLayout from '@/components/ui/AuthLayout';
 import { useUiPreferences } from '@/components/UiPreferences';
+import { useSupportLink } from '@/components/ui/useSupportLink';
 
 const enableLoginEncryption = process.env.NEXT_PUBLIC_ENABLE_LOGIN_ENCRYPTION === 'true';
 const defaultBanner = {
   designLoginBannerTitle: 'RG-Card',
   designLoginBannerSubtitleAr: 'برنامج الخصومات والعروض',
-  designLoginBannerSubtitleEn: 'Discounts & offers membership',
-  designLoginBannerLogo: '♛',
-  designLoginBannerShowLogo: true,
-  designLoginBannerContentAlign: 'center',
+  designLoginBannerSubtitleEn: 'Discounts & offers membership'
 };
-
-function buildWhatsAppMessage(template?: string, identifier?: string) {
-  const cleanId = (identifier || '').trim();
-  const base = template?.trim() || 'مرحبًا، أحتاج مساعدة بخصوص حساب RG-Card\nCard / ID: {{id}}';
-  return base
-    .replace(/{{\s*id\s*}}/gi, cleanId)
-    .replace(/{{\s*cardNumber\s*}}/gi, cleanId)
-    .replace(/{{\s*name\s*}}/gi, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-}
-
-function whatsappUrl(identifier?: string, supportNumber?: string, template?: string) {
-  const number = supportNumber || process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '201000033494';
-  return `https://wa.me/${number}?text=${encodeURIComponent(buildWhatsAppMessage(template, identifier))}`;
-}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -48,9 +32,8 @@ export default function LoginPage() {
   const [error, setError] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
-  const [whatsappNumber, setWhatsappNumber] = React.useState(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '201000033494');
-  const [whatsappMessage, setWhatsappMessage] = React.useState('مرحبًا، أحتاج مساعدة بخصوص حساب RG-Card\nCard / ID: {{id}}');
   const [banner, setBanner] = React.useState(defaultBanner);
+  const supportLink = useSupportLink(idNumber);
 
   React.useEffect(() => {
     const cardFromQr = String(new URLSearchParams(window.location.search).get('card') || '').trim().slice(0, 80);
@@ -58,13 +41,8 @@ export default function LoginPage() {
       setQrCard(cardFromQr);
       setIdNumber(cardFromQr);
     }
-  }, []);
-
-  React.useEffect(() => {
     fetch('/api/settings').then((r) => r.json()).then((body) => {
-      if (body?.data?.whatsappNumber) setWhatsappNumber(body.data.whatsappNumber);
-      if (body?.data?.whatsappMessage) setWhatsappMessage(body.data.whatsappMessage);
-      if (body?.data) setBanner({ ...defaultBanner, ...body.data });
+      if (body?.data) setBanner((current) => ({ ...current, ...body.data }));
     }).catch(() => null);
   }, []);
 
@@ -83,61 +61,68 @@ export default function LoginPage() {
       }
     }
 
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    const responseBody = await res.json();
-    setLoading(false);
-    if (!res.ok) return setError(responseBody.message || (isArabic ? 'بيانات الدخول غير صحيحة' : 'Invalid sign-in details'));
-    router.push(responseBody.redirectTo || '/valid');
+    try {
+      const res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const responseBody = await res.json();
+      if (!res.ok) {
+        setLoading(false);
+        return setError(responseBody.message || (isArabic ? 'بيانات الدخول غير صحيحة' : 'Invalid sign-in details'));
+      }
+      router.push(responseBody.redirectTo || '/valid');
+    } catch {
+      setLoading(false);
+      setError(isArabic ? 'تعذر الاتصال بالخادم. حاول مرة أخرى.' : 'Could not reach the server. Please try again.');
+    }
   }
 
+  const footer = (
+    <div className="ui-auth-foot">
+      <span>{isArabic ? 'تواجه مشكلة في الدخول؟' : 'Trouble signing in?'}</span>
+      <a href={supportLink} target="_blank" rel="noopener noreferrer"><WhatsAppIcon />{t('whatsapp')}</a>
+    </div>
+  );
+
   return (
-    <Box className="rg-login-page" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-      <Box className="rg-login-hero">
-        <Container maxWidth="md">
-          <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}><UiControls /></Stack>
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent={banner.designLoginBannerContentAlign === 'start' ? 'flex-start' : banner.designLoginBannerContentAlign === 'end' ? 'flex-end' : 'center'}
-            spacing={2}
-          >
-            {banner.designLoginBannerShowLogo && <Box className="rg-crown-mark">{banner.designLoginBannerLogo}</Box>}
-            <Box>
-              <Typography className="rg-brand-title" variant="h3">{banner.designLoginBannerTitle}</Typography>
-              <Typography className="rg-brand-subtitle">{isArabic ? banner.designLoginBannerSubtitleAr : banner.designLoginBannerSubtitleEn}</Typography>
-            </Box>
-          </Stack>
-        </Container>
-      </Box>
-      <Container maxWidth="sm" sx={{ py: { xs: 4, md: 5 }, mt: { xs: -2, md: -4 } }}>
-        <Card className="rg-auth-card">
-          <CardContent sx={{ p: { xs: 3, md: 5 } }}>
-            <Stack spacing={2.5} component="form" onSubmit={submit}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Box>
-                  <Typography variant="h4" className="rg-section-title">{isArabic ? 'تسجيل الدخول' : 'Sign in'}</Typography>
-                  <Typography color="text.secondary" sx={{ mt: .6 }}>{isArabic ? 'ادخل رقم الكارت أو الرقم التعريفي وكلمة المرور.' : 'Enter your card number or ID together with your password.'}</Typography>
-                </Box>
-                <Tooltip title={t('whatsapp')}>
-                  <IconButton component="a" href={whatsappUrl(idNumber, whatsappNumber, whatsappMessage)} target="_blank" rel="noopener noreferrer" className="rg-whatsapp-button" aria-label="WhatsApp support">
-                    <WhatsAppIcon sx={{ fontSize: 36 }} />
-                  </IconButton>
-                </Tooltip>
-              </Stack>
-              <Divider />
-              {!enableLoginEncryption && <Alert severity="info" sx={{ borderRadius: 3 }}>{isArabic ? 'وضع التطوير مفعّل: تشفير طلب الدخول معطل مؤقتًا لتسهيل الاختبار من الموبايل.' : 'Development mode: login request encryption is temporarily disabled for local testing.'}</Alert>}
-              {error && <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>}
-              <TextField className="rg-premium-input" label={qrCard ? (isArabic ? 'رقم الكارت من QR' : 'Card number from QR') : (isArabic ? 'رقم الكارت / الرقم التعريفي' : 'Card number / ID')} value={idNumber} onChange={(e) => setIdNumber(e.target.value)} required helperText={qrCard ? (isArabic ? 'تم إدخال رقم الكارت تلقائيًا من QR. اكتب كلمة المرور فقط.' : 'Your card number was filled from the QR code. Enter your password only.') : undefined} InputProps={{ readOnly: Boolean(qrCard), startAdornment: <BadgeRoundedIcon sx={{ ml: 1, color: 'text.secondary' }} /> }} />
-              <TextField autoFocus={Boolean(qrCard)} className="rg-premium-input" label={isArabic ? 'كلمة المرور' : 'Password'} type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required InputProps={{ startAdornment: <LockRoundedIcon sx={{ ml: 1, color: 'text.secondary' }} />, endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPassword(!showPassword)} edge="end">{showPassword ? <VisibilityOffRoundedIcon /> : <VisibilityRoundedIcon />}</IconButton></InputAdornment> }} />
-              <Button className="rg-royal-button" type="submit" variant="contained" size="large" disabled={loading}>{loading ? (isArabic ? 'جاري التحقق...' : 'Verifying...') : (isArabic ? 'تسجيل الدخول' : 'Sign in')}</Button>
-            </Stack>
-          </CardContent>
-        </Card>
-      </Container>
-    </Box>
+    <AuthLayout
+      title={isArabic ? 'تسجيل الدخول' : 'Sign in'}
+      subtitle={isArabic ? 'ادخل رقم البطاقة أو الرقم التعريفي وكلمة المرور.' : 'Enter your card number or ID with your password.'}
+      brandTitle={banner.designLoginBannerTitle || 'RG-Card'}
+      brandSubtitle={isArabic ? banner.designLoginBannerSubtitleAr : banner.designLoginBannerSubtitleEn}
+      footer={footer}
+    >
+      <form className="ui-auth-form" onSubmit={submit} noValidate={false}>
+        {error && (
+          <div className="ui-alert ui-alert--error" role="alert"><ErrorOutlineRoundedIcon />{error}</div>
+        )}
+        {!enableLoginEncryption && process.env.NODE_ENV === 'development' && (
+          <div className="ui-hint">{isArabic ? 'بيئة تطوير: تشفير طلب الدخول معطّل.' : 'Development: login encryption disabled.'}</div>
+        )}
+
+        <div className="ui-field">
+          <label className="ui-label" htmlFor="login-id">{qrCard ? (isArabic ? 'رقم البطاقة من QR' : 'Card number from QR') : (isArabic ? 'رقم البطاقة / الرقم التعريفي' : 'Card number / ID')}</label>
+          <div className="ui-input-wrap">
+            {qrCard ? <QrCode2RoundedIcon /> : <BadgeRoundedIcon />}
+            <input id="login-id" className="ui-input" value={idNumber} onChange={(e) => setIdNumber(e.target.value)} readOnly={Boolean(qrCard)} required autoComplete="username" inputMode="text" />
+          </div>
+          {qrCard && <span className="ui-hint">{isArabic ? 'تم إدخال رقم البطاقة تلقائيًا من QR. اكتب كلمة المرور فقط.' : 'Your card number was filled from the QR code. Enter your password only.'}</span>}
+        </div>
+
+        <div className="ui-field">
+          <label className="ui-label" htmlFor="login-password">{isArabic ? 'كلمة المرور' : 'Password'}</label>
+          <div className="ui-input-wrap">
+            <LockRoundedIcon />
+            <input id="login-password" className="ui-input" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" autoFocus={Boolean(qrCard)} />
+            <button type="button" className="ui-input-action" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? (isArabic ? 'إخفاء كلمة المرور' : 'Hide password') : (isArabic ? 'إظهار كلمة المرور' : 'Show password')}>
+              {showPassword ? <VisibilityOffRoundedIcon /> : <VisibilityRoundedIcon />}
+            </button>
+          </div>
+        </div>
+
+        <button className="ui-btn ui-btn--primary ui-btn--block" type="submit" disabled={loading} style={{ marginTop: 6 }}>
+          {loading ? (isArabic ? 'جاري التحقق...' : 'Verifying...') : (isArabic ? 'دخول' : 'Sign in')}
+          {!loading && <ArrowBackRoundedIcon className="ui-flip-ltr" />}
+        </button>
+      </form>
+    </AuthLayout>
   );
 }

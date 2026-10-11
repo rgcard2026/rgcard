@@ -75,7 +75,7 @@ export function useUiPreferences() {
 
 export default function UiPreferencesProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = React.useState<UiLanguage>('ar');
-  const [mode, setMode] = React.useState<UiMode>('light');
+  const [mode, setMode] = React.useState<UiMode>('dark');
   const [ready, setReady] = React.useState(false);
   const [overrides, setOverrides] = React.useState<Record<string, Record<string, string>>>({});
 
@@ -95,7 +95,8 @@ export default function UiPreferencesProvider({ children }: { children: React.Re
     const storedLanguage = window.localStorage.getItem('rg-card-language');
     const storedMode = window.localStorage.getItem('rg-card-mode');
     const nextLanguage: UiLanguage = storedLanguage === 'en' ? 'en' : 'ar';
-    const nextMode: UiMode = storedMode === 'dark' ? 'dark' : 'light';
+    // The member experience is designed dark-first; light stays one tap away.
+    const nextMode: UiMode = storedMode === 'light' ? 'light' : 'dark';
 
     // Apply the persisted shell state before rendering the interactive tree.
     // This keeps the server markup and the first client render identical and

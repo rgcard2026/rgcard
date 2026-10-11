@@ -2,13 +2,22 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Box, Button, Card, CardContent, Chip, Container, Stack, Typography } from '@mui/material';
+import dynamic from 'next/dynamic';
+import { motion, useReducedMotion } from 'framer-motion';
 import LocalOfferRoundedIcon from '@mui/icons-material/LocalOfferRounded';
 import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
+import ThreeSixtyRoundedIcon from '@mui/icons-material/ThreeSixtyRounded';
 import PublicShell from './PublicShell';
 import MemberCard from './MemberCard';
+import Reveal, { usePointerSpotlight } from './ui/Reveal';
+import { useWebGLAllowed } from './ui/useMotionCapabilities';
 import { useUiPreferences } from './UiPreferences';
 import type { CardRenderLayout } from '@/lib/card-layout';
+import { useSupportLink } from './ui/useSupportLink';
+
+const MemberCard3D = dynamic(() => import('./ui/MemberCard3D'), { ssr: false });
 
 type Props = {
   name: string;
@@ -20,81 +29,113 @@ type Props = {
   layout: CardRenderLayout;
 };
 
+function formatDate(value: string | null | undefined, language: 'ar' | 'en') {
+  if (!value) return language === 'ar' ? 'غير محدد' : 'Not set';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString(language === 'ar' ? 'ar-EG-u-nu-latn' : 'en-GB',{ year: 'numeric', month: 'short', day: 'numeric' });
+}
+
 export default function MemberExperienceClient({ name, cardNumber, isVip, membershipClass, validUntil, classLabel, layout }: Props) {
-  const [progress, setProgress] = React.useState(0);
-  const storyRef = React.useRef<HTMLElement | null>(null);
   const { language, t } = useUiPreferences();
   const isArabic = language === 'ar';
+  const webgl = useWebGLAllowed();
+  const reduce = useReducedMotion();
+  const [card3dReady, setCard3dReady] = React.useState(false);
+  const onReady = React.useCallback(() => setCard3dReady(true), []);
+  const spotlight = usePointerSpotlight<HTMLAnchorElement>();
+  const supportLink = useSupportLink(cardNumber);
 
-  React.useEffect(() => {
-    const updateProgress = () => {
-      const story = storyRef.current;
-      if (!story) return;
-      const viewport = Math.max(window.innerHeight, 1);
-      const rect = story.getBoundingClientRect();
-      const availableScroll = Math.max(story.offsetHeight - viewport * .72, 1);
-      const travelled = Math.max(0, -rect.top);
-      setProgress(Math.min(1, travelled / availableScroll));
-    };
-    updateProgress();
-    window.addEventListener('scroll', updateProgress, { passive: true });
-    window.addEventListener('resize', updateProgress);
-    return () => {
-      window.removeEventListener('scroll', updateProgress);
-      window.removeEventListener('resize', updateProgress);
-    };
-  }, []);
+  const tier = classLabel || (isArabic ? 'عضوية أساسية' : 'Standard');
+  const firstName = (name || '').trim();
 
-  const cardTransform = `perspective(1500px) rotateY(${progress * 180}deg) rotateX(${Math.sin(progress * Math.PI) * -3.5}deg) translateY(${Math.sin(progress * Math.PI) * -8}px)`;
+  const actions = [
+    { href: '/offers', icon: <LocalOfferRoundedIcon />, title: t('viewOffers'), body: isArabic ? 'كل الأماكن والخصومات المتاحة لعضويتك، مع البحث بالمحافظة والفئة.' : 'Every place and discount available to you, filterable by governorate and category.' },
+    { href: '/member-card-pdf', icon: <PictureAsPdfRoundedIcon />, title: t('downloadPdf'), body: isArabic ? 'نسخة PDF من بطاقتك جاهزة للعرض عند الحاجة.' : 'A PDF copy of your card, ready whenever you need it.' },
+    { href: supportLink, external: true, icon: <WhatsAppIcon />, title: t('whatsapp'), body: isArabic ? 'فريق الدعم متاح لأي استفسار بخصوص حسابك أو الخصومات.' : 'Our team is on hand for any question about your account or discounts.' }
+  ];
+
+  const fade = (delay: number) => (reduce ? {} : { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] } });
 
   return (
     <PublicShell watermarkText={cardNumber} page="valid">
-      <main className="rg-member-experience">
-        <section ref={storyRef} className="rg-card-story">
-          <Container maxWidth="lg" className="rg-card-story-grid">
-            <Box className="rg-card-story-copy">
-              <Typography component="h1" className="rg-story-title">{isArabic ? `مرحبًا، ${name}` : `Welcome, ${name}`}</Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.4} sx={{ mt: 3 }}>
-                <Button component={Link} href="/offers" className="rg-royal-button" variant="contained" startIcon={<LocalOfferRoundedIcon />}>{t('viewOffers')}</Button>
-                <Button component={Link} href="/member-card-pdf" variant="outlined" startIcon={<PictureAsPdfRoundedIcon />} className="rg-story-secondary-button">{t('downloadPdf')}</Button>
-              </Stack>
-            </Box>
-            <Box className="rg-card-stage-wrap" aria-label={t('memberCard')}>
-              <Box className="rg-card-stage" style={{ transform: cardTransform }}>
-                <Box className="rg-card-face rg-card-face-front">
-                  <MemberCard cardNumber={cardNumber} isVip={isVip} membershipClass={membershipClass} validUntil={validUntil || null} layout={layout} />
-                </Box>
-                <Box className="rg-card-face rg-card-face-back">
-                  <Card className="rg-card-back-panel">
-                    <CardContent>
-                      <Typography className="rg-card-back-brand">RG-Card</Typography>
-                      <Box className="rg-card-back-stripe" />
-                      <Stack spacing={.7} sx={{ mt: 3 }}>
-                        <Typography fontWeight={900}>{isArabic ? 'رقم الكارت' : 'Card number'}</Typography>
-                        <Typography className="rg-card-back-number">{cardNumber}</Typography>
-                      </Stack>
-                    </CardContent>
-                  </Card>
-                </Box>
-              </Box>
-            </Box>
-          </Container>
-        </section>
-        <section className="rg-member-next-section">
-          <Container maxWidth="lg">
-            <Card className="rg-panel-card rg-member-next-card">
-              <CardContent sx={{ p: { xs: 2.4, sm: 3.5 } }}>
-                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between">
-                  <Box>
-                    <Typography variant="h4" fontWeight={950}>{isArabic ? 'كل مزايا العضوية في مكان واحد' : 'All membership benefits in one place'}</Typography>
-                    <Typography color="text.secondary" sx={{ mt: .7 }}>{isArabic ? 'ابحث في الأماكن، راجع الفروع، واستخدم خصمك في أي وقت.' : 'Search places, review branches, and use your discount whenever you need it.'}</Typography>
-                  </Box>
-                  <Button component={Link} href="/offers" variant="contained" className="rg-royal-button" endIcon={<LocalOfferRoundedIcon />}>{t('offers')}</Button>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Container>
-        </section>
+      <main className="ui-main">
+        <div className="ui-container">
+          <section className="ui-member-hero">
+            <div className="ui-member-copy">
+              <motion.span className="ui-chip ui-chip--success" style={{ width: 'fit-content' }} {...fade(0.05)}>
+                <span className="ui-dot ui-dot--pulse" />
+                {t('activeMembership')}
+              </motion.span>
+              <motion.h1 className="ui-display" {...fade(0.12)}>
+                {isArabic ? 'أهلًا،' : 'Welcome,'}<br />
+                <span className="ui-gold-text">{firstName}</span>
+              </motion.h1>
+              <motion.p className="ui-lead" {...fade(0.2)}>
+                {isArabic ? 'بطاقتك الرقمية جاهزة. اعرضها في أي مكان من شبكة RG-Card لتحصل على خصمك فورًا.' : 'Your digital card is ready. Show it anywhere in the RG-Card network to redeem your discount instantly.'}
+              </motion.p>
+              <motion.dl className="ui-member-meta" {...fade(0.28)}>
+                <div><dt>{isArabic ? 'رقم البطاقة' : 'Card number'}</dt><dd className="ui-ltr">{cardNumber}</dd></div>
+                <div><dt>{isArabic ? 'الفئة' : 'Tier'}</dt><dd>{tier}</dd></div>
+                <div><dt>{isArabic ? 'صالحة حتى' : 'Valid until'}</dt><dd>{formatDate(validUntil, language)}</dd></div>
+              </motion.dl>
+              <motion.div className="ui-member-actions" {...fade(0.36)}>
+                <Link href="/offers" className="ui-btn ui-btn--primary"><LocalOfferRoundedIcon />{t('viewOffers')}</Link>
+                <Link href="/member-card-pdf" className="ui-btn ui-btn--ghost"><PictureAsPdfRoundedIcon />{t('downloadPdf')}</Link>
+              </motion.div>
+            </div>
+
+            <div className="ui-card-stage" aria-label={t('memberCard')}>
+              {/* The flat card shows instantly and stays as the fallback; the 3D scene fades in over it. */}
+              {(!webgl || !card3dReady) && (
+                <div className="ui-card-fallback">
+                  <motion.div
+                    className="ui-card-fallback-inner"
+                    initial={reduce ? false : { opacity: 0, rotateX: 18, y: 20 }}
+                    animate={{ opacity: webgl === true ? 0.0001 : 1, rotateX: 0, y: 0 }}
+                    transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <MemberCard cardNumber={cardNumber} isVip={isVip} membershipClass={membershipClass} validUntil={validUntil || null} layout={layout} />
+                  </motion.div>
+                </div>
+              )}
+              {webgl && (
+                <motion.div style={{ position: 'absolute', inset: 0, zIndex: 1 }} initial={{ opacity: 0 }} animate={{ opacity: card3dReady ? 1 : 0 }} transition={{ duration: 0.8 }}>
+                  <MemberCard3D cardNumber={cardNumber} isVip={isVip} membershipClass={membershipClass} validUntil={validUntil} layout={layout} onReady={onReady} />
+                </motion.div>
+              )}
+              {webgl && card3dReady && (
+                <span className="ui-card-hint"><ThreeSixtyRoundedIcon />{isArabic ? 'اسحب لتدوير البطاقة، أو اضغط لقلبها' : 'Drag to rotate, tap to flip'}</span>
+              )}
+            </div>
+          </section>
+
+          <section className="ui-section">
+            <Reveal className="ui-section-head">
+              <div style={{ display: 'grid', gap: 8 }}>
+                <span className="ui-eyebrow">{isArabic ? 'اختصارات' : 'Shortcuts'}</span>
+                <h2 className="ui-h2">{isArabic ? 'كل ما تحتاجه من عضويتك' : 'Everything your membership offers'}</h2>
+              </div>
+            </Reveal>
+            <div className="ui-action-grid">
+              {actions.map((action, index) => (
+                <Reveal key={action.title} delay={index * 0.08}>
+                  <a
+                    href={action.href}
+                    className="ui-action"
+                    onPointerMove={spotlight}
+                    {...(action.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                  >
+                    <span className="ui-action-icon">{action.icon}</span>
+                    <ArrowBackRoundedIcon className="ui-action-arrow ui-flip-ltr" />
+                    <h3 className="ui-h3">{action.title}</h3>
+                    <p>{action.body}</p>
+                  </a>
+                </Reveal>
+              ))}
+            </div>
+          </section>
+        </div>
       </main>
     </PublicShell>
   );
