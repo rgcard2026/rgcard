@@ -7,6 +7,10 @@ import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
+import HealthAndSafetyRoundedIcon from '@mui/icons-material/HealthAndSafetyRounded';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
+import ErrorRoundedIcon from '@mui/icons-material/ErrorRounded';
 import AdminTextField from '@/components/AdminTextField';
 import MemberCard from '@/components/MemberCard';
 import { CARD_TEMPLATE, type CardRenderLayout } from '@/lib/card-layout';
@@ -26,6 +30,22 @@ const PREVIEW_QR = `data:image/svg+xml,${encodeURIComponent(`
     <rect x="52" y="100" width="8" height="8"/><rect x="68" y="98" width="10" height="10"/><rect x="84" y="102" width="8" height="8"/>
   </g>
 </svg>`)}`;
+
+type CheckStatus = 'ok' | 'warn' | 'error';
+
+type StatusCheck = {
+  key: string;
+  label: string;
+  status: CheckStatus;
+  detail: string;
+};
+
+type StatusReport = {
+  overall: CheckStatus;
+  message: string;
+  checkedAt: string;
+  checks: StatusCheck[];
+};
 
 type SettingsState = {
   whatsappNumber: string;
@@ -99,6 +119,8 @@ export default function AdminCardSettingsClient() {
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [backupBusy, setBackupBusy] = React.useState(false);
+  const [statusBusy, setStatusBusy] = React.useState(false);
+  const [statusReport, setStatusReport] = React.useState<StatusReport | null>(null);
   const [notice, setNotice] = React.useState<{ severity: 'success' | 'error'; text: string } | null>(null);
 
   React.useEffect(() => {
@@ -210,6 +232,42 @@ export default function AdminCardSettingsClient() {
     }
   }
 
+  async function checkStatus() {
+    if (statusBusy) return;
+    setStatusBusy(true);
+    setNotice(null);
+    try {
+      const response = await fetch('/api/admin/status', { cache: 'no-store' });
+      const body = await readBody(response);
+      if (!response.ok && !body?.checks) {
+        setNotice({ severity: 'error', text: body.message || 'تعذر فحص حالة النظام.' });
+        return;
+      }
+      setStatusReport({
+        overall: body.overall,
+        message: body.message,
+        checkedAt: body.checkedAt,
+        checks: Array.isArray(body.checks) ? body.checks : [],
+      });
+    } catch {
+      setNotice({ severity: 'error', text: 'تعذر الاتصال بالخادم لفحص حالة النظام.' });
+    } finally {
+      setStatusBusy(false);
+    }
+  }
+
+  const statusSeverity: Record<CheckStatus, 'success' | 'warning' | 'error'> = {
+    ok: 'success',
+    warn: 'warning',
+    error: 'error',
+  };
+
+  function renderCheckIcon(status: CheckStatus) {
+    if (status === 'ok') return <CheckCircleRoundedIcon color="success" fontSize="small" />;
+    if (status === 'warn') return <WarningAmberRoundedIcon color="warning" fontSize="small" />;
+    return <ErrorRoundedIcon color="error" fontSize="small" />;
+  }
+
   return (
     <Stack spacing={2.5}>
       <Alert severity="info">
@@ -220,21 +278,55 @@ export default function AdminCardSettingsClient() {
         <CardContent sx={{ p: { xs: 2, md: 2.5 } }}>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between">
             <Box>
-              <Typography variant="h6" fontWeight={950}>نسخة احتياطية كاملة</Typography>
+              <Typography variant="h6" fontWeight={950}>حالة النظام والنسخة الاحتياطية</Typography>
               <Typography color="text.secondary" fontSize={13}>
-                نزّل قاعدة البيانات ونسخة متسقة منها مع الملفات المرفوعة والشعارات وصور الكارت.
+                افحص الحالة الحالية للتأكد من عدم وجود أي تلف في قاعدة البيانات أو الملفات، ونزّل نسخة احتياطية كاملة تتضمن قاعدة البيانات والملفات المرفوعة والشعارات وصور الكارت.
               </Typography>
             </Box>
-            <Button
-              type="button"
-              variant="outlined"
-              startIcon={backupBusy ? <CircularProgress size={18} /> : <FileDownloadRoundedIcon />}
-              disabled={backupBusy || loading}
-              onClick={downloadBackup}
-            >
-              {backupBusy ? 'جارٍ تجهيز النسخة الاحتياطية…' : 'تنزيل النسخة الاحتياطية'}
-            </Button>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems="stretch">
+              <Button
+                type="button"
+                variant="outlined"
+                startIcon={statusBusy ? <CircularProgress size={18} /> : <HealthAndSafetyRoundedIcon />}
+                disabled={statusBusy}
+                onClick={checkStatus}
+              >
+                {statusBusy ? 'جارٍ فحص الحالة…' : 'فحص الحالة الحالية'}
+              </Button>
+              <Button
+                type="button"
+                variant="outlined"
+                startIcon={backupBusy ? <CircularProgress size={18} /> : <FileDownloadRoundedIcon />}
+                disabled={backupBusy || loading}
+                onClick={downloadBackup}
+              >
+                {backupBusy ? 'جارٍ تجهيز النسخة الاحتياطية…' : 'تنزيل النسخة الاحتياطية'}
+              </Button>
+            </Stack>
           </Stack>
+
+          {statusReport && (
+            <Box sx={{ mt: 2 }}>
+              <Alert severity={statusSeverity[statusReport.overall]} sx={{ fontWeight: 800 }}>
+                {statusReport.message}
+                <Typography component="span" display="block" fontSize={12} fontWeight={500} sx={{ mt: 0.5, opacity: 0.85 }}>
+                  آخر فحص: {new Date(statusReport.checkedAt).toLocaleString('ar-EG')}
+                </Typography>
+              </Alert>
+              <Stack spacing={1} sx={{ mt: 1.5 }}>
+                {statusReport.checks.map((check) => (
+                  <Stack key={check.key} direction="row" spacing={1.2} alignItems="flex-start"
+                    sx={{ p: 1.2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                    <Box sx={{ mt: '2px' }}>{renderCheckIcon(check.status)}</Box>
+                    <Box>
+                      <Typography fontWeight={900} fontSize={14}>{check.label}</Typography>
+                      <Typography color="text.secondary" fontSize={13}>{check.detail}</Typography>
+                    </Box>
+                  </Stack>
+                ))}
+              </Stack>
+            </Box>
+          )}
         </CardContent>
       </Card>
 
