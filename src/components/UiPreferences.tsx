@@ -3,7 +3,8 @@
 import * as React from 'react';
 import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { CssBaseline, ThemeProvider } from '@mui/material';
+import { buildMuiTheme } from './ui/muiTheme';
 import { prefixer } from 'stylis';
 import rtlPlugin from 'stylis-plugin-rtl';
 
@@ -75,7 +76,7 @@ export function useUiPreferences() {
 
 export default function UiPreferencesProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = React.useState<UiLanguage>('ar');
-  const [mode, setMode] = React.useState<UiMode>('light');
+  const [mode, setMode] = React.useState<UiMode>('dark');
   const [ready, setReady] = React.useState(false);
   const [overrides, setOverrides] = React.useState<Record<string, Record<string, string>>>({});
 
@@ -95,7 +96,8 @@ export default function UiPreferencesProvider({ children }: { children: React.Re
     const storedLanguage = window.localStorage.getItem('rg-card-language');
     const storedMode = window.localStorage.getItem('rg-card-mode');
     const nextLanguage: UiLanguage = storedLanguage === 'en' ? 'en' : 'ar';
-    const nextMode: UiMode = storedMode === 'dark' ? 'dark' : 'light';
+    // The member experience is designed dark-first; light stays one tap away.
+    const nextMode: UiMode = storedMode === 'light' ? 'light' : 'dark';
 
     // Apply the persisted shell state before rendering the interactive tree.
     // This keeps the server markup and the first client render identical and
@@ -127,35 +129,7 @@ export default function UiPreferencesProvider({ children }: { children: React.Re
   }, [language, mode, ready]);
 
   const dir = language === 'ar' ? 'rtl' : 'ltr';
-  const theme = React.useMemo(() => createTheme({
-    direction: dir,
-    breakpoints: { values: { xs: 0, sm: 480, md: 768, lg: 1024, xl: 1440 } },
-    typography: {
-      fontFamily: language === 'ar'
-        ? 'var(--rg-font-family, var(--font-arabic)), system-ui, sans-serif'
-        : 'var(--rg-font-family, Outfit), Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-      fontSize: 16,
-      fontWeightRegular: 400,
-      fontWeightMedium: 600,
-      button: { fontWeight: 'var(--rg-font-weight, 800)' as any, fontStyle: 'var(--rg-font-style, normal)' as any, fontSize: '0.95rem' },
-      h1: { fontWeight: 800 }, h2: { fontWeight: 800 }, h3: { fontWeight: 800 },
-      h4: { fontWeight: 800 }, h5: { fontWeight: 800 }, h6: { fontWeight: 800 }
-    },
-    palette: {
-      mode,
-      primary: { main: mode === 'dark' ? '#f4d995' : '#111827', dark: '#030712', light: '#4b5563' },
-      secondary: { main: '#d6a64f', dark: '#a8741a', light: '#f3d58a' },
-      success: { main: '#178a52' }, warning: { main: '#d6a64f' },
-      background: { default: mode === 'dark' ? '#101319' : '#fcfcfa', paper: mode === 'dark' ? '#181d26' : '#fffefa' },
-      text: { primary: mode === 'dark' ? '#f9fafb' : '#101319', secondary: mode === 'dark' ? '#c5cad3' : '#6b7280' }
-    },
-    shape: { borderRadius: 18 },
-    components: {
-      MuiButton: { styleOverrides: { root: { textTransform: 'none', borderRadius: 'var(--rg-button-radius, 14px)', paddingInline: 18, paddingBlock: 10, fontWeight: 'var(--rg-font-weight, 900)' as any } } },
-      MuiCard: { styleOverrides: { root: { borderRadius: 'var(--rg-card-radius, 24px)', boxShadow: mode === 'dark' ? '0 18px 55px rgba(0,0,0,.26)' : '0 18px 55px rgba(17,24,39,.08)' } } },
-      MuiTextField: { defaultProps: { variant: 'outlined' } }
-    }
-  }), [dir, language, mode]);
+  const theme = React.useMemo(() => buildMuiTheme(mode, dir), [dir, mode]);
 
   const value = React.useMemo<UiPreferencesValue>(() => ({
     language, mode, dir,
@@ -171,9 +145,8 @@ export default function UiPreferencesProvider({ children }: { children: React.Re
         <ThemeProvider theme={theme}>
           <CssBaseline />
           {ready ? children : (
-            <div className="rg-app-boot" role="status" aria-live="polite" aria-busy="true">
-              <span className="rg-app-boot-spinner" aria-hidden="true" />
-              <span>RG-Card</span>
+            <div className="rg-app-boot" role="status" aria-live="polite" aria-busy="true" aria-label="RG-Card">
+              <span className="ui-loader-mark" aria-hidden="true" />
             </div>
           )}
         </ThemeProvider>

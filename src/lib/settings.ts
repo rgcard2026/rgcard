@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
 import { CARD_TEMPLATE } from "./card-layout";
+import { DESIGN_DEFAULTS } from "./design-defaults";
 import { decryptValue, encryptValue } from "./vault";
 
 const DEFAULT_WHATSAPP_NUMBER =
@@ -12,88 +13,6 @@ const DEFAULT_CARD_TEMPLATE_URL =
 const WEBHOOK_URL_KEY = "securityAlertWebhookUrlEnc";
 const WEBHOOK_TOKEN_KEY = "securityAlertWebhookTokenEnc";
 const EMAIL_TO_KEY = "securityAlertEmailToEnc";
-
-const DESIGN_DEFAULTS = {
-  designPrimaryColor: "#1E9A96",
-  designSecondaryColor: "#2E52F2",
-  designAccentColor: "#53A69A",
-  designBackgroundColor: "#FFFFFF",
-  designSurfaceColor: "#FFFFFF",
-  designTextColor: "#101319",
-  designMutedTextColor: "#5F6875",
-  designButtonTextColor: "#FFFFFF",
-  designInputBackgroundColor: "#FFFFFF",
-  designSuccessColor: "#16864A",
-  designDangerColor: "#D93939",
-  designFontFamily: "IBM Plex Sans Arabic",
-  designHeadingFontFamily: "IBM Plex Sans Arabic",
-  designButtonFontFamily: "IBM Plex Sans Arabic",
-  designFontWeight: 700,
-  designHeadingWeight: 900,
-  designButtonWeight: 800,
-  designFontStyle: "normal",
-  designHeadingStyle: "normal",
-  designButtonStyle: "normal",
-  designBodyFontSize: 16,
-  designH1FontSize: 38,
-  designH2FontSize: 30,
-  designH3FontSize: 24,
-  designCardTitleFontSize: 19,
-  designButtonFontSize: 15,
-  designInputFontSize: 15,
-  designNavFontSize: 15,
-  designCaptionFontSize: 12,
-  designLineHeightPercent: 170,
-  designLetterSpacing: 0,
-  designButtonRadius: 14,
-  designCardRadius: 24,
-  designInputRadius: 14,
-  designButtonShadow: 14,
-  designButtonPaddingX: 18,
-  designPlaceLogoScale: 100,
-  designCardOpacity: 100,
-  designCardWidth: 0,
-  designCardHeight: 0,
-  designBoxOpacity: 100,
-  designBoxWidth: 0,
-  designBoxHeight: 0,
-  designFieldOpacity: 100,
-  designFieldWidth: 0,
-  designFieldHeight: 0,
-  designButtonOpacity: 100,
-  designButtonWidth: 0,
-  designButtonHeight: 0,
-  designBackgroundImageUrl: "",
-  designBackgroundImageEnabled: false,
-  designBackgroundSize: "cover",
-  designBackgroundOverlay: 12,
-  designLoginBannerTitle: "RG-Card",
-  designLoginBannerSubtitleAr: "برنامج الخصومات والعروض",
-  designLoginBannerSubtitleEn: "Discounts & offers membership",
-  designLoginBannerLogo: "♛",
-  designLoginBannerShowLogo: true,
-  designLoginBannerStartColor: "#168B8A",
-  designLoginBannerEndColor: "#2847D4",
-  designLoginBannerTextColor: "#FFFFFF",
-  designLoginBannerHeight: 304,
-  designLoginBannerRadius: 72,
-  designLoginBannerOpacity: 100,
-  designLoginBannerContentAlign: "center",
-  designLoginBannerImageUrl: "",
-  designLoginBannerImageEnabled: false,
-  designArrivalBannerWidth: 100,
-  designArrivalBannerHeight: 0,
-  designArrivalBannerRadius: 26,
-  designArrivalBannerOpacity: 100,
-  designArrivalBannerStartColor: "#070A12",
-  designArrivalBannerEndColor: "#5F3F15",
-  designArrivalBannerTextColor: "#FFFAF1",
-  designArrivalBannerAccentColor: "#D6A64F",
-  designArrivalBannerCardColor: "#FFFFFF",
-  designArrivalLogoWidth: 116,
-  designArrivalLogoHeight: 70,
-  designArrivalLogoRadius: 16,
-};
 
 function cleanHexColor(value: unknown, fallback: string) {
   const raw = String(value || "").trim();
@@ -345,18 +264,6 @@ function designSettingsFromMap(map: Record<string, string>) {
       : DESIGN_DEFAULTS.designLoginBannerContentAlign,
     designLoginBannerImageUrl: cleanLoginBannerImageUrl(map.designLoginBannerImageUrl),
     designLoginBannerImageEnabled: boolSetting(map.designLoginBannerImageEnabled, false),
-    designArrivalBannerWidth: intSetting(map.designArrivalBannerWidth, DESIGN_DEFAULTS.designArrivalBannerWidth, 40, 100),
-    designArrivalBannerHeight: intSetting(map.designArrivalBannerHeight, DESIGN_DEFAULTS.designArrivalBannerHeight, 0, 600),
-    designArrivalBannerRadius: intSetting(map.designArrivalBannerRadius, DESIGN_DEFAULTS.designArrivalBannerRadius, 0, 60),
-    designArrivalBannerOpacity: intSetting(map.designArrivalBannerOpacity, DESIGN_DEFAULTS.designArrivalBannerOpacity, 0, 100),
-    designArrivalBannerStartColor: cleanHexColor(map.designArrivalBannerStartColor, DESIGN_DEFAULTS.designArrivalBannerStartColor),
-    designArrivalBannerEndColor: cleanHexColor(map.designArrivalBannerEndColor, DESIGN_DEFAULTS.designArrivalBannerEndColor),
-    designArrivalBannerTextColor: cleanHexColor(map.designArrivalBannerTextColor, DESIGN_DEFAULTS.designArrivalBannerTextColor),
-    designArrivalBannerAccentColor: cleanHexColor(map.designArrivalBannerAccentColor, DESIGN_DEFAULTS.designArrivalBannerAccentColor),
-    designArrivalBannerCardColor: cleanHexColor(map.designArrivalBannerCardColor, DESIGN_DEFAULTS.designArrivalBannerCardColor),
-    designArrivalLogoWidth: intSetting(map.designArrivalLogoWidth, DESIGN_DEFAULTS.designArrivalLogoWidth, 60, 240),
-    designArrivalLogoHeight: intSetting(map.designArrivalLogoHeight, DESIGN_DEFAULTS.designArrivalLogoHeight, 40, 160),
-    designArrivalLogoRadius: intSetting(map.designArrivalLogoRadius, DESIGN_DEFAULTS.designArrivalLogoRadius, 0, 40),
   };
 }
 
@@ -770,18 +677,6 @@ type AdminSettingInput = {
   designLoginBannerContentAlign?: unknown;
   designLoginBannerImageUrl?: unknown;
   designLoginBannerImageEnabled?: unknown;
-  designArrivalBannerWidth?: unknown;
-  designArrivalBannerHeight?: unknown;
-  designArrivalBannerRadius?: unknown;
-  designArrivalBannerOpacity?: unknown;
-  designArrivalBannerStartColor?: unknown;
-  designArrivalBannerEndColor?: unknown;
-  designArrivalBannerTextColor?: unknown;
-  designArrivalBannerAccentColor?: unknown;
-  designArrivalBannerCardColor?: unknown;
-  designArrivalLogoWidth?: unknown;
-  designArrivalLogoHeight?: unknown;
-  designArrivalLogoRadius?: unknown;
 };
 
 export async function saveAdminSettings(values: AdminSettingInput) {
@@ -1156,35 +1051,6 @@ export async function saveAdminSettings(values: AdminSettingInput) {
         ),
       ),
     });
-  const arrivalBannerColorFields: Array<[keyof AdminSettingInput, string]> = [
-    ["designArrivalBannerStartColor", "designArrivalBannerStartColor"],
-    ["designArrivalBannerEndColor", "designArrivalBannerEndColor"],
-    ["designArrivalBannerTextColor", "designArrivalBannerTextColor"],
-    ["designArrivalBannerAccentColor", "designArrivalBannerAccentColor"],
-    ["designArrivalBannerCardColor", "designArrivalBannerCardColor"],
-  ];
-  for (const [inputKey, storageKey] of arrivalBannerColorFields) {
-    const value = values[inputKey];
-    if (value !== undefined) {
-      const fallback = DESIGN_DEFAULTS[storageKey as keyof typeof DESIGN_DEFAULTS] as string;
-      updates.push({ key: storageKey, value: cleanHexColor(value, fallback) });
-    }
-  }
-  const arrivalBannerNumberFields: Array<[keyof AdminSettingInput, string, number, number, number]> = [
-    ["designArrivalBannerWidth", "designArrivalBannerWidth", DESIGN_DEFAULTS.designArrivalBannerWidth, 40, 100],
-    ["designArrivalBannerHeight", "designArrivalBannerHeight", DESIGN_DEFAULTS.designArrivalBannerHeight, 0, 600],
-    ["designArrivalBannerRadius", "designArrivalBannerRadius", DESIGN_DEFAULTS.designArrivalBannerRadius, 0, 60],
-    ["designArrivalBannerOpacity", "designArrivalBannerOpacity", DESIGN_DEFAULTS.designArrivalBannerOpacity, 0, 100],
-    ["designArrivalLogoWidth", "designArrivalLogoWidth", DESIGN_DEFAULTS.designArrivalLogoWidth, 60, 240],
-    ["designArrivalLogoHeight", "designArrivalLogoHeight", DESIGN_DEFAULTS.designArrivalLogoHeight, 40, 160],
-    ["designArrivalLogoRadius", "designArrivalLogoRadius", DESIGN_DEFAULTS.designArrivalLogoRadius, 0, 40],
-  ];
-  for (const [inputKey, storageKey, fallback, min, max] of arrivalBannerNumberFields) {
-    const value = values[inputKey];
-    if (value !== undefined) {
-      updates.push({ key: storageKey, value: String(intSetting(String(value), fallback, min, max)) });
-    }
-  }
 
   if (values.securityAlertWebhookUrl !== undefined) {
     const raw = String(values.securityAlertWebhookUrl || "").trim();

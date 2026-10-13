@@ -1,15 +1,18 @@
 'use client';
 
 import * as React from 'react';
-import { Box, Button, FormControl, InputLabel, MenuItem, Select, Stack, Typography } from '@mui/material';
+import { AnimatePresence, motion } from 'framer-motion';
 import CallRoundedIcon from '@mui/icons-material/CallRounded';
 import MapRoundedIcon from '@mui/icons-material/MapRounded';
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
+import { useUiPreferences } from './UiPreferences';
 
 type Gov = { id: number; name: string };
 type Branch = { id: number; name: string; address?: string | null; phone?: string | null; mapUrl?: string | null; governorate: Gov };
 
 export default function BranchSelector({ governorates, branches }: { governorates: Gov[]; branches: Branch[] }) {
+  const { language } = useUiPreferences();
+  const isArabic = language === 'ar';
   const [governorateId, setGovernorateId] = React.useState<number | ''>(governorates[0]?.id || '');
   const isGlobalBranch = (branch: Branch) => /جميع الفروع|جميع المحافظات|الفروع المتاحة|اونلاين|أونلاين/i.test(branch.name);
   const filtered = governorateId
@@ -18,35 +21,51 @@ export default function BranchSelector({ governorates, branches }: { governorate
 
   return (
     <>
-      {governorates.length > 0 ? <FormControl fullWidth sx={{ mb: 3 }}>
-        <InputLabel>اختر المحافظة</InputLabel>
-        <Select label="اختر المحافظة" value={governorateId} onChange={(e) => setGovernorateId(e.target.value as number)}>
-          {governorates.map((gov) => <MenuItem key={gov.id} value={gov.id}>{gov.name}</MenuItem>)}
-        </Select>
-      </FormControl> : <Typography color="text.secondary" sx={{ mb: 3 }}>لم يتم تحديد محافظات لهذا المكان بعد.</Typography>}
-      <Stack spacing={2}>
-        {filtered.map((branch) => (
-          <Box key={branch.id} sx={{ p: 2.5, borderRadius: 4, border: '1px solid var(--rg-line)', bgcolor: 'var(--rg-surface)' }}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={2}>
-              <Box>
-                <Typography fontWeight={900}>{branch.name}</Typography>
-                <Stack direction="row" spacing={.5} color="text.secondary" sx={{ mt: .5 }}>
-                  <LocationOnRoundedIcon fontSize="small" />
-                  <Typography fontSize={14}>{isGlobalBranch(branch) ? (branch.address || 'متاح بجميع المحافظات') : `${branch.governorate.name} - ${branch.address || 'العنوان غير متوفر'}`}</Typography>
-                </Stack>
-              </Box>
-              <Stack direction="row" spacing={1}>
-                {branch.phone && <Button href={`tel:${branch.phone}`} variant="outlined" startIcon={<CallRoundedIcon />}>اتصال</Button>}
-                {branch.mapUrl && <Button href={branch.mapUrl} target="_blank" variant="contained" startIcon={<MapRoundedIcon />}>الخريطة</Button>}
-              </Stack>
-            </Stack>
-          </Box>
-        ))}
-        {governorateId && !filtered.length && <Box sx={{ p: 2.5, borderRadius: 4, border: '1px dashed var(--rg-accent-border)', bgcolor: 'var(--rg-surface)' }}>
-          <Typography fontWeight={900}>المكان متاح في المحافظة المحددة</Typography>
-          <Typography color="text.secondary" fontSize={14} sx={{ mt: .5 }}>بيانات الفرع التفصيلية غير مضافة حاليًا.</Typography>
-        </Box>}
-      </Stack>
+      {governorates.length > 0 ? (
+        <div className="ui-seg" role="tablist" aria-label={isArabic ? 'اختر المحافظة' : 'Choose governorate'}>
+          {governorates.map((gov) => {
+            const active = gov.id === governorateId;
+            return (
+              <button key={gov.id} type="button" role="tab" aria-selected={active} aria-pressed={active} className="ui-chip-btn" onClick={() => setGovernorateId(gov.id)}>
+                {active && <motion.span layoutId="ui-gov-pill" className="ui-nav-pill" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+                {gov.name}
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="ui-muted" style={{ margin: '0 0 14px' }}>{isArabic ? 'لم يتم تحديد محافظات لهذا المكان بعد.' : 'No governorates assigned to this place yet.'}</p>
+      )}
+
+      <AnimatePresence mode="wait">
+        <motion.div key={String(governorateId)} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.25 }}>
+          {filtered.map((branch) => (
+            <div key={branch.id} className="ui-branch">
+              <div style={{ minWidth: 0 }}>
+                <div className="ui-branch-name">{branch.name}</div>
+                <div className="ui-branch-addr">
+                  <LocationOnRoundedIcon />
+                  <span>{isGlobalBranch(branch) ? (branch.address || (isArabic ? 'متاح بجميع المحافظات' : 'Available in all governorates')) : `${branch.governorate.name} — ${branch.address || (isArabic ? 'العنوان غير متوفر' : 'Address not available')}`}</span>
+                </div>
+              </div>
+              {(branch.phone || branch.mapUrl) && (
+                <div className="ui-branch-actions">
+                  {branch.phone && <a className="ui-btn ui-btn--ghost ui-btn--sm" href={`tel:${branch.phone}`}><CallRoundedIcon />{isArabic ? 'اتصال' : 'Call'}</a>}
+                  {branch.mapUrl && <a className="ui-btn ui-btn--primary ui-btn--sm" href={branch.mapUrl} target="_blank" rel="noopener noreferrer"><MapRoundedIcon />{isArabic ? 'الخريطة' : 'Map'}</a>}
+                </div>
+              )}
+            </div>
+          ))}
+          {governorateId !== '' && !filtered.length && (
+            <div className="ui-branch" style={{ borderStyle: 'dashed' }}>
+              <div>
+                <div className="ui-branch-name">{isArabic ? 'المكان متاح في المحافظة المحددة' : 'Available in this governorate'}</div>
+                <div className="ui-branch-addr"><span>{isArabic ? 'بيانات الفرع التفصيلية غير مضافة حاليًا.' : 'Detailed branch information has not been added yet.'}</span></div>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
     </>
   );
 }

@@ -1,5 +1,8 @@
 # RG-Card v4
 
+> **Redesign (October 2026):** new member site and admin console. Deployment and
+> handoff notes: [docs/REDESIGN_HANDOFF.md](./docs/REDESIGN_HANDOFF.md).
+
 Next.js + API + Prisma SQLite demo for RG-Card membership, offers, admin dashboard, cards, QR, CSV import/export, and admin permissions.
 
 ## New in v4
@@ -123,12 +126,6 @@ See `docs/v3.9.25-banner-logo-fit.md` for the New Arrival / Coming Soon banner, 
 `New Arrival / Coming Soon` is now a standalone banner feature. It is configured from `/admin/new-arrivals` and is no longer tied to a Place or Offer. Run `npx prisma generate` and `npm run db:push` after upgrading.
 
 The security alert webhook can be configured from `/admin/security-alerts`; the dashboard stores the URL/token encrypted using `DATA_ENCRYPTION_SECRET`. Environment variables are still supported and take priority.
-
-## Admin backup and arrival-banner controls
-
-- Admins with export permission can download a ZIP backup from **Admin → App & Card Settings**. It contains a consistent SQLite snapshot, persisted uploads, and the public catalog/card image assets. Environment secrets are intentionally excluded.
-- The New Arrival / Coming Soon banner can be resized and recolored from **Admin → Design Studio**. The panel includes a live preview and separate size controls for its logo cards.
-- Password visibility toggles are available for both password and confirmation fields when creating a user or setting a new password. Successful New Arrival logo uploads are confirmed in the admin interface.
 
 ## v3.9.36 Railway deployment
 

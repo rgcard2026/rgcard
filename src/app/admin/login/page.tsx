@@ -2,17 +2,22 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { encryptForLogin } from '@/lib/clientEncryption';
-import { Alert, Box, Button, Card, CardContent, Container, IconButton, InputAdornment, Stack, TextField, Typography } from '@mui/material';
 import AdminPanelSettingsRoundedIcon from '@mui/icons-material/AdminPanelSettingsRounded';
 import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
+import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
+import { encryptForLogin } from '@/lib/clientEncryption';
+import AuthLayout from '@/components/ui/AuthLayout';
+import { useUiPreferences } from '@/components/UiPreferences';
 
 const enableLoginEncryption = process.env.NEXT_PUBLIC_ENABLE_LOGIN_ENCRYPTION === 'true';
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const { language } = useUiPreferences();
+  const ar = language === 'ar';
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
@@ -30,41 +35,57 @@ export default function AdminLoginPage() {
         body = { payload: await encryptForLogin({ username, password }) };
       } catch {
         setLoading(false);
-        return setError('تعذر تشفير بيانات الدخول. استخدم HTTPS أو عطّل التشفير في بيئة التطوير.');
+        return setError(ar ? 'تعذر تشفير بيانات الدخول. استخدم HTTPS أو عطّل التشفير في بيئة التطوير.' : 'Unable to encrypt the sign-in request. Use HTTPS or disable encryption in development.');
       }
     }
 
-    const res = await fetch('/api/auth/admin-login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    const responseBody = await res.json();
-    setLoading(false);
-    if (!res.ok) return setError(responseBody.message || 'بيانات الدخول غير صحيحة');
-    router.push(responseBody.redirectTo || '/admin/dashboard');
+    try {
+      const res = await fetch('/api/auth/admin-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const responseBody = await res.json();
+      if (!res.ok) {
+        setLoading(false);
+        return setError(responseBody.message || (ar ? 'بيانات الدخول غير صحيحة' : 'Invalid sign-in details'));
+      }
+      router.push(responseBody.redirectTo || '/admin/dashboard');
+    } catch {
+      setLoading(false);
+      setError(ar ? 'تعذر الاتصال بالخادم. حاول مرة أخرى.' : 'Could not reach the server. Please try again.');
+    }
   }
 
   return (
-    <Box className="rg-login-page rg-admin-login-page">
-      <Container maxWidth="xs" sx={{ py: 8 }}>
-        <Card className="rg-auth-card rg-admin-auth-card">
-          <CardContent sx={{ p: 4 }}>
-            <Stack component="form" onSubmit={submit} spacing={2.5}>
-              <Stack alignItems="center" spacing={1}>
-                <Box className="rg-crown-mark">♛</Box>
-                <Typography variant="h4" className="rg-section-title">Admin Login</Typography>
-                <Typography color="text.secondary">لوحة تحكم RG-Card</Typography>
-              </Stack>
-              {!enableLoginEncryption && <Alert severity="info" sx={{ borderRadius: 3 }}>Development mode: login encryption is disabled temporarily.</Alert>}
-              {error && <Alert severity="error" sx={{ borderRadius: 3 }}>{error}</Alert>}
-              <TextField className="rg-premium-input" label="اسم المستخدم" value={username} onChange={(e) => setUsername(e.target.value)} required InputProps={{ startAdornment: <AdminPanelSettingsRoundedIcon sx={{ ml: 1, color: 'text.secondary' }} /> }} />
-              <TextField className="rg-premium-input" label="كلمة المرور" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required InputProps={{ startAdornment: <LockRoundedIcon sx={{ ml: 1, color: 'text.secondary' }} />, endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPassword(!showPassword)} edge="end">{showPassword ? <VisibilityOffRoundedIcon /> : <VisibilityRoundedIcon />}</IconButton></InputAdornment> }} />
-              <Button className="rg-royal-button" type="submit" variant="contained" size="large" disabled={loading}>{loading ? 'جاري الدخول...' : 'دخول'}</Button>
-            </Stack>
-          </CardContent>
-        </Card>
-      </Container>
-    </Box>
+    <AuthLayout
+      title={ar ? 'دخول الإدارة' : 'Admin sign in'}
+      subtitle={ar ? 'لوحة تحكم RG-Card للمسؤولين المصرّح لهم فقط.' : 'RG-Card control panel for authorised administrators only.'}
+      brandSubtitle={ar ? 'إدارة الأعضاء والأماكن والعروض والتصميم من مكان واحد.' : 'Manage members, places, offers and design in one place.'}
+    >
+      <form className="ui-auth-form" onSubmit={submit}>
+        {error && <div className="ui-alert ui-alert--error" role="alert"><ErrorOutlineRoundedIcon />{error}</div>}
+        {!enableLoginEncryption && process.env.NODE_ENV === 'development' && (
+          <div className="ui-hint">{ar ? 'بيئة تطوير: تشفير طلب الدخول معطّل.' : 'Development: login encryption disabled.'}</div>
+        )}
+        <div className="ui-field">
+          <label className="ui-label" htmlFor="admin-user">{ar ? 'اسم المستخدم' : 'Username'}</label>
+          <div className="ui-input-wrap">
+            <AdminPanelSettingsRoundedIcon />
+            <input id="admin-user" type="text" className="ui-input" value={username} onChange={(e) => setUsername(e.target.value)} required autoComplete="username" />
+          </div>
+        </div>
+        <div className="ui-field">
+          <label className="ui-label" htmlFor="admin-password">{ar ? 'كلمة المرور' : 'Password'}</label>
+          <div className="ui-input-wrap">
+            <LockRoundedIcon />
+            <input id="admin-password" className="ui-input" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
+            <button type="button" className="ui-input-action" onClick={() => setShowPassword((s) => !s)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
+              {showPassword ? <VisibilityOffRoundedIcon /> : <VisibilityRoundedIcon />}
+            </button>
+          </div>
+        </div>
+        <button type="submit" className="ui-btn ui-btn--primary ui-btn--block" disabled={loading} style={{ marginTop: 6 }}>
+          {loading ? (ar ? 'جاري الدخول...' : 'Signing in...') : (ar ? 'دخول' : 'Sign in')}
+          {!loading && <ArrowBackRoundedIcon className="ui-flip-ltr" />}
+        </button>
+      </form>
+    </AuthLayout>
   );
 }

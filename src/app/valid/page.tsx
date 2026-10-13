@@ -5,6 +5,8 @@ import { getCardRenderSettings } from '@/lib/settings';
 import { membershipLabel } from '@/lib/card-layout';
 import MemberExperienceClient from '@/components/MemberExperienceClient';
 
+export const metadata = { title: 'بطاقتي' };
+
 export default async function ValidPage() {
   const session = await getSession('user');
   if (!session) redirect('/login');

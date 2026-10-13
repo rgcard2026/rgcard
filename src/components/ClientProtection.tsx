@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { Alert } from '@mui/material';
 
 async function logActivity(action: string, page: string, details?: Record<string, unknown>) {
   try {
@@ -70,17 +69,12 @@ export default function ClientProtection({ watermarkText, page }: { watermarkTex
   return (
     <>
       {watermark && (
-        <div aria-hidden="true" className="rg-watermark-grid-v43" data-watermark-mode="dense-repeat-foreground">
-          {Array.from({ length: 20 }, (_, index) => (
-            <span key={index} className="rg-watermark-grid-v43-text">{watermark}</span>
-          ))}
+        // Rendered above all page content (z-index in ui.css) so screenshots always carry the member number.
+        <div aria-hidden="true" className="ui-watermark" data-watermark-mode="dense-repeat-foreground">
+          {Array.from({ length: 96 }, (_, index) => <span key={index}>{watermark}</span>)}
         </div>
       )}
-      {notice && (
-        <Alert severity="warning" sx={{ position: 'fixed', top: 18, left: '50%', transform: 'translateX(-50%)', zIndex: 9999, boxShadow: 3 }}>
-          {notice}
-        </Alert>
-      )}
+      {notice && <div role="status" className="ui-toast">{notice}</div>}
     </>
   );
 }

@@ -2,13 +2,18 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Alert, Box, Button, Card, CardContent, Container, IconButton, InputAdornment, Stack, TextField, Typography } from '@mui/material';
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
+import LockRoundedIcon from '@mui/icons-material/LockRounded';
 import LockResetRoundedIcon from '@mui/icons-material/LockResetRounded';
+import ErrorOutlineRoundedIcon from '@mui/icons-material/ErrorOutlineRounded';
+import AuthLayout from '@/components/ui/AuthLayout';
+import { useUiPreferences } from '@/components/UiPreferences';
 
 export default function ChangePasswordPage() {
   const router = useRouter();
+  const { language } = useUiPreferences();
+  const isArabic = language === 'ar';
   const [currentPassword, setCurrentPassword] = React.useState('');
   const [newPassword, setNewPassword] = React.useState('');
   const [show, setShow] = React.useState(false);
@@ -22,37 +27,43 @@ export default function ChangePasswordPage() {
     const res = await fetch('/api/auth/change-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ currentPassword, newPassword }) });
     const body = await res.json();
     setLoading(false);
-    if (!res.ok) return setMsg(body.message || 'تعذر تغيير كلمة المرور');
+    if (!res.ok) return setMsg(body.message || (isArabic ? 'تعذر تغيير كلمة المرور' : 'Could not change the password'));
     router.push(body.redirectTo || '/valid');
   }
 
-  const endAdornment = (
-    <InputAdornment position="end">
-      <IconButton onClick={() => setShow(!show)} edge="end" aria-label="show password">
-        {show ? <VisibilityOffRoundedIcon /> : <VisibilityRoundedIcon />}
-      </IconButton>
-    </InputAdornment>
+  const toggle = (
+    <button type="button" className="ui-input-action" onClick={() => setShow(!show)} aria-label={show ? 'Hide password' : 'Show password'}>
+      {show ? <VisibilityOffRoundedIcon /> : <VisibilityRoundedIcon />}
+    </button>
   );
 
   return (
-    <Box className="rg-login-page">
-      <Container maxWidth="xs" sx={{ py: 8 }}>
-        <Card className="rg-auth-card">
-          <CardContent sx={{ p: 4 }}>
-            <Stack component="form" spacing={2.2} onSubmit={submit}>
-              <Box textAlign="center">
-                <Box className="rg-crown-mark" sx={{ mx: 'auto', mb: 2 }}>♛</Box>
-                <Typography variant="h4" fontWeight={950}>تغيير كلمة المرور</Typography>
-                <Typography color="text.secondary" sx={{ mt: 1 }}>مطلوب تغيير كلمة المرور أول مرة قبل استخدام الكارت.</Typography>
-              </Box>
-              {msg && <Alert severity="error">{msg}</Alert>}
-              <TextField label="كلمة المرور الحالية" type={show ? 'text' : 'password'} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required InputProps={{ endAdornment }} />
-              <TextField label="كلمة المرور الجديدة" type={show ? 'text' : 'password'} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required helperText="لا تستخدم رقم الكارت أو الرقم التعريفي أو الاسم داخل كلمة المرور" InputProps={{ endAdornment }} />
-              <Button type="submit" className="rg-royal-button" variant="contained" disabled={loading} startIcon={<LockResetRoundedIcon />}>{loading ? 'جاري الحفظ...' : 'حفظ ومتابعة'}</Button>
-            </Stack>
-          </CardContent>
-        </Card>
-      </Container>
-    </Box>
+    <AuthLayout
+      title={isArabic ? 'تغيير كلمة المرور' : 'Change password'}
+      subtitle={isArabic ? 'مطلوب تغيير كلمة المرور أول مرة قبل استخدام البطاقة.' : 'Please set a new password before using your card for the first time.'}
+    >
+      <form className="ui-auth-form" onSubmit={submit}>
+        {msg && <div className="ui-alert ui-alert--error" role="alert"><ErrorOutlineRoundedIcon />{msg}</div>}
+        <div className="ui-field">
+          <label className="ui-label" htmlFor="cp-current">{isArabic ? 'كلمة المرور الحالية' : 'Current password'}</label>
+          <div className="ui-input-wrap">
+            <LockRoundedIcon />
+            <input id="cp-current" className="ui-input" type={show ? 'text' : 'password'} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required autoComplete="current-password" />
+            {toggle}
+          </div>
+        </div>
+        <div className="ui-field">
+          <label className="ui-label" htmlFor="cp-new">{isArabic ? 'كلمة المرور الجديدة' : 'New password'}</label>
+          <div className="ui-input-wrap">
+            <LockResetRoundedIcon />
+            <input id="cp-new" className="ui-input" type={show ? 'text' : 'password'} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required autoComplete="new-password" />
+          </div>
+          <span className="ui-hint">{isArabic ? 'لا تستخدم رقم البطاقة أو الرقم التعريفي أو الاسم داخل كلمة المرور.' : 'Do not include your card number, ID or name in the password.'}</span>
+        </div>
+        <button type="submit" className="ui-btn ui-btn--primary ui-btn--block" disabled={loading}>
+          {loading ? (isArabic ? 'جاري الحفظ...' : 'Saving...') : (isArabic ? 'حفظ ومتابعة' : 'Save and continue')}
+        </button>
+      </form>
+    </AuthLayout>
   );
 }
