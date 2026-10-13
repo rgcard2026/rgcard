@@ -8,6 +8,8 @@ RUN npm ci
 
 FROM node:20-bookworm-slim AS builder
 WORKDIR /app
+ARG NEXT_PUBLIC_ENABLE_LOGIN_ENCRYPTION=true
+ENV NEXT_PUBLIC_ENABLE_LOGIN_ENCRYPTION=${NEXT_PUBLIC_ENABLE_LOGIN_ENCRYPTION}
 RUN apt-get update \
   && apt-get install -y --no-install-recommends openssl ca-certificates \
   && rm -rf /var/lib/apt/lists/*

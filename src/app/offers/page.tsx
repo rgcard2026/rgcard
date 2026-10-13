@@ -7,6 +7,35 @@ import { useUiPreferences } from '@/components/UiPreferences';
 
 type AnyItem = Record<string, any>;
 type PageItem = number | 'ellipsis';
+type ArrivalBannerDesign = {
+  designArrivalBannerWidth: number;
+  designArrivalBannerHeight: number;
+  designArrivalBannerRadius: number;
+  designArrivalBannerOpacity: number;
+  designArrivalBannerStartColor: string;
+  designArrivalBannerEndColor: string;
+  designArrivalBannerTextColor: string;
+  designArrivalBannerAccentColor: string;
+  designArrivalBannerCardColor: string;
+  designArrivalLogoWidth: number;
+  designArrivalLogoHeight: number;
+  designArrivalLogoRadius: number;
+};
+
+const DEFAULT_ARRIVAL_DESIGN: ArrivalBannerDesign = {
+  designArrivalBannerWidth: 100,
+  designArrivalBannerHeight: 0,
+  designArrivalBannerRadius: 26,
+  designArrivalBannerOpacity: 100,
+  designArrivalBannerStartColor: '#070A12',
+  designArrivalBannerEndColor: '#5F3F15',
+  designArrivalBannerTextColor: '#FFFAF1',
+  designArrivalBannerAccentColor: '#D6A64F',
+  designArrivalBannerCardColor: '#FFFFFF',
+  designArrivalLogoWidth: 116,
+  designArrivalLogoHeight: 70,
+  designArrivalLogoRadius: 16
+};
 
 function normalizeList(payload: any): AnyItem[] {
   if (Array.isArray(payload)) return payload;
@@ -170,6 +199,7 @@ export default function OffersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [showMoreCategories, setShowMoreCategories] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [arrivalDesign, setArrivalDesign] = useState<ArrivalBannerDesign>(DEFAULT_ARRIVAL_DESIGN);
   // Keep the user catalogue compact: at most 10 places/offers per page.
   const pageSize = 10;
   const arrivalViewportRef = useRef<HTMLDivElement | null>(null);
@@ -177,14 +207,18 @@ export default function OffersPage() {
   useEffect(() => {
     let mounted = true;
     async function load() {
-      const [meData, placesData, categoriesData, governoratesData, arrivalsData] = await Promise.all([
+      const [meData, placesData, categoriesData, governoratesData, arrivalsData, settingsData] = await Promise.all([
         fetchJson('/api/me'),
         fetchJson('/api/places'),
         fetchJson('/api/categories'),
         fetchJson('/api/governorates'),
-        fetchJson('/api/new-arrivals')
+        fetchJson('/api/new-arrivals'),
+        fetchJson('/api/settings')
       ]);
       if (!mounted) return;
+      if (settingsData?.data) {
+        setArrivalDesign({ ...DEFAULT_ARRIVAL_DESIGN, ...settingsData.data });
+      }
       setMe(meData?.user || meData?.data || meData || null);
       setPlaces(normalizeList(placesData).filter((item) => item?.isActive !== false));
       setCategories(normalizeList(categoriesData));
@@ -261,6 +295,22 @@ export default function OffersPage() {
     const repeats = Math.max(1, Math.ceil(minimumCardsPerGroup / bannerArrivals.length));
     return Array.from({ length: repeats }, () => bannerArrivals).flat();
   }, [bannerArrivals]);
+  const arrivalBannerStyle = {
+    '--rg-arrival-banner-width': `${Math.max(40, Math.min(100, Number(arrivalDesign.designArrivalBannerWidth) || 100))}%`,
+    '--rg-arrival-banner-height': Number(arrivalDesign.designArrivalBannerHeight) > 0
+      ? `${Math.min(600, Number(arrivalDesign.designArrivalBannerHeight))}px`
+      : 'auto',
+    '--rg-arrival-banner-radius': `${Math.max(0, Math.min(60, Number(arrivalDesign.designArrivalBannerRadius) || 0))}px`,
+    '--rg-arrival-banner-opacity': `${Math.max(0, Math.min(100, Number(arrivalDesign.designArrivalBannerOpacity) || 0))}%`,
+    '--rg-arrival-banner-start': arrivalDesign.designArrivalBannerStartColor || DEFAULT_ARRIVAL_DESIGN.designArrivalBannerStartColor,
+    '--rg-arrival-banner-end': arrivalDesign.designArrivalBannerEndColor || DEFAULT_ARRIVAL_DESIGN.designArrivalBannerEndColor,
+    '--rg-arrival-banner-text': arrivalDesign.designArrivalBannerTextColor || DEFAULT_ARRIVAL_DESIGN.designArrivalBannerTextColor,
+    '--rg-arrival-banner-accent': arrivalDesign.designArrivalBannerAccentColor || DEFAULT_ARRIVAL_DESIGN.designArrivalBannerAccentColor,
+    '--rg-arrival-banner-card': arrivalDesign.designArrivalBannerCardColor || DEFAULT_ARRIVAL_DESIGN.designArrivalBannerCardColor,
+    '--rg-arrival-logo-width': `${Math.max(60, Math.min(240, Number(arrivalDesign.designArrivalLogoWidth) || 116))}px`,
+    '--rg-arrival-logo-height': `${Math.max(40, Math.min(160, Number(arrivalDesign.designArrivalLogoHeight) || 70))}px`,
+    '--rg-arrival-logo-radius': `${Math.max(0, Math.min(40, Number(arrivalDesign.designArrivalLogoRadius) || 0))}px`
+  } as React.CSSProperties;
 
   // v3.9.34 — true endless ticker.
   // Keep a separate floating-point logical offset. Some browsers round scrollLeft
@@ -328,7 +378,7 @@ export default function OffersPage() {
         </section>
 
         {bannerArrivals.length > 0 && (
-          <section className="arrivalBanner wrap" aria-label="New Arrival and Coming Soon">
+          <section className="arrivalBanner wrap" style={arrivalBannerStyle} aria-label="New Arrival and Coming Soon">
             <div className="arrivalHeader" aria-hidden="true">
               <span className="arrivalSpark">✦</span>
               <span className="arrivalTitle">{language === 'ar' ? 'وصل حديثًا / قريبًا' : 'NEW ARRIVALS / COMING SOON'}</span>
@@ -432,22 +482,23 @@ export default function OffersPage() {
           .headlineCard p { margin: 0; color: var(--rg-subtle); line-height: 1.75; }
 
           /* v3.9.27 — logo-only, continuously moving New Arrival / Coming Soon carousel. */
-          .arrivalBanner { margin-top: 14px; border: 1px solid rgba(255,255,255,.28); border-radius: 24px; padding: 0; color: #fff; background: var(--rg-brand-gradient); box-shadow: 0 18px 45px rgba(33,25,10,.16); overflow: hidden; }
-          .arrivalHeader { min-height: 38px; display: flex; align-items: center; justify-content: center; gap: 9px; padding: 8px 16px; border-bottom: 1px solid rgba(255,255,255,.12); background: linear-gradient(90deg, rgba(255,255,255,.02), rgba(224,181,91,.12), rgba(255,255,255,.02)); }
-          .arrivalTitle { color: #fff; font-size: clamp(13px, 1.3vw, 16px); font-weight: 950; letter-spacing: .15em; text-transform: uppercase; white-space: nowrap; }
-          .arrivalSpark { color: #fff; opacity: .78; font-size: 13px; line-height: 1; }
+          .arrivalBanner { position: relative; isolation: isolate; width: var(--rg-arrival-banner-width, 100%); max-width: min(1120px, calc(100% - 32px)); height: var(--rg-arrival-banner-height, auto); min-height: 0; margin-top: 14px; border: 1px solid color-mix(in srgb, var(--rg-arrival-banner-accent, #d6a64f) 46%, transparent); border-radius: var(--rg-arrival-banner-radius, 26px); padding: 0; color: var(--rg-arrival-banner-text, #fffaf1); background: transparent; box-shadow: 0 18px 45px rgba(33,25,10,.16); overflow: hidden; }
+          .arrivalBanner::before { content: ''; position: absolute; z-index: -1; inset: 0; border-radius: inherit; opacity: var(--rg-arrival-banner-opacity, 100%); background: radial-gradient(circle at 95% 20%, color-mix(in srgb, var(--rg-arrival-banner-end, #5f3f15) 42%, transparent), transparent 24%), radial-gradient(circle at 8% 100%, color-mix(in srgb, var(--rg-arrival-banner-start, #070a12) 45%, transparent), transparent 31%), linear-gradient(112deg, var(--rg-arrival-banner-start, #070a12) 0%, var(--rg-arrival-banner-end, #5f3f15) 100%); }
+          .arrivalHeader { position: relative; z-index: 1; min-height: 38px; display: flex; align-items: center; justify-content: center; gap: 9px; padding: 8px 16px; border-bottom: 1px solid color-mix(in srgb, var(--rg-arrival-banner-text, #fffaf1) 18%, transparent); background: linear-gradient(90deg, color-mix(in srgb, var(--rg-arrival-banner-start, #070a12) 4%, transparent), color-mix(in srgb, var(--rg-arrival-banner-end, #5f3f15) 10%, transparent)); }
+          .arrivalTitle { color: var(--rg-arrival-banner-accent, #d6a64f); font-size: clamp(13px, 1.3vw, 16px); font-weight: 950; letter-spacing: .15em; text-transform: uppercase; white-space: nowrap; }
+          .arrivalSpark { color: var(--rg-arrival-banner-accent, #d6a64f); opacity: .9; font-size: 13px; line-height: 1; }
           /* v3.9.33 — JS ticker. Unlike a CSS transform loop, it wraps at the exact
              measured width of an identical sequence, so there is no cut, pause or blank gap. */
           .arrivalViewport { --arrival-gap: 10px; width: 100%; overflow: hidden; padding: 14px 0 16px; direction: ltr; scroll-behavior: auto; scrollbar-width: none; -webkit-mask-image: none; mask-image: none; }
           .arrivalViewport::-webkit-scrollbar { display: none; }
           .arrivalTrack { display: flex; align-items: center; width: max-content; min-width: max-content; direction: ltr; gap: 0; padding: 0; animation: none !important; transform: none !important; will-change: auto; }
           .arrivalGroup { display: flex; align-items: center; flex: 0 0 auto; flex-wrap: nowrap; gap: var(--arrival-gap); padding: 0 var(--arrival-gap) 0 0; }
-          .arrivalLogoLink { flex: 0 0 132px; width: 132px; height: 86px; display: grid; place-items: center; padding: 8px; border-radius: 17px; background: rgba(255,255,255,.98); border: 1px solid rgba(255,255,255,.58); box-sizing: border-box; overflow: hidden; box-shadow: 0 12px 26px rgba(0,0,0,.22); text-decoration: none; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+          .arrivalLogoLink { position: relative; z-index: 1; flex: 0 0 var(--rg-arrival-logo-width, 116px); width: var(--rg-arrival-logo-width, 116px); height: var(--rg-arrival-logo-height, 70px); display: grid; place-items: center; padding: 8px; border-radius: var(--rg-arrival-logo-radius, 16px); background: var(--rg-arrival-banner-card, #fff); border: 1px solid var(--rg-arrival-banner-accent, #d6a64f); box-sizing: border-box; overflow: hidden; box-shadow: 0 12px 26px rgba(0,0,0,.22); text-decoration: none; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
           .arrivalLogoLink:hover, .arrivalLogoLink:focus-visible { transform: translateY(-3px); border-color: var(--rg-accent-border); box-shadow: 0 17px 30px rgba(0,0,0,.33); outline: none; }
 
           /* Fixed frames: the logo itself is restrained, never allowed to overflow the card. */
           .placeLogo { display: grid; place-items: center; min-width: 0; min-height: 0; overflow: hidden; background: #fffdf7; color: #9a6b22; font-weight: 950; box-sizing: border-box; }
-          .placeLogo.banner { width: 100%; height: 100%; border-radius: 11px; }
+          .placeLogo.banner { width: 100%; height: 100%; border-radius: var(--rg-arrival-logo-radius, 16px); }
           .placeLogo.catalogue { width: 128px; max-width: 100%; height: 106px; border-radius: 18px; border: 1px solid var(--rg-accent-border); background: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.72); }
           .placeLogo > img { display: block !important; image-rendering: auto; transform: none !important; width: auto !important; height: auto !important; max-width: 82% !important; max-height: 82% !important; object-fit: contain !important; object-position: center !important; flex: 0 0 auto; padding: 0 !important; margin: 0 !important; box-sizing: border-box !important; }
           .placeLogo.banner > img { max-width: 86% !important; max-height: 80% !important; }
@@ -480,6 +531,7 @@ export default function OffersPage() {
           .rgPageDots { color: #666; font-weight: 950; padding-inline: 2px; }
           @media (max-width: 700px) {
             .wrap, .rgPagination { width: min(100% - 18px, 1120px); }
+            .arrivalBanner.wrap { width: var(--rg-arrival-banner-width, 100%); max-width: min(100% - 18px, 1120px); }
             .searchRow, .selectRow { grid-template-columns: 1fr; }
             .searchRow button { min-height: 46px; }
             .offersPage { padding-top: 12px; }
@@ -492,12 +544,12 @@ export default function OffersPage() {
             .placeLogo > img { max-width: 78% !important; max-height: 78% !important; }
             .placeLogo.banner > img { max-width: 84% !important; max-height: 78% !important; }
             .placeName { min-height: 34px; font-size: 12px; line-height: 1.35; }
-            .arrivalBanner, .headlineCard, .filters { border-radius: 20px; }
+            .headlineCard, .filters { border-radius: 20px; }
             .arrivalHeader { min-height: 36px; padding: 8px 11px; }
             .arrivalTitle { font-size: 10px; letter-spacing: .11em; }
             .arrivalViewport { --arrival-gap: 8px; padding: 11px 0 13px; }
             .arrivalGroup { gap: var(--arrival-gap); padding: 0 var(--arrival-gap) 0 0; }
-            .arrivalLogoLink { flex-basis: 112px; width: 112px; height: 74px; padding: 7px; border-radius: 15px; }
+            .arrivalLogoLink { flex-basis: min(var(--rg-arrival-logo-width, 116px), 36vw); width: min(var(--rg-arrival-logo-width, 116px), 36vw); height: min(var(--rg-arrival-logo-height, 70px), 22vw); padding: 7px; }
             .rgPagination { gap: 7px; }
             .rgPageBtn { min-width: 36px; height: 36px; padding: 0 9px; }
           }

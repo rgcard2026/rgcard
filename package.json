@@ -21,6 +21,7 @@
     "@mui/material": "5.15.20",
     "@napi-rs/canvas": "^0.1.65",
     "@prisma/client": "5.14.0",
+    "archiver": "^5.3.2",
     "bcryptjs": "2.4.3",
     "docx": "^8.5.0",
     "exceljs": "^4.4.0",
@@ -35,6 +36,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.64.0",
+    "@types/archiver": "^5.3.4",
     "@types/bcryptjs": "2.4.6",
     "@types/node": "20.12.12",
     "@types/qrcode": "1.5.5",

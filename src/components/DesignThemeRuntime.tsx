@@ -44,6 +44,38 @@ type DesignSettings = {
   designBackgroundImageEnabled?: boolean;
   designBackgroundSize?: string;
   designBackgroundOverlay?: number;
+  designCardOpacity?: number;
+  designCardWidth?: number;
+  designCardHeight?: number;
+  designBoxOpacity?: number;
+  designBoxWidth?: number;
+  designBoxHeight?: number;
+  designFieldOpacity?: number;
+  designFieldWidth?: number;
+  designFieldHeight?: number;
+  designButtonOpacity?: number;
+  designButtonWidth?: number;
+  designButtonHeight?: number;
+  designLoginBannerStartColor?: string;
+  designLoginBannerEndColor?: string;
+  designLoginBannerTextColor?: string;
+  designLoginBannerHeight?: number;
+  designLoginBannerRadius?: number;
+  designLoginBannerOpacity?: number;
+  designLoginBannerImageUrl?: string;
+  designLoginBannerImageEnabled?: boolean;
+  designArrivalBannerWidth?: number;
+  designArrivalBannerHeight?: number;
+  designArrivalBannerRadius?: number;
+  designArrivalBannerOpacity?: number;
+  designArrivalBannerStartColor?: string;
+  designArrivalBannerEndColor?: string;
+  designArrivalBannerTextColor?: string;
+  designArrivalBannerAccentColor?: string;
+  designArrivalBannerCardColor?: string;
+  designArrivalLogoWidth?: number;
+  designArrivalLogoHeight?: number;
+  designArrivalLogoRadius?: number;
 };
 
 function fontStack(font?: string) {
@@ -141,6 +173,60 @@ export function applyDesignSettings(settings: DesignSettings, requestedMode?: 'l
 
   set('--rg-background-size', settings.designBackgroundSize || 'cover');
   set('--rg-background-overlay', Number(settings.designBackgroundOverlay || 0) / 100);
+  set('--rg-login-banner-start', settings.designLoginBannerStartColor || '#168B8A');
+  set('--rg-login-banner-end', settings.designLoginBannerEndColor || '#2847D4');
+  set('--rg-login-banner-text', settings.designLoginBannerTextColor || '#FFFFFF');
+  setPx('--rg-login-banner-height', settings.designLoginBannerHeight ?? 304);
+  setPx('--rg-login-banner-radius', settings.designLoginBannerRadius ?? 72);
+  set('--rg-login-banner-opacity', Math.max(0, Math.min(100, Number(settings.designLoginBannerOpacity ?? 100))) / 100);
+  root.style.setProperty(
+    '--rg-login-banner-image',
+    settings.designLoginBannerImageEnabled && settings.designLoginBannerImageUrl
+      ? `url("${settings.designLoginBannerImageUrl}")`
+      : 'none',
+  );
+  const arrivalOpacity = Math.max(0, Math.min(100, Number(settings.designArrivalBannerOpacity ?? 100)));
+  set('--rg-arrival-banner-width', `${Math.max(40, Math.min(100, Number(settings.designArrivalBannerWidth ?? 100)))}%`);
+  const arrivalHeight = Number(settings.designArrivalBannerHeight ?? 0);
+  set('--rg-arrival-banner-height', arrivalHeight > 0 ? `${Math.min(600, arrivalHeight)}px` : 'auto');
+  setPx('--rg-arrival-banner-radius', settings.designArrivalBannerRadius ?? 26);
+  set('--rg-arrival-banner-opacity', `${arrivalOpacity}%`);
+  set('--rg-arrival-banner-start', settings.designArrivalBannerStartColor || '#070A12');
+  set('--rg-arrival-banner-end', settings.designArrivalBannerEndColor || '#5F3F15');
+  set('--rg-arrival-banner-text', settings.designArrivalBannerTextColor || '#FFFAF1');
+  set('--rg-arrival-banner-accent', settings.designArrivalBannerAccentColor || '#D6A64F');
+  set('--rg-arrival-banner-card', settings.designArrivalBannerCardColor || '#FFFFFF');
+  setPx('--rg-arrival-logo-width', settings.designArrivalLogoWidth ?? 116);
+  setPx('--rg-arrival-logo-height', settings.designArrivalLogoHeight ?? 70);
+  setPx('--rg-arrival-logo-radius', settings.designArrivalLogoRadius ?? 16);
+  set('--rg-ui-card-opacity', Math.max(0, Math.min(100, Number(settings.designCardOpacity ?? 100))) / 100);
+  const cardWidth = Number(settings.designCardWidth ?? 0);
+  root.style.setProperty('--rg-ui-card-width', cardWidth > 0 ? `${Math.min(100, cardWidth)}%` : 'auto');
+  root.dataset.rgCardWidth = cardWidth > 0 ? 'custom' : 'auto';
+  const cardHeight = Number(settings.designCardHeight ?? 0);
+  root.style.setProperty('--rg-ui-card-height', cardHeight > 0 ? `${Math.min(800, cardHeight)}px` : 'auto');
+  root.dataset.rgCardHeight = cardHeight > 0 ? 'custom' : 'auto';
+  set('--rg-ui-box-opacity', Math.max(0, Math.min(100, Number(settings.designBoxOpacity ?? 100))) / 100);
+  const boxWidth = Number(settings.designBoxWidth ?? 0);
+  root.style.setProperty('--rg-ui-box-width', boxWidth > 0 ? `${Math.min(100, boxWidth)}%` : 'auto');
+  root.dataset.rgBoxWidth = boxWidth > 0 ? 'custom' : 'auto';
+  const boxHeight = Number(settings.designBoxHeight ?? 0);
+  root.style.setProperty('--rg-ui-box-height', boxHeight > 0 ? `${Math.min(800, boxHeight)}px` : 'auto');
+  root.dataset.rgBoxHeight = boxHeight > 0 ? 'custom' : 'auto';
+  set('--rg-ui-field-opacity', Math.max(0, Math.min(100, Number(settings.designFieldOpacity ?? 100))) / 100);
+  const fieldWidth = Number(settings.designFieldWidth ?? 0);
+  root.style.setProperty('--rg-ui-field-width', fieldWidth > 0 ? `${Math.min(100, fieldWidth)}%` : 'auto');
+  root.dataset.rgFieldWidth = fieldWidth > 0 ? 'custom' : 'auto';
+  const fieldHeight = Number(settings.designFieldHeight ?? 0);
+  root.style.setProperty('--rg-ui-field-height', fieldHeight > 0 ? `${Math.min(100, fieldHeight)}px` : 'auto');
+  root.dataset.rgFieldHeight = fieldHeight > 0 ? 'custom' : 'auto';
+  set('--rg-ui-button-opacity', Math.max(0, Math.min(100, Number(settings.designButtonOpacity ?? 100))) / 100);
+  const buttonWidth = Number(settings.designButtonWidth ?? 0);
+  root.style.setProperty('--rg-ui-button-width', buttonWidth > 0 ? `${Math.min(100, buttonWidth)}%` : 'auto');
+  root.dataset.rgButtonWidth = buttonWidth > 0 ? 'custom' : 'auto';
+  const buttonHeight = Number(settings.designButtonHeight ?? 0);
+  root.style.setProperty('--rg-ui-button-height', buttonHeight > 0 ? `${Math.min(100, buttonHeight)}px` : 'auto');
+  root.dataset.rgButtonHeight = buttonHeight > 0 ? 'custom' : 'auto';
   const image = settings.designBackgroundImageEnabled && settings.designBackgroundImageUrl ? `url("${settings.designBackgroundImageUrl}")` : 'none';
   root.style.setProperty('--rg-background-image', image);
   root.dataset.rgCustomBackground = image === 'none' ? 'false' : 'true';

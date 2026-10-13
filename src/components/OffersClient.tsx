@@ -48,6 +48,35 @@ export type Place = {
   branches: { id: number; governorate: { id: number; name: string } }[];
   _count?: { branches: number };
 };
+type ArrivalBannerDesign = {
+  designArrivalBannerWidth: number;
+  designArrivalBannerHeight: number;
+  designArrivalBannerRadius: number;
+  designArrivalBannerOpacity: number;
+  designArrivalBannerStartColor: string;
+  designArrivalBannerEndColor: string;
+  designArrivalBannerTextColor: string;
+  designArrivalBannerAccentColor: string;
+  designArrivalBannerCardColor: string;
+  designArrivalLogoWidth: number;
+  designArrivalLogoHeight: number;
+  designArrivalLogoRadius: number;
+};
+
+const DEFAULT_ARRIVAL_DESIGN: ArrivalBannerDesign = {
+  designArrivalBannerWidth: 100,
+  designArrivalBannerHeight: 0,
+  designArrivalBannerRadius: 26,
+  designArrivalBannerOpacity: 100,
+  designArrivalBannerStartColor: '#070A12',
+  designArrivalBannerEndColor: '#5F3F15',
+  designArrivalBannerTextColor: '#FFFAF1',
+  designArrivalBannerAccentColor: '#D6A64F',
+  designArrivalBannerCardColor: '#FFFFFF',
+  designArrivalLogoWidth: 116,
+  designArrivalLogoHeight: 70,
+  designArrivalLogoRadius: 16,
+};
 
 function getInitials(name: string) {
   return name
@@ -69,6 +98,22 @@ export default function OffersClient({ cardNumber }: { cardNumber: string }) {
   const [governorateId, setGovernorateId] = React.useState('');
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState('');
+  const [arrivalDesign, setArrivalDesign] = React.useState<ArrivalBannerDesign>(DEFAULT_ARRIVAL_DESIGN);
+
+  React.useEffect(() => {
+    let active = true;
+    fetch('/api/settings', { cache: 'no-store' })
+      .then(async (response) => {
+        const body = await response.json();
+        if (!response.ok || !body?.data) throw new Error(body?.message || 'Unable to load banner design settings');
+        if (active) setArrivalDesign({ ...DEFAULT_ARRIVAL_DESIGN, ...body.data });
+      })
+      .catch(() => {
+        if (active) setError((current) => current || 'تعذر تحميل إعدادات بانر الوصول الجديد.');
+      });
+
+    return () => { active = false; };
+  }, []);
 
   async function load() {
     setLoading(true);
@@ -113,6 +158,22 @@ export default function OffersClient({ cardNumber }: { cardNumber: string }) {
     const repeats = Math.max(1, Math.ceil(minimumCardsPerGroup / featured.length));
     return Array.from({ length: repeats }, () => featured).flat();
   }, [featured]);
+  const arrivalBannerStyle = {
+    '--rg-arrival-banner-width': `${Math.max(40, Math.min(100, arrivalDesign.designArrivalBannerWidth))}%`,
+    '--rg-arrival-banner-height': arrivalDesign.designArrivalBannerHeight > 0
+      ? `${Math.min(600, arrivalDesign.designArrivalBannerHeight)}px`
+      : 'auto',
+    '--rg-arrival-banner-radius': `${Math.max(0, Math.min(60, arrivalDesign.designArrivalBannerRadius))}px`,
+    '--rg-arrival-banner-opacity': `${Math.max(0, Math.min(100, arrivalDesign.designArrivalBannerOpacity))}%`,
+    '--rg-arrival-banner-start': arrivalDesign.designArrivalBannerStartColor,
+    '--rg-arrival-banner-end': arrivalDesign.designArrivalBannerEndColor,
+    '--rg-arrival-banner-text': arrivalDesign.designArrivalBannerTextColor,
+    '--rg-arrival-banner-accent': arrivalDesign.designArrivalBannerAccentColor,
+    '--rg-arrival-banner-card': arrivalDesign.designArrivalBannerCardColor,
+    '--rg-arrival-logo-width': `${Math.max(60, Math.min(240, arrivalDesign.designArrivalLogoWidth))}px`,
+    '--rg-arrival-logo-height': `${Math.max(40, Math.min(160, arrivalDesign.designArrivalLogoHeight))}px`,
+    '--rg-arrival-logo-radius': `${Math.max(0, Math.min(40, arrivalDesign.designArrivalLogoRadius))}px`,
+  } as React.CSSProperties;
 
   return (
     <PublicShell watermarkText={cardNumber} page="offers">
@@ -144,7 +205,7 @@ export default function OffersClient({ cardNumber }: { cardNumber: string }) {
         </Card>
 
         {featured.length > 0 && (
-          <Card className="rg-arrival-banner-v23 rg-arrival-banner-v28 rg-arrival-banner-v29" sx={{ mb: 2.2 }}>
+          <Card className="rg-arrival-banner-v23 rg-arrival-banner-v28 rg-arrival-banner-v29" style={arrivalBannerStyle} sx={{ mb: 2.2 }}>
             <CardContent sx={{ p: 0 }}>
               <Box className="rg-arrival-banner-head-v23 rg-arrival-banner-head-v28">
                 <Stack direction="row" spacing={.9} alignItems="center" justifyContent="center">

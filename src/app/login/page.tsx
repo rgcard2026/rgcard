@@ -13,6 +13,14 @@ import UiControls from '@/components/UiControls';
 import { useUiPreferences } from '@/components/UiPreferences';
 
 const enableLoginEncryption = process.env.NEXT_PUBLIC_ENABLE_LOGIN_ENCRYPTION === 'true';
+const defaultBanner = {
+  designLoginBannerTitle: 'RG-Card',
+  designLoginBannerSubtitleAr: 'برنامج الخصومات والعروض',
+  designLoginBannerSubtitleEn: 'Discounts & offers membership',
+  designLoginBannerLogo: '♛',
+  designLoginBannerShowLogo: true,
+  designLoginBannerContentAlign: 'center',
+};
 
 function buildWhatsAppMessage(template?: string, identifier?: string) {
   const cleanId = (identifier || '').trim();
@@ -42,6 +50,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = React.useState(false);
   const [whatsappNumber, setWhatsappNumber] = React.useState(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '201000033494');
   const [whatsappMessage, setWhatsappMessage] = React.useState('مرحبًا، أحتاج مساعدة بخصوص حساب RG-Card\nCard / ID: {{id}}');
+  const [banner, setBanner] = React.useState(defaultBanner);
 
   React.useEffect(() => {
     const cardFromQr = String(new URLSearchParams(window.location.search).get('card') || '').trim().slice(0, 80);
@@ -55,6 +64,7 @@ export default function LoginPage() {
     fetch('/api/settings').then((r) => r.json()).then((body) => {
       if (body?.data?.whatsappNumber) setWhatsappNumber(body.data.whatsappNumber);
       if (body?.data?.whatsappMessage) setWhatsappMessage(body.data.whatsappMessage);
+      if (body?.data) setBanner({ ...defaultBanner, ...body.data });
     }).catch(() => null);
   }, []);
 
@@ -89,11 +99,16 @@ export default function LoginPage() {
       <Box className="rg-login-hero">
         <Container maxWidth="md">
           <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}><UiControls /></Stack>
-          <Stack direction="row" alignItems="center" justifyContent="center" spacing={2}>
-            <Box className="rg-crown-mark">♛</Box>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent={banner.designLoginBannerContentAlign === 'start' ? 'flex-start' : banner.designLoginBannerContentAlign === 'end' ? 'flex-end' : 'center'}
+            spacing={2}
+          >
+            {banner.designLoginBannerShowLogo && <Box className="rg-crown-mark">{banner.designLoginBannerLogo}</Box>}
             <Box>
-              <Typography className="rg-brand-title" variant="h3">RG-Card</Typography>
-              <Typography className="rg-brand-subtitle">{isArabic ? 'برنامج الخصومات والعروض' : 'Discounts & offers membership'}</Typography>
+              <Typography className="rg-brand-title" variant="h3">{banner.designLoginBannerTitle}</Typography>
+              <Typography className="rg-brand-subtitle">{isArabic ? banner.designLoginBannerSubtitleAr : banner.designLoginBannerSubtitleEn}</Typography>
             </Box>
           </Stack>
         </Container>

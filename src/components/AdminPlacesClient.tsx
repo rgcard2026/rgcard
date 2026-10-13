@@ -61,6 +61,7 @@ export default function AdminPlacesClient({ categories: initialCategories, gover
   const [templateBusy, setTemplateBusy] = React.useState(false);
   const [logoBusy, setLogoBusy] = React.useState(false);
   const [selectedIds, setSelectedIds] = React.useState<Set<number>>(new Set());
+  const [bulkBusy, setBulkBusy] = React.useState(false);
   const pageSize = 12;
 
   const load = React.useCallback(async () => {
@@ -226,10 +227,25 @@ export default function AdminPlacesClient({ categories: initialCategories, gover
 
   async function bulk(action: 'activate' | 'deactivate' | 'delete') {
     const ids = Array.from(selectedIds);
-    if (!ids.length) return;
+    if (!ids.length || bulkBusy) return;
     if (action === 'delete' && !confirm(isArabic ? `حذف ${ids.length} مكان؟` : `Delete ${ids.length} places?`)) return;
-    await Promise.all(ids.map((id) => fetch(`/api/admin/places/${id}`, action === 'delete' ? { method: 'DELETE' } : { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isActive: action === 'activate' }) })));
-    setSelectedIds(new Set()); await load();
+    setBulkBusy(true);
+    const failedIds: number[] = [];
+    try {
+      for (const id of ids) {
+        const response = await fetch(`/api/admin/places/${id}`, action === 'delete' ? { method: 'DELETE' } : { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isActive: action === 'activate' }) });
+        if (!response.ok) failedIds.push(id);
+      }
+      setSelectedIds(new Set(failedIds));
+      setMsg(failedIds.length
+        ? (isArabic ? `تعذر تنفيذ العملية على ${failedIds.length} من الأماكن المحددة` : `The action failed for ${failedIds.length} selected places`)
+        : (isArabic ? 'تم تنفيذ العملية' : 'Action completed'));
+      await load();
+    } catch {
+      setMsg(isArabic ? 'تعذر الاتصال بالخادم أثناء تنفيذ العملية' : 'Unable to reach the server while processing the action');
+    } finally {
+      setBulkBusy(false);
+    }
   }
 
   const drawerAnchor = language === 'ar' ? 'left' : 'right';
@@ -269,7 +285,7 @@ export default function AdminPlacesClient({ categories: initialCategories, gover
           disabled={shown.length === 0}
           sx={{ m: 0, minHeight: 44, '& .MuiFormControlLabel-label': { fontWeight: 900, fontSize: 13 } }}
         />
-        {selectedIds.size > 0 && <><Button size="small" color="success" variant="outlined" onClick={() => bulk('activate')}>{isArabic ? 'تفعيل' : 'Activate'}</Button><Button size="small" color="warning" variant="outlined" onClick={() => bulk('deactivate')}>{isArabic ? 'إيقاف' : 'Pause'}</Button><Button size="small" color="error" variant="outlined" onClick={() => bulk('delete')}>{t('delete')}</Button></>}
+        {selectedIds.size > 0 && <><Button size="small" color="success" variant="outlined" disabled={bulkBusy} onClick={() => bulk('activate')}>{isArabic ? 'تفعيل' : 'Activate'}</Button><Button size="small" color="warning" variant="outlined" disabled={bulkBusy} onClick={() => bulk('deactivate')}>{isArabic ? 'إيقاف' : 'Pause'}</Button><Button size="small" color="error" variant="outlined" disabled={bulkBusy} onClick={() => bulk('delete')}>{t('delete')}</Button></>}
       </Stack>
     </CardContent></Card>
 

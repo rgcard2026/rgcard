@@ -1,9 +1,10 @@
-export type CardBoxLayout = { x: number; y: number; width: number; height: number; fontSize: number };
+export type CardBoxLayout = { x: number; y: number; width: number; height: number; fontSize: number; opacity?: number };
 export type CardRenderLayout = {
   width: number;
   height: number;
   templateUrl?: string;
-  qr: { x: number; y: number; size: number };
+  templateOpacity?: number;
+  qr: { x: number; y: number; size: number; opacity?: number };
   id: CardBoxLayout;
   membershipClass: CardBoxLayout;
   expiry: CardBoxLayout;
@@ -20,21 +21,24 @@ export const CARD_TEMPLATE: CardRenderLayout = {
     // Admin Dashboard → إعدادات الحساب → Card QR Position
     x: 1196,
     y: 495,
-    size: 296
+    size: 296,
+    opacity: 1
   },
   id: {
     x: 1069,
     y: 850,
     width: 445,
     height: 89,
-    fontSize: 34
+    fontSize: 34,
+    opacity: 1
   },
   membershipClass: {
     x: 64,
     y: 690,
     width: 260,
     height: 64,
-    fontSize: 42
+    fontSize: 42,
+    opacity: 1
   },
   expiry: {
     // Default expiry placement. You can override these values from:
@@ -43,8 +47,10 @@ export const CARD_TEMPLATE: CardRenderLayout = {
     y: 870,
     width: 420,
     height: 38,
-    fontSize: 22
-  }
+    fontSize: 22,
+    opacity: 1
+  },
+  templateOpacity: 1
 };
 
 export const MEMBERSHIP_CLASSES = [

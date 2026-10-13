@@ -63,6 +63,38 @@ function UserEditorField({ label, className, id, required, ...props }: UserEdito
   );
 }
 
+type UserPasswordFieldProps = Omit<UserEditorFieldProps, 'type' | 'InputProps'> & { isArabic: boolean };
+
+function UserPasswordField({ label, isArabic, ...props }: UserPasswordFieldProps) {
+  const [visible, setVisible] = React.useState(false);
+
+  return (
+    <UserEditorField
+      {...props}
+      label={label}
+      type={visible ? 'text' : 'password'}
+      InputProps={{
+        endAdornment: (
+          <InputAdornment position="end" sx={{ pointerEvents: 'auto' }}>
+            <IconButton
+              type="button"
+              size="small"
+              edge="end"
+              aria-label={visible ? (isArabic ? 'إخفاء كلمة المرور' : 'Hide password') : (isArabic ? 'إظهار كلمة المرور' : 'Show password')}
+              aria-pressed={visible}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => setVisible((current) => !current)}
+              sx={{ pointerEvents: 'auto', position: 'relative', zIndex: 3 }}
+            >
+              {visible ? <VisibilityOffRoundedIcon /> : <VisibilityRoundedIcon />}
+            </IconButton>
+          </InputAdornment>
+        ),
+      }}
+    />
+  );
+}
+
 type UserEditorSelectProps = {
   label: string;
   value: string;
@@ -154,7 +186,7 @@ export default function AdminUsersClient() {
   const [total, setTotal] = React.useState(0); const [q, setQ] = React.useState(''); const [page, setPage] = React.useState(1); const pageSize = 12;
   const [panel, setPanel] = React.useState<'create' | 'edit' | 'tools' | null>(null); const [selected, setSelected] = React.useState<User | null>(null);
   const [editTab, setEditTab] = React.useState<'profile' | 'benefits'>('profile');
-  const [edit, setEdit] = React.useState<EditState>({}); const [msg, setMsg] = React.useState(''); const [showPassword, setShowPassword] = React.useState(false);
+  const [edit, setEdit] = React.useState<EditState>({}); const [msg, setMsg] = React.useState('');
   const [busyAction, setBusyAction] = React.useState<'create' | 'save' | 'status' | 'delete' | 'details' | 'discount' | 'import' | 'bulk' | null>(null);
   const [createForm, setCreateForm] = React.useState({ fullName: '', idNumber: '', cardNumber: '', password: '', membershipClass: 'Regular', validUntil: '2027-12-31', mustChangePassword: true });
   const [createPasswordConfirm, setCreatePasswordConfirm] = React.useState('');
@@ -187,7 +219,6 @@ export default function AdminUsersClient() {
   const closePanel = React.useCallback(() => {
     blurFocusedElement();
     setPanel(null);
-    setShowPassword(false);
     setEditPasswordConfirm('');
     setResetPasswordMode(false);
   }, [blurFocusedElement]);
@@ -373,10 +404,15 @@ export default function AdminUsersClient() {
     if (action === 'delete' && !confirm(isArabic ? `حذف ${ids.length} مستخدم؟` : `Delete ${ids.length} users?`)) return;
     setBusyAction('bulk');
     try {
-      const responses = await Promise.all(ids.map((id) => fetch(`/api/admin/users/${id}`, action === 'delete' ? { method: 'DELETE' } : { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isActive: action === 'activate' }) })));
-      if (responses.some((response) => !response.ok)) return setMsg(isArabic ? 'تعذر تنفيذ العملية على بعض المستخدمين' : 'The action failed for some users');
-      setSelectedIds(new Set());
-      setMsg(isArabic ? 'تم تنفيذ العملية' : 'Action completed');
+      const failedIds: string[] = [];
+      for (const id of ids) {
+        const response = await fetch(`/api/admin/users/${id}`, action === 'delete' ? { method: 'DELETE' } : { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isActive: action === 'activate' }) });
+        if (!response.ok) failedIds.push(id);
+      }
+      setSelectedIds(new Set(failedIds));
+      setMsg(failedIds.length
+        ? (isArabic ? `تعذر تنفيذ العملية على ${failedIds.length} من المستخدمين المحددين` : `The action failed for ${failedIds.length} selected users`)
+        : (isArabic ? 'تم تنفيذ العملية' : 'Action completed'));
       await load();
     } catch {
       setMsg(isArabic ? 'تعذر الاتصال بالخادم' : 'Unable to reach the server');
@@ -391,7 +427,7 @@ export default function AdminUsersClient() {
     <Card className="rg-panel-card rg-admin-directory-header"><CardContent sx={{ p: { xs: 2, sm: 2.7 } }}>
       <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1.5} alignItems={{ xs: 'stretch', md: 'center' }}><Box><Typography variant="h5" fontWeight={950}>{t('users')}</Typography><Typography color="text.secondary" fontSize={13}>{isArabic ? 'عرض مختصر بالأسماء فقط. افتح الاسم لمراجعة الكارت، البيانات، والخصومات داخل لوحة جانبية.' : 'A compact names-only directory. Open a name to manage the card, details, and personal discounts in a side panel.'}</Typography></Box><Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}><Button variant="outlined" component="a" href="/api/admin/users/cards-pdf?includeInactive=1" target="_blank" startIcon={<PictureAsPdfRoundedIcon />}>{isArabic ? 'كل الكروت PDF' : 'All cards PDF'}</Button><Button variant="outlined" component="a" href="/admin/exports" startIcon={<FileDownloadRoundedIcon />}>{isArabic ? 'التصدير' : 'Exports'}</Button><Button type="button" variant="outlined" onClick={() => { setMsg(''); setPanel('tools'); }} startIcon={<UploadFileRoundedIcon />}>{isArabic ? 'استيراد' : 'Import'}</Button><Button type="button" variant="contained" className="rg-royal-button" startIcon={<PersonAddAltRoundedIcon />} onClick={() => { setMsg(''); setPanel('create'); }}>{isArabic ? 'إضافة مستخدم' : 'Add user'}</Button></Stack></Stack>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 2 }}><AdminTextField size="small" placeholder={isArabic ? 'بحث بالاسم أو رقم الكارت أو ID...' : 'Search name, card, or ID...'} value={q} onChange={(e) => setQ(e.target.value)} sx={{ flex: 1 }} /><Chip label={`${total} ${isArabic ? 'مستخدم' : 'users'}`} /></Stack>
-      <Stack direction="row" spacing={.75} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 1.4 }}><Checkbox checked={users.length > 0 && users.every((user) => selectedIds.has(user.id))} indeterminate={users.some((user) => selectedIds.has(user.id)) && !users.every((user) => selectedIds.has(user.id))} onChange={(event) => setSelectedIds(event.target.checked ? new Set([...Array.from(selectedIds), ...users.map((user) => user.id)]) : new Set(Array.from(selectedIds).filter((id) => !users.some((user) => user.id === id))))} /><Typography fontSize={13} fontWeight={900}>{isArabic ? 'اختيار الظاهر' : 'Select visible'}</Typography>{selectedIds.size > 0 && <><Button size="small" variant="outlined" startIcon={<PictureAsPdfRoundedIcon />} onClick={() => window.open(`/api/admin/users/cards-pdf?ids=${encodeURIComponent(Array.from(selectedIds).join(','))}&download=1`, '_blank', 'noopener,noreferrer')}>{isArabic ? 'PDF للمختار' : 'Selected PDF'}</Button><Button size="small" color="success" variant="outlined" onClick={() => bulk('activate')}>{isArabic ? 'تفعيل' : 'Activate'}</Button><Button size="small" color="warning" variant="outlined" onClick={() => bulk('deactivate')}>{isArabic ? 'إيقاف' : 'Pause'}</Button><Button size="small" color="error" variant="outlined" onClick={() => bulk('delete')}>{t('delete')}</Button></>}</Stack>
+      <Stack direction="row" spacing={.75} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 1.4 }}><Checkbox disabled={busyAction === 'bulk'} checked={users.length > 0 && users.every((user) => selectedIds.has(user.id))} indeterminate={users.some((user) => selectedIds.has(user.id)) && !users.every((user) => selectedIds.has(user.id))} onChange={(event) => setSelectedIds(event.target.checked ? new Set([...Array.from(selectedIds), ...users.map((user) => user.id)]) : new Set(Array.from(selectedIds).filter((id) => !users.some((user) => user.id === id))))} /><Typography fontSize={13} fontWeight={900}>{isArabic ? 'اختيار الظاهر' : 'Select visible'}</Typography>{selectedIds.size > 0 && <><Button size="small" variant="outlined" startIcon={<PictureAsPdfRoundedIcon />} onClick={() => window.open(`/api/admin/users/cards-pdf?ids=${encodeURIComponent(Array.from(selectedIds).join(','))}&download=1`, '_blank', 'noopener,noreferrer')}>{isArabic ? 'PDF للمختار' : 'Selected PDF'}</Button><Button size="small" color="success" variant="outlined" disabled={busyAction === 'bulk'} onClick={() => bulk('activate')}>{isArabic ? 'تفعيل' : 'Activate'}</Button><Button size="small" color="warning" variant="outlined" disabled={busyAction === 'bulk'} onClick={() => bulk('deactivate')}>{isArabic ? 'إيقاف' : 'Pause'}</Button><Button size="small" color="error" variant="outlined" disabled={busyAction === 'bulk'} onClick={() => bulk('delete')}>{t('delete')}</Button></>}</Stack>
     </CardContent></Card>
     <Grid container spacing={1.5} className="rg-admin-directory-grid" sx={{ mt: .2 }}>{users.map((user, index) => { const state = userSecurityState(user, isArabic); return <Grid item xs={6} sm={4} md={3} lg={2} key={user.id}><Card className="rg-admin-name-card rg-logo-intro" style={{ '--rg-logo-delay': `${(index % 12) * 45}ms` } as React.CSSProperties}><CardContent sx={{ p: 1.2, position: 'relative' }}><Checkbox size="small" checked={selectedIds.has(user.id)} onChange={() => setSelectedIds((current) => { const next = new Set(current); next.has(user.id) ? next.delete(user.id) : next.add(user.id); return next; })} sx={{ position: 'absolute', top: 2, right: 2 }} /><Tooltip title={user.fullName}><Box component="button" type="button" className="rg-admin-name-button" onClick={() => openEdit(user)}><Box className="rg-admin-user-avatar">{initials(user.fullName)}</Box><Typography className="rg-admin-name-text">{user.fullName}</Typography><Chip size="small" label={state.label} color={state.color} /></Box></Tooltip><Button type="button" size="small" fullWidth startIcon={<EditRoundedIcon />} onClick={() => openEdit(user)}>{t('details')}</Button></CardContent></Card></Grid>; })}{!users.length && <Grid item xs={12}><Card className="rg-panel-card"><CardContent><Typography align="center" color="text.secondary">{isArabic ? 'لا توجد نتائج.' : 'No results found.'}</Typography></CardContent></Card></Grid>}</Grid>
     {totalPages > 1 && <Stack alignItems="center" className="rg-admin-pagination" sx={{ mt: 3 }}><Pagination count={totalPages} page={page} onChange={(_, value) => setPage(value)} color="primary" shape="rounded" /></Stack>}
@@ -415,15 +451,14 @@ export default function AdminUsersClient() {
         <section className="rg-user-form-section">
           <div className="rg-user-section-heading"><Typography fontWeight={950}>{isArabic ? 'بيانات الدخول' : 'Sign-in details'}</Typography><Typography color="text.secondary" fontSize={12}>{isArabic ? 'كلمة مرور قوية تحمي حساب العضو.' : 'A strong password helps protect the member account.'}</Typography></div>
           <div className="rg-user-form-grid">
-            <UserEditorField
+            <UserPasswordField
               label={isArabic ? 'كلمة المرور' : 'Password'}
-              type={showPassword ? 'text' : 'password'}
+              isArabic={isArabic}
               value={createForm.password}
               onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
               required
-              InputProps={{ endAdornment: <InputAdornment position="end"><IconButton type="button" aria-label={showPassword ? (isArabic ? 'إخفاء كلمة المرور' : 'Hide password') : (isArabic ? 'إظهار كلمة المرور' : 'Show password')} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <VisibilityOffRoundedIcon /> : <VisibilityRoundedIcon />}</IconButton></InputAdornment> }}
             />
-            <UserEditorField label={isArabic ? 'تأكيد كلمة المرور' : 'Confirm password'} type={showPassword ? 'text' : 'password'} value={createPasswordConfirm} onChange={(e) => setCreatePasswordConfirm(e.target.value)} required />
+            <UserPasswordField label={isArabic ? 'تأكيد كلمة المرور' : 'Confirm password'} isArabic={isArabic} value={createPasswordConfirm} onChange={(e) => setCreatePasswordConfirm(e.target.value)} required />
             <div className="rg-user-form-field-wide"><PasswordStrength value={createForm.password} confirmValue={createPasswordConfirm} language={language} required /></div>
           </div>
         </section>
@@ -484,14 +519,13 @@ export default function AdminUsersClient() {
             <div className="rg-user-section-heading"><Typography fontWeight={950}>{isArabic ? 'أمان الحساب' : 'Account security'}</Typography><Typography color="text.secondary" fontSize={12}>{isArabic ? 'تغيير كلمة المرور اختياري.' : 'Changing the password is optional.'}</Typography></div>
             <AdminActionToggle checked={resetPasswordMode} onChange={(checked) => { setResetPasswordMode(checked); if (!checked) { setEdit((current) => ({ ...current, password: '' })); setEditPasswordConfirm(''); } }} label={isArabic ? 'تعيين كلمة مرور جديدة' : 'Set a new password'} disabled={busyAction !== null} />
             {resetPasswordMode && <div className="rg-user-form-grid rg-user-password-fields">
-              <UserEditorField
+              <UserPasswordField
                 label={isArabic ? 'كلمة المرور الجديدة' : 'New password'}
-                type={showPassword ? 'text' : 'password'}
+                isArabic={isArabic}
                 value={edit.password || ''}
                 onChange={(e) => setEdit({ ...edit, password: e.target.value })}
-                InputProps={{ endAdornment: <InputAdornment position="end"><IconButton type="button" aria-label={showPassword ? (isArabic ? 'إخفاء كلمة المرور' : 'Hide password') : (isArabic ? 'إظهار كلمة المرور' : 'Show password')} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <VisibilityOffRoundedIcon /> : <VisibilityRoundedIcon />}</IconButton></InputAdornment> }}
               />
-              <UserEditorField label={isArabic ? 'تأكيد كلمة المرور الجديدة' : 'Confirm new password'} type={showPassword ? 'text' : 'password'} value={editPasswordConfirm} onChange={(e) => setEditPasswordConfirm(e.target.value)} />
+              <UserPasswordField label={isArabic ? 'تأكيد كلمة المرور الجديدة' : 'Confirm new password'} isArabic={isArabic} value={editPasswordConfirm} onChange={(e) => setEditPasswordConfirm(e.target.value)} />
               <div className="rg-user-form-field-wide"><PasswordStrength value={edit.password || ''} confirmValue={editPasswordConfirm} language={language} /></div>
             </div>}
             <div className="rg-user-account-toggles">

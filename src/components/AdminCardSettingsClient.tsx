@@ -6,6 +6,7 @@ import { Alert, Box, Button, Card, CardContent, CircularProgress, Grid, Snackbar
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
 import ImageRoundedIcon from '@mui/icons-material/ImageRounded';
+import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 import AdminTextField from '@/components/AdminTextField';
 import MemberCard from '@/components/MemberCard';
 import { CARD_TEMPLATE, type CardRenderLayout } from '@/lib/card-layout';
@@ -30,24 +31,62 @@ type SettingsState = {
   whatsappNumber: string;
   sessionMinutes: number;
   cardTemplateUrl: string;
+  cardCanvasWidth: number;
+  cardCanvasHeight: number;
+  cardTemplateOpacity: number;
   cardQrX: number;
   cardQrY: number;
   cardQrSize: number;
+  cardQrOpacity: number;
+  cardIdX: number;
+  cardIdY: number;
+  cardIdWidth: number;
+  cardIdHeight: number;
+  cardIdFontSize: number;
+  cardIdOpacity: number;
+  cardMembershipX: number;
+  cardMembershipY: number;
+  cardMembershipWidth: number;
+  cardMembershipHeight: number;
+  cardMembershipFontSize: number;
+  cardMembershipOpacity: number;
   cardExpiryX: number;
   cardExpiryY: number;
+  cardExpiryWidth: number;
+  cardExpiryHeight: number;
   cardExpiryFontSize: number;
+  cardExpiryOpacity: number;
 };
 
 const defaults: SettingsState = {
   whatsappNumber: '201000033494',
   sessionMinutes: 60,
   cardTemplateUrl: '/card-template.png',
+  cardCanvasWidth: CARD_TEMPLATE.width,
+  cardCanvasHeight: CARD_TEMPLATE.height,
+  cardTemplateOpacity: 100,
   cardQrX: CARD_TEMPLATE.qr.x,
   cardQrY: CARD_TEMPLATE.qr.y,
   cardQrSize: CARD_TEMPLATE.qr.size,
+  cardQrOpacity: 100,
+  cardIdX: CARD_TEMPLATE.id.x,
+  cardIdY: CARD_TEMPLATE.id.y,
+  cardIdWidth: CARD_TEMPLATE.id.width,
+  cardIdHeight: CARD_TEMPLATE.id.height,
+  cardIdFontSize: CARD_TEMPLATE.id.fontSize,
+  cardIdOpacity: 100,
+  cardMembershipX: CARD_TEMPLATE.membershipClass.x,
+  cardMembershipY: CARD_TEMPLATE.membershipClass.y,
+  cardMembershipWidth: CARD_TEMPLATE.membershipClass.width,
+  cardMembershipHeight: CARD_TEMPLATE.membershipClass.height,
+  cardMembershipFontSize: CARD_TEMPLATE.membershipClass.fontSize,
+  cardMembershipOpacity: 100,
   cardExpiryX: CARD_TEMPLATE.expiry.x,
   cardExpiryY: CARD_TEMPLATE.expiry.y,
+  cardExpiryWidth: CARD_TEMPLATE.expiry.width,
+  cardExpiryHeight: CARD_TEMPLATE.expiry.height,
   cardExpiryFontSize: CARD_TEMPLATE.expiry.fontSize,
+  cardExpiryOpacity: 100,
 };
 
 async function readBody(response: Response) {
@@ -59,6 +98,7 @@ export default function AdminCardSettingsClient() {
   const [settings, setSettings] = React.useState<SettingsState>(defaults);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
+  const [backupBusy, setBackupBusy] = React.useState(false);
   const [notice, setNotice] = React.useState<{ severity: 'success' | 'error'; text: string } | null>(null);
 
   React.useEffect(() => {
@@ -76,17 +116,39 @@ export default function AdminCardSettingsClient() {
 
   const layout = React.useMemo<CardRenderLayout>(() => ({
     ...CARD_TEMPLATE,
+    width: settings.cardCanvasWidth,
+    height: settings.cardCanvasHeight,
     templateUrl: settings.cardTemplateUrl || '/card-template.png',
+    templateOpacity: settings.cardTemplateOpacity / 100,
     qr: {
-      x: Number(settings.cardQrX) || CARD_TEMPLATE.qr.x,
-      y: Number(settings.cardQrY) || CARD_TEMPLATE.qr.y,
-      size: Number(settings.cardQrSize) || CARD_TEMPLATE.qr.size,
+      x: settings.cardQrX,
+      y: settings.cardQrY,
+      size: settings.cardQrSize,
+      opacity: settings.cardQrOpacity / 100,
+    },
+    id: {
+      x: settings.cardIdX,
+      y: settings.cardIdY,
+      width: settings.cardIdWidth,
+      height: settings.cardIdHeight,
+      fontSize: settings.cardIdFontSize,
+      opacity: settings.cardIdOpacity / 100,
+    },
+    membershipClass: {
+      x: settings.cardMembershipX,
+      y: settings.cardMembershipY,
+      width: settings.cardMembershipWidth,
+      height: settings.cardMembershipHeight,
+      fontSize: settings.cardMembershipFontSize,
+      opacity: settings.cardMembershipOpacity / 100,
     },
     expiry: {
-      ...CARD_TEMPLATE.expiry,
-      x: Number(settings.cardExpiryX) || CARD_TEMPLATE.expiry.x,
-      y: Number(settings.cardExpiryY) || CARD_TEMPLATE.expiry.y,
-      fontSize: Number(settings.cardExpiryFontSize) || CARD_TEMPLATE.expiry.fontSize,
+      x: settings.cardExpiryX,
+      y: settings.cardExpiryY,
+      width: settings.cardExpiryWidth,
+      height: settings.cardExpiryHeight,
+      fontSize: settings.cardExpiryFontSize,
+      opacity: settings.cardExpiryOpacity / 100,
     },
   }), [settings]);
 
@@ -119,11 +181,62 @@ export default function AdminCardSettingsClient() {
     }
   }
 
+  async function downloadBackup() {
+    if (backupBusy) return;
+    setBackupBusy(true);
+    setNotice(null);
+    try {
+      const response = await fetch('/api/admin/backup', { cache: 'no-store' });
+      if (!response.ok) {
+        const body = await readBody(response);
+        setNotice({ severity: 'error', text: body.message || 'تعذر تنزيل النسخة الاحتياطية.' });
+        return;
+      }
+
+      const archive = await response.blob();
+      const objectUrl = URL.createObjectURL(archive);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = response.headers.get('content-disposition')?.match(/filename="([^"]+)"/)?.[1] || 'rg-card-backup.zip';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+      setNotice({ severity: 'success', text: 'تم إنشاء وتنزيل النسخة الاحتياطية التي تتضمن قاعدة البيانات والملفات المرفوعة وشعارات وصور الكارت.' });
+    } catch {
+      setNotice({ severity: 'error', text: 'تعذر الاتصال بالخادم لإنشاء النسخة الاحتياطية.' });
+    } finally {
+      setBackupBusy(false);
+    }
+  }
+
   return (
     <Stack spacing={2.5}>
       <Alert severity="info">
         عدّل القيم وشاهد النتيجة مباشرة على الكارت. بعد الحفظ تُستخدم نفس المواضع في المعاينة وملفات PDF.
       </Alert>
+
+      <Card className="rg-panel-card">
+        <CardContent sx={{ p: { xs: 2, md: 2.5 } }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between">
+            <Box>
+              <Typography variant="h6" fontWeight={950}>نسخة احتياطية كاملة</Typography>
+              <Typography color="text.secondary" fontSize={13}>
+                نزّل قاعدة البيانات ونسخة متسقة منها مع الملفات المرفوعة والشعارات وصور الكارت.
+              </Typography>
+            </Box>
+            <Button
+              type="button"
+              variant="outlined"
+              startIcon={backupBusy ? <CircularProgress size={18} /> : <FileDownloadRoundedIcon />}
+              disabled={backupBusy || loading}
+              onClick={downloadBackup}
+            >
+              {backupBusy ? 'جارٍ تجهيز النسخة الاحتياطية…' : 'تنزيل النسخة الاحتياطية'}
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
 
       <Grid container spacing={2.5} alignItems="flex-start">
         <Grid item xs={12} lg={5}>
@@ -176,12 +289,12 @@ export default function AdminCardSettingsClient() {
 
                 <Box>
                   <Typography fontWeight={950}>موضع وحجم QR</Typography>
-                  <Typography color="text.secondary" fontSize={13}>الإحداثيات مبنية على صورة الكارت 1573×1000.</Typography>
+                  <Typography color="text.secondary" fontSize={13}>إحداثيات الحقول مبنية على مساحة الكارت، ويمكن تعديل المقاسات والشفافية من استوديو التصميم.</Typography>
                 </Box>
                 <Grid container spacing={1.2}>
-                  <Grid item xs={12} sm={4}><AdminTextField noExpand fullWidth type="number" label="QR X" value={settings.cardQrX} onChange={(event) => update('cardQrX', Number(event.target.value))} inputProps={{ min: 900, max: 1350 }} /></Grid>
-                  <Grid item xs={12} sm={4}><AdminTextField noExpand fullWidth type="number" label="QR Y" value={settings.cardQrY} onChange={(event) => update('cardQrY', Number(event.target.value))} inputProps={{ min: 330, max: 670 }} /></Grid>
-                  <Grid item xs={12} sm={4}><AdminTextField noExpand fullWidth type="number" label="QR Size" value={settings.cardQrSize} onChange={(event) => update('cardQrSize', Number(event.target.value))} inputProps={{ min: 120, max: 330 }} /></Grid>
+                  <Grid item xs={12} sm={4}><AdminTextField noExpand fullWidth type="number" label="QR X" value={settings.cardQrX} onChange={(event) => update('cardQrX', Number(event.target.value))} inputProps={{ min: 0, max: 2400 }} /></Grid>
+                  <Grid item xs={12} sm={4}><AdminTextField noExpand fullWidth type="number" label="QR Y" value={settings.cardQrY} onChange={(event) => update('cardQrY', Number(event.target.value))} inputProps={{ min: 0, max: 1600 }} /></Grid>
+                  <Grid item xs={12} sm={4}><AdminTextField noExpand fullWidth type="number" label="QR Size" value={settings.cardQrSize} onChange={(event) => update('cardQrSize', Number(event.target.value))} inputProps={{ min: 60, max: 600 }} /></Grid>
                 </Grid>
 
                 <Box>
@@ -189,9 +302,9 @@ export default function AdminCardSettingsClient() {
                   <Typography color="text.secondary" fontSize={13}>غيّر المكان وحجم الخط مع متابعة المعاينة.</Typography>
                 </Box>
                 <Grid container spacing={1.2}>
-                  <Grid item xs={12} sm={4}><AdminTextField noExpand fullWidth type="number" label="Expiry X" value={settings.cardExpiryX} onChange={(event) => update('cardExpiryX', Number(event.target.value))} inputProps={{ min: 20, max: 520 }} /></Grid>
-                  <Grid item xs={12} sm={4}><AdminTextField noExpand fullWidth type="number" label="Expiry Y" value={settings.cardExpiryY} onChange={(event) => update('cardExpiryY', Number(event.target.value))} inputProps={{ min: 770, max: 930 }} /></Grid>
-                  <Grid item xs={12} sm={4}><AdminTextField noExpand fullWidth type="number" label="Expiry Font" value={settings.cardExpiryFontSize} onChange={(event) => update('cardExpiryFontSize', Number(event.target.value))} inputProps={{ min: 12, max: 48 }} /></Grid>
+                  <Grid item xs={12} sm={4}><AdminTextField noExpand fullWidth type="number" label="Expiry X" value={settings.cardExpiryX} onChange={(event) => update('cardExpiryX', Number(event.target.value))} inputProps={{ min: 0, max: 2400 }} /></Grid>
+                  <Grid item xs={12} sm={4}><AdminTextField noExpand fullWidth type="number" label="Expiry Y" value={settings.cardExpiryY} onChange={(event) => update('cardExpiryY', Number(event.target.value))} inputProps={{ min: 0, max: 1600 }} /></Grid>
+                  <Grid item xs={12} sm={4}><AdminTextField noExpand fullWidth type="number" label="Expiry Font" value={settings.cardExpiryFontSize} onChange={(event) => update('cardExpiryFontSize', Number(event.target.value))} inputProps={{ min: 8, max: 120 }} /></Grid>
                 </Grid>
 
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>

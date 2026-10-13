@@ -28,6 +28,8 @@ import AdminTextField from './AdminTextField';
 import AdminActionToggle from './AdminActionToggle';
 import { applyDesignSettings } from './DesignThemeRuntime';
 import { TRANSLATION_KEYS, DEFAULT_COPY } from './UiPreferences';
+import MemberCard from './MemberCard';
+import { CARD_TEMPLATE, type CardRenderLayout } from '@/lib/card-layout';
 
 const defaults = {
   designPrimaryColor: '#1E9A96',
@@ -71,6 +73,70 @@ const defaults = {
   designBackgroundImageEnabled: false,
   designBackgroundSize: 'cover',
   designBackgroundOverlay: 12,
+  designLoginBannerTitle: 'RG-Card',
+  designLoginBannerSubtitleAr: 'برنامج الخصومات والعروض',
+  designLoginBannerSubtitleEn: 'Discounts & offers membership',
+  designLoginBannerLogo: '♛',
+  designLoginBannerShowLogo: true,
+  designLoginBannerStartColor: '#168B8A',
+  designLoginBannerEndColor: '#2847D4',
+  designLoginBannerTextColor: '#FFFFFF',
+  designLoginBannerHeight: 304,
+  designLoginBannerRadius: 72,
+  designLoginBannerOpacity: 100,
+  designLoginBannerContentAlign: 'center',
+  designLoginBannerImageUrl: '',
+  designLoginBannerImageEnabled: false,
+  designArrivalBannerWidth: 100,
+  designArrivalBannerHeight: 0,
+  designArrivalBannerRadius: 26,
+  designArrivalBannerOpacity: 100,
+  designArrivalBannerStartColor: '#070A12',
+  designArrivalBannerEndColor: '#5F3F15',
+  designArrivalBannerTextColor: '#FFFAF1',
+  designArrivalBannerAccentColor: '#D6A64F',
+  designArrivalBannerCardColor: '#FFFFFF',
+  designArrivalLogoWidth: 116,
+  designArrivalLogoHeight: 70,
+  designArrivalLogoRadius: 16,
+  designCardOpacity: 100,
+  designCardWidth: 0,
+  designCardHeight: 0,
+  designBoxOpacity: 100,
+  designBoxWidth: 0,
+  designBoxHeight: 0,
+  designFieldOpacity: 100,
+  designFieldWidth: 0,
+  designFieldHeight: 0,
+  designButtonOpacity: 100,
+  designButtonWidth: 0,
+  designButtonHeight: 0,
+  cardCanvasWidth: CARD_TEMPLATE.width,
+  cardCanvasHeight: CARD_TEMPLATE.height,
+  cardTemplateUrl: CARD_TEMPLATE.templateUrl || '/card-template.png',
+  cardTemplateOpacity: 100,
+  cardQrX: CARD_TEMPLATE.qr.x,
+  cardQrY: CARD_TEMPLATE.qr.y,
+  cardQrSize: CARD_TEMPLATE.qr.size,
+  cardQrOpacity: 100,
+  cardIdX: CARD_TEMPLATE.id.x,
+  cardIdY: CARD_TEMPLATE.id.y,
+  cardIdWidth: CARD_TEMPLATE.id.width,
+  cardIdHeight: CARD_TEMPLATE.id.height,
+  cardIdFontSize: CARD_TEMPLATE.id.fontSize,
+  cardIdOpacity: 100,
+  cardMembershipX: CARD_TEMPLATE.membershipClass.x,
+  cardMembershipY: CARD_TEMPLATE.membershipClass.y,
+  cardMembershipWidth: CARD_TEMPLATE.membershipClass.width,
+  cardMembershipHeight: CARD_TEMPLATE.membershipClass.height,
+  cardMembershipFontSize: CARD_TEMPLATE.membershipClass.fontSize,
+  cardMembershipOpacity: 100,
+  cardExpiryX: CARD_TEMPLATE.expiry.x,
+  cardExpiryY: CARD_TEMPLATE.expiry.y,
+  cardExpiryWidth: CARD_TEMPLATE.expiry.width,
+  cardExpiryHeight: CARD_TEMPLATE.expiry.height,
+  cardExpiryFontSize: CARD_TEMPLATE.expiry.fontSize,
+  cardExpiryOpacity: 100,
   uiTextOverrides: {} as Record<string, Record<string, string>>,
 };
 
@@ -104,6 +170,8 @@ const fontOptions = [
   'Montserrat',
   'Roboto',
 ];
+
+const PREVIEW_QR = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="white"/><path fill="black" d="M8 8h34v34H8zm8 8v18h18V16zm56-8h34v34H72zm8 8v18h18V16zM8 72h34v34H8zm8 8v18h18V80zm40-64h8v8h-8zm0 20h8v8h-8zm0 16h8v8h-8zm20 0h8v8h-8zm20 0h8v8h-8zM48 64h12v12H48zm20 8h8v8h-8zm16 8h20v20H84z"/></svg>')}`;
 
 async function readJson(response: Response) {
   const text = await response.text();
@@ -147,6 +215,43 @@ export default function AdminDesignStudioClient() {
   const [settings, setSettings] = React.useState<DesignState>(defaults);
   const [notice, setNotice] = React.useState<Notice>(null);
   const [busy, setBusy] = React.useState(false);
+  const cardLayout = React.useMemo<CardRenderLayout>(() => ({
+    ...CARD_TEMPLATE,
+    width: settings.cardCanvasWidth,
+    height: settings.cardCanvasHeight,
+    templateUrl: settings.cardTemplateUrl || '/card-template.png',
+    templateOpacity: settings.cardTemplateOpacity / 100,
+    qr: {
+      x: settings.cardQrX,
+      y: settings.cardQrY,
+      size: settings.cardQrSize,
+      opacity: settings.cardQrOpacity / 100,
+    },
+    id: {
+      x: settings.cardIdX,
+      y: settings.cardIdY,
+      width: settings.cardIdWidth,
+      height: settings.cardIdHeight,
+      fontSize: settings.cardIdFontSize,
+      opacity: settings.cardIdOpacity / 100,
+    },
+    membershipClass: {
+      x: settings.cardMembershipX,
+      y: settings.cardMembershipY,
+      width: settings.cardMembershipWidth,
+      height: settings.cardMembershipHeight,
+      fontSize: settings.cardMembershipFontSize,
+      opacity: settings.cardMembershipOpacity / 100,
+    },
+    expiry: {
+      x: settings.cardExpiryX,
+      y: settings.cardExpiryY,
+      width: settings.cardExpiryWidth,
+      height: settings.cardExpiryHeight,
+      fontSize: settings.cardExpiryFontSize,
+      opacity: settings.cardExpiryOpacity / 100,
+    },
+  }), [settings]);
 
   React.useEffect(() => {
     fetch('/api/admin/settings', { cache: 'no-store' })
@@ -237,6 +342,30 @@ export default function AdminDesignStudioClient() {
     }
   }
 
+  async function uploadLoginBanner(file?: File) {
+    if (!file || busy) return;
+    setBusy(true);
+    setNotice(null);
+    try {
+      const form = new FormData();
+      form.append('banner', file);
+      const response = await fetch('/api/admin/design/login-banner', { method: 'POST', body: form });
+      const body = await readJson(response);
+      if (!response.ok) {
+        setNotice({ text: body.message || 'تعذر رفع صورة بانر تسجيل الدخول', severity: 'error' });
+        return;
+      }
+      const next = { ...defaults, ...body.data } as DesignState;
+      setSettings(next);
+      applyDesignSettings(next);
+      setNotice({ text: 'تم رفع صورة البانر وتفعيلها بنجاح', severity: 'success' });
+    } catch {
+      setNotice({ text: 'تعذر الاتصال بالخادم أثناء رفع صورة البانر', severity: 'error' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const colors: Array<[keyof DesignState, string]> = [
     ['designPrimaryColor', 'اللون الأساسي'],
     ['designSecondaryColor', 'اللون الثانوي'],
@@ -256,7 +385,7 @@ export default function AdminDesignStudioClient() {
       <Grid container spacing={2.5}>
         <Grid item xs={12} lg={8}>
           <Stack spacing={2.5}>
-            <Card className="rg-panel-card">
+            <Card className="rg-panel-card rg-design-studio-editor-card">
               <CardContent>
                 <Typography variant="h5" fontWeight={950}>الألوان والخلفية</Typography>
                 <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
@@ -298,7 +427,255 @@ export default function AdminDesignStudioClient() {
               </CardContent>
             </Card>
 
-            <Card className="rg-panel-card">
+            <Card className="rg-panel-card rg-design-studio-editor-card">
+              <CardContent>
+                <Typography variant="h5" fontWeight={950}>بانر New Arrival / Coming Soon</Typography>
+                <Typography color="text.secondary" fontSize={13} sx={{ mt: 0.5 }}>
+                  تحكم في عرض وارتفاع البانر، ألوانه وشفافيته، ومقاسات بطاقات الشعارات. تتحدث المعاينة مباشرة قبل الحفظ.
+                </Typography>
+                <Box className="rg-arrival-banner-v23 rg-arrival-banner-v28 rg-arrival-banner-v29" sx={{ mt: 2, overflow: 'hidden' }}>
+                  <Box className="rg-arrival-banner-head-v23 rg-arrival-banner-head-v28">
+                    <Stack direction="row" spacing={.9} alignItems="center" justifyContent="center">
+                      <Typography className="rg-arrival-banner-title-v23">NEW ARRIVAL / COMING SOON</Typography>
+                    </Stack>
+                  </Box>
+                  <Box className="rg-arrival-banner-window-v23 rg-arrival-banner-window-v29">
+                    <Box className="rg-arrival-banner-track-v23 rg-arrival-banner-track-v28 rg-arrival-banner-track-v29" sx={{ animation: 'none !important', width: '100%', justifyContent: 'center' }}>
+                      <Box className="rg-arrival-marquee-group-v28">
+                        {['RG', 'NEW', 'SOON'].map((logo) => (
+                          <Box className="rg-arrival-logo-card-v23" key={logo}>
+                            <Typography fontWeight={950} color="text.primary">{logo}</Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                  </Box>
+                </Box>
+                <Grid container spacing={1.5} sx={{ mt: 1 }}>
+                  {([
+                    ['designArrivalBannerStartColor', 'لون بداية الخلفية'],
+                    ['designArrivalBannerEndColor', 'لون نهاية الخلفية'],
+                    ['designArrivalBannerTextColor', 'لون العنوان'],
+                    ['designArrivalBannerAccentColor', 'لون الإبراز'],
+                    ['designArrivalBannerCardColor', 'خلفية بطاقة الشعار'],
+                  ] as Array<[keyof DesignState, string]>).map(([key, label]) => (
+                    <Grid item xs={12} sm={6} md={4} key={key}>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Box component="input" type="color" value={String(settings[key])} onChange={(event) => update(key, event.target.value as never)} sx={{ width: 48, height: 44, border: 0, bgcolor: 'transparent', cursor: 'pointer' }} />
+                        <AdminTextField noExpand fullWidth label={label} value={String(settings[key])} onChange={(event) => update(key, event.target.value as never)} />
+                      </Stack>
+                    </Grid>
+                  ))}
+                </Grid>
+                <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                  <Grid item xs={12} md={6}>
+                    <Stack spacing={1.5}>
+                      <RangeField label="عرض البانر" value={settings.designArrivalBannerWidth} min={40} max={100} suffix="%" onChange={(value) => update('designArrivalBannerWidth', value)} />
+                      <RangeField label="الارتفاع (0 تلقائي)" value={settings.designArrivalBannerHeight} min={0} max={600} onChange={(value) => update('designArrivalBannerHeight', value)} />
+                      <RangeField label="انحناء زوايا البانر" value={settings.designArrivalBannerRadius} min={0} max={60} onChange={(value) => update('designArrivalBannerRadius', value)} />
+                      <RangeField label="شفافية خلفية البانر" value={settings.designArrivalBannerOpacity} min={0} max={100} suffix="%" onChange={(value) => update('designArrivalBannerOpacity', value)} />
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Stack spacing={1.5}>
+                      <RangeField label="عرض بطاقة الشعار" value={settings.designArrivalLogoWidth} min={60} max={240} onChange={(value) => update('designArrivalLogoWidth', value)} />
+                      <RangeField label="ارتفاع بطاقة الشعار" value={settings.designArrivalLogoHeight} min={40} max={160} onChange={(value) => update('designArrivalLogoHeight', value)} />
+                      <RangeField label="انحناء بطاقة الشعار" value={settings.designArrivalLogoRadius} min={0} max={40} onChange={(value) => update('designArrivalLogoRadius', value)} />
+                    </Stack>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+
+            <Card className="rg-panel-card rg-design-studio-editor-card">
+              <CardContent>
+                <Typography variant="h5" fontWeight={950}>بانر صفحة تسجيل الدخول للمستخدمين</Typography>
+                <Typography color="text.secondary" fontSize={13} sx={{ mt: 0.5 }}>
+                  خصّص النصوص والألوان والارتفاع والانحناء والمحاذاة، وارفع صورة خلفية اختيارية. تظهر التغييرات مباشرة في المعاينة وتحفظ مع التصميم.
+                </Typography>
+                <Box className="rg-login-hero-preview" sx={{ mt: 2, minHeight: 'var(--rg-login-banner-height)' }}>
+                  <Box sx={{ width: '100%', px: 2 }}>
+                    <Stack direction="row" alignItems="center" justifyContent={settings.designLoginBannerContentAlign === 'start' ? 'flex-start' : settings.designLoginBannerContentAlign === 'end' ? 'flex-end' : 'center'} spacing={2}>
+                      {settings.designLoginBannerShowLogo && <Box className="rg-crown-mark">{settings.designLoginBannerLogo}</Box>}
+                      <Box>
+                        <Typography className="rg-brand-title" variant="h3">{settings.designLoginBannerTitle}</Typography>
+                        <Typography className="rg-brand-subtitle">{settings.designLoginBannerSubtitleAr}</Typography>
+                      </Box>
+                    </Stack>
+                  </Box>
+                </Box>
+                <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
+                  <Grid item xs={12} md={6}>
+                    <AdminTextField noExpand fullWidth label="عنوان البانر" value={settings.designLoginBannerTitle} onChange={(event) => update('designLoginBannerTitle', event.target.value)} inputProps={{ maxLength: 60 }} />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <AdminTextField noExpand fullWidth label="رمز الشعار (حتى 4 أحرف)" value={settings.designLoginBannerLogo} onChange={(event) => update('designLoginBannerLogo', event.target.value.slice(0, 4))} inputProps={{ maxLength: 4 }} />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <AdminTextField noExpand fullWidth label="الوصف بالعربية" value={settings.designLoginBannerSubtitleAr} onChange={(event) => update('designLoginBannerSubtitleAr', event.target.value)} inputProps={{ maxLength: 120 }} />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <AdminTextField noExpand fullWidth label="الوصف بالإنجليزية" value={settings.designLoginBannerSubtitleEn} onChange={(event) => update('designLoginBannerSubtitleEn', event.target.value)} inputProps={{ maxLength: 120 }} />
+                  </Grid>
+                </Grid>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 2 }}>
+                  <FormControlLabel
+                    control={<Checkbox checked={settings.designLoginBannerShowLogo} onChange={(event) => update('designLoginBannerShowLogo', event.target.checked)} />}
+                    label="إظهار الشعار"
+                  />
+                  <FormControl size="small" sx={{ minWidth: 190 }}>
+                    <InputLabel>محاذاة المحتوى</InputLabel>
+                    <Select label="محاذاة المحتوى" value={settings.designLoginBannerContentAlign} onChange={(event) => update('designLoginBannerContentAlign', String(event.target.value))}>
+                      <MenuItem value="start">بداية البانر</MenuItem>
+                      <MenuItem value="center">المنتصف</MenuItem>
+                      <MenuItem value="end">نهاية البانر</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <Button component="label" variant="outlined" startIcon={<UploadFileRoundedIcon />} disabled={busy}>
+                    رفع صورة للبانر
+                    <input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => uploadLoginBanner(event.target.files?.[0])} />
+                  </Button>
+                  <FormControlLabel
+                    control={<Checkbox checked={settings.designLoginBannerImageEnabled} onChange={(event) => update('designLoginBannerImageEnabled', event.target.checked)} />}
+                    label="استخدام صورة الخلفية"
+                  />
+                </Stack>
+                <Grid container spacing={1.5} sx={{ mt: 1 }}>
+                  {([
+                    ['designLoginBannerStartColor', 'لون بداية التدرج'],
+                    ['designLoginBannerEndColor', 'لون نهاية التدرج'],
+                    ['designLoginBannerTextColor', 'لون النص'],
+                  ] as Array<[keyof DesignState, string]>).map(([key, label]) => (
+                    <Grid item xs={12} sm={4} key={key}>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Box component="input" type="color" value={String(settings[key])} onChange={(event) => update(key, event.target.value as never)} sx={{ width: 48, height: 44, border: 0, bgcolor: 'transparent', cursor: 'pointer' }} />
+                        <AdminTextField noExpand fullWidth label={label} value={String(settings[key])} onChange={(event) => update(key, event.target.value as never)} />
+                      </Stack>
+                    </Grid>
+                  ))}
+                </Grid>
+                <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                  <Grid item xs={12} md={4}><RangeField label="ارتفاع البانر" value={settings.designLoginBannerHeight} min={120} max={700} onChange={(value) => update('designLoginBannerHeight', value)} /></Grid>
+                  <Grid item xs={12} md={4}><RangeField label="انحناء الحواف السفلية" value={settings.designLoginBannerRadius} min={0} max={180} onChange={(value) => update('designLoginBannerRadius', value)} /></Grid>
+                  <Grid item xs={12} md={4}><RangeField label="شفافية الخلفية" value={settings.designLoginBannerOpacity} min={0} max={100} suffix="%" onChange={(value) => update('designLoginBannerOpacity', value)} /></Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+
+            <Card className="rg-panel-card rg-design-studio-editor-card">
+              <CardContent>
+                <Typography variant="h5" fontWeight={950}>شفافية ومقاسات عناصر الواجهة</Typography>
+                <Typography color="text.secondary" fontSize={13} sx={{ mt: 0.5 }}>
+                  تتحكم هذه الإعدادات في العناصر المشتركة على الموقع. الارتفاع صفر يعني استخدام الارتفاع التلقائي.
+                </Typography>
+                <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                  <Grid item xs={12} md={6}>
+                    <Typography fontWeight={900} sx={{ mb: 1 }}>الكروت والبطاقات</Typography>
+                    <Stack spacing={1.5}>
+                      <RangeField label="الشفافية" value={settings.designCardOpacity} min={0} max={100} suffix="%" onChange={(value) => update('designCardOpacity', value)} />
+                      <RangeField label="العرض (0 تلقائي)" value={settings.designCardWidth} min={0} max={100} suffix="%" onChange={(value) => update('designCardWidth', value)} />
+                      <RangeField label="الارتفاع (0 تلقائي)" value={settings.designCardHeight} min={0} max={800} onChange={(value) => update('designCardHeight', value)} />
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography fontWeight={900} sx={{ mb: 1 }}>الصناديق ومساحات المحتوى</Typography>
+                    <Stack spacing={1.5}>
+                      <RangeField label="الشفافية" value={settings.designBoxOpacity} min={0} max={100} suffix="%" onChange={(value) => update('designBoxOpacity', value)} />
+                      <RangeField label="العرض (0 تلقائي)" value={settings.designBoxWidth} min={0} max={100} suffix="%" onChange={(value) => update('designBoxWidth', value)} />
+                      <RangeField label="الارتفاع (0 تلقائي)" value={settings.designBoxHeight} min={0} max={800} onChange={(value) => update('designBoxHeight', value)} />
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography fontWeight={900} sx={{ mb: 1 }}>حقول الإدخال</Typography>
+                    <Stack spacing={1.5}>
+                      <RangeField label="الشفافية" value={settings.designFieldOpacity} min={0} max={100} suffix="%" onChange={(value) => update('designFieldOpacity', value)} />
+                      <RangeField label="العرض (0 تلقائي)" value={settings.designFieldWidth} min={0} max={100} suffix="%" onChange={(value) => update('designFieldWidth', value)} />
+                      <RangeField label="الارتفاع (0 تلقائي)" value={settings.designFieldHeight} min={0} max={100} onChange={(value) => update('designFieldHeight', value)} />
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography fontWeight={900} sx={{ mb: 1 }}>الأزرار</Typography>
+                    <Stack spacing={1.5}>
+                      <RangeField label="الشفافية" value={settings.designButtonOpacity} min={0} max={100} suffix="%" onChange={(value) => update('designButtonOpacity', value)} />
+                      <RangeField label="العرض (0 تلقائي)" value={settings.designButtonWidth} min={0} max={100} suffix="%" onChange={(value) => update('designButtonWidth', value)} />
+                      <RangeField label="الارتفاع (0 تلقائي)" value={settings.designButtonHeight} min={0} max={100} onChange={(value) => update('designButtonHeight', value)} />
+                    </Stack>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+
+            <Card className="rg-panel-card rg-design-studio-editor-card">
+              <CardContent>
+                <Typography variant="h5" fontWeight={950}>مقاسات وشفافية الكارت وحقوله</Typography>
+                <Typography color="text.secondary" fontSize={13} sx={{ mt: 0.5 }}>
+                  غيّر كل طبقة على حدة. إحداثيات ومقاسات الحقول محسوبة على مساحة الكارت، والمعاينة تتحدث مباشرة.
+                </Typography>
+                <Box sx={{ width: '100%', maxWidth: 520, mx: 'auto', my: 2 }}>
+                  <MemberCard
+                    cardNumber="896744"
+                    qrSrc={PREVIEW_QR}
+                    membershipClass="VIP"
+                    validUntil="2027-12-31"
+                    layout={cardLayout}
+                  />
+                </Box>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <Typography fontWeight={900} sx={{ mb: 1 }}>مساحة الكارت وصورة التصميم</Typography>
+                    <Stack spacing={1.5}>
+                      <RangeField label="عرض الكارت" value={settings.cardCanvasWidth} min={600} max={2400} onChange={(value) => update('cardCanvasWidth', value)} />
+                      <RangeField label="ارتفاع الكارت" value={settings.cardCanvasHeight} min={400} max={1600} onChange={(value) => update('cardCanvasHeight', value)} />
+                      <RangeField label="شفافية صورة التصميم" value={settings.cardTemplateOpacity} min={0} max={100} suffix="%" onChange={(value) => update('cardTemplateOpacity', value)} />
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography fontWeight={900} sx={{ mb: 1 }}>رمز QR</Typography>
+                    <Stack spacing={1.5}>
+                      <RangeField label="الموضع الأفقي X" value={settings.cardQrX} min={0} max={2400} onChange={(value) => update('cardQrX', value)} />
+                      <RangeField label="الموضع الرأسي Y" value={settings.cardQrY} min={0} max={1600} onChange={(value) => update('cardQrY', value)} />
+                      <RangeField label="العرض والارتفاع (مربع)" value={settings.cardQrSize} min={60} max={600} onChange={(value) => update('cardQrSize', value)} />
+                      <RangeField label="الشفافية" value={settings.cardQrOpacity} min={0} max={100} suffix="%" onChange={(value) => update('cardQrOpacity', value)} />
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography fontWeight={900} sx={{ mb: 1 }}>رقم العضوية</Typography>
+                    <Stack spacing={1.5}>
+                      <RangeField label="الموضع الأفقي X" value={settings.cardIdX} min={0} max={2400} onChange={(value) => update('cardIdX', value)} />
+                      <RangeField label="الموضع الرأسي Y" value={settings.cardIdY} min={0} max={1600} onChange={(value) => update('cardIdY', value)} />
+                      <RangeField label="العرض" value={settings.cardIdWidth} min={40} max={1200} onChange={(value) => update('cardIdWidth', value)} />
+                      <RangeField label="الارتفاع" value={settings.cardIdHeight} min={20} max={400} onChange={(value) => update('cardIdHeight', value)} />
+                      <RangeField label="حجم الخط" value={settings.cardIdFontSize} min={8} max={120} onChange={(value) => update('cardIdFontSize', value)} />
+                      <RangeField label="الشفافية" value={settings.cardIdOpacity} min={0} max={100} suffix="%" onChange={(value) => update('cardIdOpacity', value)} />
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Typography fontWeight={900} sx={{ mb: 1 }}>فئة العضوية</Typography>
+                    <Stack spacing={1.5}>
+                      <RangeField label="الموضع الأفقي X" value={settings.cardMembershipX} min={0} max={2400} onChange={(value) => update('cardMembershipX', value)} />
+                      <RangeField label="الموضع الرأسي Y" value={settings.cardMembershipY} min={0} max={1600} onChange={(value) => update('cardMembershipY', value)} />
+                      <RangeField label="العرض" value={settings.cardMembershipWidth} min={40} max={1200} onChange={(value) => update('cardMembershipWidth', value)} />
+                      <RangeField label="الارتفاع" value={settings.cardMembershipHeight} min={20} max={400} onChange={(value) => update('cardMembershipHeight', value)} />
+                      <RangeField label="حجم الخط" value={settings.cardMembershipFontSize} min={8} max={120} onChange={(value) => update('cardMembershipFontSize', value)} />
+                      <RangeField label="الشفافية" value={settings.cardMembershipOpacity} min={0} max={100} suffix="%" onChange={(value) => update('cardMembershipOpacity', value)} />
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography fontWeight={900} sx={{ mb: 1 }}>تاريخ الانتهاء</Typography>
+                    <Grid container spacing={1.5}>
+                      <Grid item xs={12} sm={6}><RangeField label="الموضع الأفقي X" value={settings.cardExpiryX} min={0} max={2400} onChange={(value) => update('cardExpiryX', value)} /></Grid>
+                      <Grid item xs={12} sm={6}><RangeField label="الموضع الرأسي Y" value={settings.cardExpiryY} min={0} max={1600} onChange={(value) => update('cardExpiryY', value)} /></Grid>
+                      <Grid item xs={12} sm={6}><RangeField label="العرض" value={settings.cardExpiryWidth} min={40} max={1200} onChange={(value) => update('cardExpiryWidth', value)} /></Grid>
+                      <Grid item xs={12} sm={6}><RangeField label="الارتفاع" value={settings.cardExpiryHeight} min={20} max={400} onChange={(value) => update('cardExpiryHeight', value)} /></Grid>
+                      <Grid item xs={12} sm={6}><RangeField label="حجم الخط" value={settings.cardExpiryFontSize} min={8} max={120} onChange={(value) => update('cardExpiryFontSize', value)} /></Grid>
+                      <Grid item xs={12} sm={6}><RangeField label="الشفافية" value={settings.cardExpiryOpacity} min={0} max={100} suffix="%" onChange={(value) => update('cardExpiryOpacity', value)} /></Grid>
+                    </Grid>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+
+            <Card className="rg-panel-card rg-design-studio-editor-card">
               <CardContent>
                 <Typography variant="h5" fontWeight={950}>عائلات الخطوط</Typography>
                 <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
@@ -330,7 +707,7 @@ export default function AdminDesignStudioClient() {
               </CardContent>
             </Card>
 
-            <Card className="rg-panel-card">
+            <Card className="rg-panel-card rg-design-studio-editor-card">
               <CardContent>
                 <Typography variant="h5" fontWeight={950}>أحجام الخط لكل جزء</Typography>
                 <Grid container spacing={2} sx={{ mt: 0.5 }}>
@@ -349,7 +726,7 @@ export default function AdminDesignStudioClient() {
               </CardContent>
             </Card>
 
-            <Card className="rg-panel-card">
+            <Card className="rg-panel-card rg-design-studio-editor-card">
               <CardContent>
                 <Typography variant="h5" fontWeight={950}>استدارة العناصر</Typography>
                 <Grid container spacing={2} sx={{ mt: 0.5 }}>
@@ -360,7 +737,7 @@ export default function AdminDesignStudioClient() {
               </CardContent>
             </Card>
 
-            <Card className="rg-panel-card">
+            <Card className="rg-panel-card rg-design-studio-editor-card">
               <CardContent>
                 <Typography variant="h5" fontWeight={950}>الأزرار والشعارات</Typography>
                 <Typography color="text.secondary" fontSize={13} sx={{ mb: 1 }}>تحكم في ظل الأزرار وعرضها وحجم شعارات الأماكن والعروض على الصفحات العامة.</Typography>
@@ -395,7 +772,7 @@ export default function AdminDesignStudioClient() {
         </Grid>
       </Grid>
 
-      <Card className="rg-panel-card">
+      <Card className="rg-panel-card rg-design-studio-editor-card">
         <CardContent>
           <Typography variant="h5" fontWeight={950}>النصوص والترجمة (أسماء الأزرار والقوائم)</Typography>
           <Typography color="text.secondary" fontSize={13} sx={{ mb: 1.5 }}>
@@ -431,8 +808,9 @@ export default function AdminDesignStudioClient() {
           variant="outlined"
           startIcon={<RestartAltRoundedIcon />}
           onClick={() => {
-            setSettings(defaults);
-            applyDesignSettings(defaults);
+            const next = { ...defaults, cardTemplateUrl: settings.cardTemplateUrl };
+            setSettings(next);
+            applyDesignSettings(next);
             setNotice({ text: 'تم إرجاع القيم الافتراضية للمعاينة فقط. اضغط حفظ لتثبيتها.', severity: 'success' });
           }}
         >

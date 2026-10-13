@@ -29,6 +29,7 @@ export default function AdminNewArrivalsClient() {
   const [panel, setPanel] = React.useState<'create' | 'edit' | null>(null);
   const [newLogo, setNewLogo] = React.useState<File | null>(null);
   const [selectedIds, setSelectedIds] = React.useState<Set<number>>(new Set());
+  const [bulkBusy, setBulkBusy] = React.useState(false);
   const [page, setPage] = React.useState(1); const pageSize = 12;
 
   const load = React.useCallback(async () => {
@@ -48,13 +49,34 @@ export default function AdminNewArrivalsClient() {
     const res = await fetch('/api/admin/new-arrivals', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: draft.title, targetUrl: draft.targetUrl }) }); const body = await readJson(res);
     if (!res.ok) return setMsg(body.message || (isArabic ? 'تعذر إضافة العنصر' : 'Unable to add item'));
     try { await uploadLogo(body.data.id, newLogo); } catch (error) { return setMsg(error instanceof Error ? error.message : 'Unable to upload logo'); }
-    setDraft({ title: '', targetUrl: '', isActive: true }); setNewLogo(null); setPanel(null); setMsg(isArabic ? 'تمت إضافة العنصر' : 'Item added'); await load();
+    setDraft({ title: '', targetUrl: '', isActive: true }); setNewLogo(null); setPanel(null); setMsg(isArabic ? 'تمت إضافة العنصر ورفع اللوجو وحفظه بنجاح' : 'Item added; its logo was uploaded and saved successfully'); await load();
   }
   async function saveItem() { if (!selected) return; const res = await fetch(`/api/admin/new-arrivals/${selected.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(draft) }); const body = await readJson(res); if (!res.ok) return setMsg(body.message || (isArabic ? 'تعذر الحفظ' : 'Unable to save')); setMsg(isArabic ? 'تم الحفظ' : 'Saved'); await load(); }
   async function removeItem(item: BannerItem) { if (!confirm(isArabic ? `حذف ${item.title}؟` : `Delete ${item.title}?`)) return; await fetch(`/api/admin/new-arrivals/${item.id}`, { method: 'DELETE' }); setPanel(null); setSelected(null); await load(); }
-  async function replaceLogo(item: BannerItem, file: File) { try { await uploadLogo(item.id, file); setMsg(isArabic ? 'تم تغيير اللوجو' : 'Logo changed'); await load(); } catch (error) { setMsg(error instanceof Error ? error.message : 'Unable to upload logo'); } }
+  async function replaceLogo(item: BannerItem, file: File) { try { await uploadLogo(item.id, file); setMsg(isArabic ? 'تم رفع اللوجو وحفظه بنجاح' : 'Logo uploaded and saved successfully'); await load(); } catch (error) { setMsg(error instanceof Error ? error.message : 'Unable to upload logo'); } }
   async function move(item: BannerItem, direction: -1 | 1) { const current = items.findIndex((candidate) => candidate.id === item.id); const target = current + direction; if (target < 0 || target >= items.length) return; const next = [...items]; [next[current], next[target]] = [next[target], next[current]]; const res = await fetch('/api/admin/new-arrivals/reorder', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: next.map((candidate) => candidate.id) }) }); if (!res.ok) return setMsg(isArabic ? 'تعذر حفظ الترتيب' : 'Unable to save order'); await load(); }
-  async function bulk(action: 'activate' | 'deactivate' | 'delete') { const ids = Array.from(selectedIds); if (!ids.length) return; if (action === 'delete' && !confirm(isArabic ? `حذف ${ids.length} عنصر؟` : `Delete ${ids.length} items?`)) return; await Promise.all(ids.map((id) => fetch(`/api/admin/new-arrivals/${id}`, action === 'delete' ? { method: 'DELETE' } : { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isActive: action === 'activate' }) }))); setSelectedIds(new Set()); await load(); }
+  async function bulk(action: 'activate' | 'deactivate' | 'delete') {
+    const ids = Array.from(selectedIds);
+    if (!ids.length || bulkBusy) return;
+    if (action === 'delete' && !confirm(isArabic ? `حذف ${ids.length} عنصر؟` : `Delete ${ids.length} items?`)) return;
+    setBulkBusy(true);
+    const failedIds: number[] = [];
+    try {
+      for (const id of ids) {
+        const response = await fetch(`/api/admin/new-arrivals/${id}`, action === 'delete' ? { method: 'DELETE' } : { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isActive: action === 'activate' }) });
+        if (!response.ok) failedIds.push(id);
+      }
+      setSelectedIds(new Set(failedIds));
+      setMsg(failedIds.length
+        ? (isArabic ? `تعذر تنفيذ العملية على ${failedIds.length} من العناصر المحددة` : `The action failed for ${failedIds.length} selected items`)
+        : (isArabic ? 'تم تنفيذ العملية' : 'Action completed'));
+      await load();
+    } catch {
+      setMsg(isArabic ? 'تعذر الاتصال بالخادم أثناء تنفيذ العملية' : 'Unable to reach the server while processing the action');
+    } finally {
+      setBulkBusy(false);
+    }
+  }
   const drawerAnchor = language === 'ar' ? 'left' : 'right';
 
   return <>
@@ -70,7 +92,7 @@ export default function AdminNewArrivalsClient() {
           disabled={shown.length === 0}
           sx={{ m: 0, minHeight: 44, '& .MuiFormControlLabel-label': { fontWeight: 900, fontSize: 13 } }}
         />
-        {selectedIds.size > 0 && <><Button size="small" variant="outlined" color="success" onClick={() => bulk('activate')}>{isArabic ? 'تفعيل' : 'Activate'}</Button><Button size="small" variant="outlined" color="warning" onClick={() => bulk('deactivate')}>{isArabic ? 'إيقاف' : 'Pause'}</Button><Button size="small" variant="outlined" color="error" onClick={() => bulk('delete')}>{t('delete')}</Button></>}
+        {selectedIds.size > 0 && <><Button size="small" variant="outlined" color="success" disabled={bulkBusy} onClick={() => bulk('activate')}>{isArabic ? 'تفعيل' : 'Activate'}</Button><Button size="small" variant="outlined" color="warning" disabled={bulkBusy} onClick={() => bulk('deactivate')}>{isArabic ? 'إيقاف' : 'Pause'}</Button><Button size="small" variant="outlined" color="error" disabled={bulkBusy} onClick={() => bulk('delete')}>{t('delete')}</Button></>}
       </Stack>
     </CardContent></Card>
     {msg && <Alert severity={/تعذر|Unable|failed/.test(msg) ? 'error' : 'success'} sx={{ mt: 1.5 }}>{msg}</Alert>}
