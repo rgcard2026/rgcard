@@ -1,5 +1,8 @@
 # RG-Card v4
 
+> **Redesign (October 2026):** new member site and admin console. Deployment and
+> handoff notes: [docs/REDESIGN_HANDOFF.md](./docs/REDESIGN_HANDOFF.md).
+
 Next.js + API + Prisma SQLite demo for RG-Card membership, offers, admin dashboard, cards, QR, CSV import/export, and admin permissions.
 
 ## New in v4
