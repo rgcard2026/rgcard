@@ -43,6 +43,15 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
   const reduce = useReducedMotion();
   const [card3dReady, setCard3dReady] = React.useState(false);
   const onReady = React.useCallback(() => setCard3dReady(true), []);
+  const [backImageUrl, setBackImageUrl] = React.useState('/card-back.png?v=3');
+  React.useEffect(() => {
+    let active = true;
+    fetch('/api/settings', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((body) => { if (active && body?.data?.designCardBackUrl) setBackImageUrl(body.data.designCardBackUrl); })
+      .catch(() => null);
+    return () => { active = false; };
+  }, []);
   const spotlight = usePointerSpotlight<HTMLAnchorElement>();
   const supportLink = useSupportLink(cardNumber);
 
@@ -141,7 +150,7 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
                             <MemberCard cardNumber={cardNumber} isVip={isVip} membershipClass={membershipClass} validUntil={validUntil || null} layout={layout} />
                           </div>
                           <div className="ui-flip-face ui-flip-back" aria-hidden="true">
-                            <img src="/card-back.png" alt="" />
+                            <img src={backImageUrl} alt="" />
                             <span className="ui-flip-back-number">NO.{cardNumber}</span>
                           </div>
                         </motion.div>
@@ -150,7 +159,7 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
                   )}
                   {webgl && (
                     <motion.div style={{ position: 'absolute', inset: 0, zIndex: 1 }} initial={{ opacity: 0 }} animate={{ opacity: card3dReady ? 1 : 0 }} transition={{ duration: 0.8 }}>
-                      <MemberCard3D cardNumber={cardNumber} isVip={isVip} membershipClass={membershipClass} validUntil={validUntil} layout={layout} onReady={onReady} scrollProgress={progress} />
+                      <MemberCard3D cardNumber={cardNumber} isVip={isVip} membershipClass={membershipClass} validUntil={validUntil} layout={layout} onReady={onReady} scrollProgress={progress} backImageUrl={backImageUrl} />
                     </motion.div>
                   )}
                   <div className="ui-card-caption">

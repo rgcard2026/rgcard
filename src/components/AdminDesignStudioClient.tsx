@@ -328,6 +328,32 @@ export default function AdminDesignStudioClient() {
     }
   }
 
+  async function regenerateCardBack() {
+    if (busy) return;
+    setBusy(true);
+    setNotice(null);
+    try {
+      const response = await fetch('/api/admin/design/card-back', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ line1: settings.designCardBackLine1, line2: settings.designCardBackLine2, brand: settings.designCardBackBrand }),
+      });
+      const body = await readJson(response);
+      if (!response.ok) {
+        setNotice({ text: body.message || 'تعذر تحديث نص ظهر الكارت', severity: 'error' });
+        return;
+      }
+      const next = { ...defaults, ...settings, ...body.data } as DesignState;
+      setSettings(next);
+      applyDesignSettings(next);
+      setNotice({ text: 'تم تحديث نص ظهر الكارت بنجاح. افتح صفحة البطاقة لمعاينته.', severity: 'success' });
+    } catch {
+      setNotice({ text: 'تعذر الاتصال بالخادم أثناء تحديث ظهر الكارت', severity: 'error' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function uploadPopupImage(file?: File) {
     if (!file || busy) return;
     setBusy(true);
@@ -574,6 +600,33 @@ export default function AdminDesignStudioClient() {
                     ))}
                   </Grid>
                 )}
+              </CardContent>
+            </Card>
+
+            <Card className="rg-panel-card rg-design-studio-editor-card">
+              <CardContent>
+                <Typography variant="h5" fontWeight={950}>نص ظهر الكارت</Typography>
+                <Typography color="text.secondary" fontSize={13} sx={{ mt: 0.5 }}>
+                  عدّل النص المكتوب على ظهر بطاقة العضوية. بعد الحفظ يُعاد توليد صورة الظهر وتظهر في بطاقة العضو وفي ملفات PDF.
+                </Typography>
+                <Box sx={{ mt: 1.5, p: 1, borderRadius: 2, border: '1px solid rgba(214,166,79,.32)', bgcolor: '#090b10' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={settings.designCardBackUrl || '/card-back.png?v=3'} alt="معاينة ظهر الكارت" style={{ display: 'block', width: '100%', height: 'auto', borderRadius: 10 }} />
+                </Box>
+                <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
+                  <Grid item xs={12}>
+                    <AdminTextField noExpand fullWidth label="السطر الأول" value={settings.designCardBackLine1} onChange={(event) => update('designCardBackLine1', event.target.value)} inputProps={{ maxLength: 120 }} />
+                  </Grid>
+                  <Grid item xs={12} md={8}>
+                    <AdminTextField noExpand fullWidth label="السطر الثاني" value={settings.designCardBackLine2} onChange={(event) => update('designCardBackLine2', event.target.value)} inputProps={{ maxLength: 120 }} />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <AdminTextField noExpand fullWidth label="سطر العلامة (مثل RG-Card)" value={settings.designCardBackBrand} onChange={(event) => update('designCardBackBrand', event.target.value)} inputProps={{ maxLength: 40 }} />
+                  </Grid>
+                </Grid>
+                <Button variant="contained" className="rg-royal-button" startIcon={<SaveRoundedIcon />} disabled={busy} onClick={regenerateCardBack} sx={{ mt: 1.5 }}>
+                  {busy ? 'جارٍ التحديث…' : 'حفظ وتوليد ظهر الكارت'}
+                </Button>
               </CardContent>
             </Card>
 

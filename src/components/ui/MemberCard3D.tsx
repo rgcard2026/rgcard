@@ -15,6 +15,8 @@ type Props = {
   onReady?: () => void;
   /** 0 → 1 scroll progress; flips the card from front (0) to back (1). */
   scrollProgress?: MotionValue<number>;
+  /** Back artwork URL (customised card back); falls back to the bundled one. */
+  backImageUrl?: string;
 };
 
 const CARD_W = 3.146;
@@ -98,12 +100,12 @@ async function drawFront(tpl: CardRenderLayout, cardNumber: string, classText: s
 }
 
 /** Back face: public/card-back.png (built by scripts/build-card-back.cjs) + the member number. */
-async function drawBack(width: number, height: number, cardNumber: string) {
+async function drawBack(width: number, height: number, cardNumber: string, backImageUrl?: string) {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext('2d') as Ctx2D;
-  const art = await loadImage('/card-back.png');
+  const art = await loadImage(backImageUrl || '/card-back.png?v=3');
   ctx.drawImage(art, 0, 0, width, height);
   // Number inside the bottom-right gold frame (artwork coords: x 1070–1515, y 852–940 on 1573×1000).
   const sx = width / 1573;
@@ -128,7 +130,7 @@ function toTexture(canvas: HTMLCanvasElement, anisotropy: number) {
 }
 
 /** Interactive 3D membership card: drag to rotate, tap to flip, gentle pointer tilt. */
-export default function MemberCard3D({ cardNumber, isVip, membershipClass, validUntil, layout, onReady, scrollProgress }: Props) {
+export default function MemberCard3D({ cardNumber, isVip, membershipClass, validUntil, layout, onReady, scrollProgress, backImageUrl }: Props) {
   const host = React.useRef<HTMLDivElement | null>(null);
   const readyRef = React.useRef(onReady);
   readyRef.current = onReady;
@@ -259,7 +261,7 @@ export default function MemberCard3D({ cardNumber, isVip, membershipClass, valid
     const anisotropy = renderer.capabilities.getMaxAnisotropy();
     Promise.all([
       drawFront(tpl, cardNumber, membershipLabel(membershipClass, isVip), formatCardExpiry(validUntil)),
-      drawBack(tpl.width, tpl.height, cardNumber)
+      drawBack(tpl.width, tpl.height, cardNumber, backImageUrl)
     ]).then(([f, b]) => {
       if (disposed) return;
       frontMat.map = toTexture(f, anisotropy);
@@ -288,7 +290,7 @@ export default function MemberCard3D({ cardNumber, isVip, membershipClass, valid
       renderer.dispose();
       canvas.remove();
     };
-  }, [cardNumber, isVip, layout, membershipClass, validUntil]);
+  }, [cardNumber, isVip, layout, membershipClass, validUntil, backImageUrl]);
 
   return <div ref={host} style={{ position: 'absolute', inset: 0 }} />;
 }

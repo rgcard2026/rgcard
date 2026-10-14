@@ -66,6 +66,11 @@ function cleanPopupImageUrl(value: unknown) {
   return raw.startsWith("/uploads/design-popup/") ? raw : "";
 }
 
+function cleanCardBackUrl(value: unknown) {
+  const raw = String(value || "").trim();
+  return raw.startsWith("/uploads/design-card-back/") ? raw : "";
+}
+
 export function cleanCardNumberList(value: unknown) {
   const raw = String(value || "");
   const items = raw
@@ -297,6 +302,10 @@ function designSettingsFromMap(map: Record<string, string>) {
     designPopupText: cleanText(map.designPopupText, DESIGN_DEFAULTS.designPopupText, 600),
     designPopupImageUrl: cleanPopupImageUrl(map.designPopupImageUrl),
     designPopupLinkUrl: cleanHttpsUrl(map.designPopupLinkUrl),
+    designCardBackLine1: cleanText(map.designCardBackLine1, DESIGN_DEFAULTS.designCardBackLine1, 120),
+    designCardBackLine2: cleanText(map.designCardBackLine2, DESIGN_DEFAULTS.designCardBackLine2, 120),
+    designCardBackBrand: cleanText(map.designCardBackBrand, DESIGN_DEFAULTS.designCardBackBrand, 40),
+    designCardBackUrl: cleanCardBackUrl(map.designCardBackUrl),
     designArrivalEnabled: boolSetting(map.designArrivalEnabled, DESIGN_DEFAULTS.designArrivalEnabled),
     designArrivalBannerMaxWidth: intSetting(map.designArrivalBannerMaxWidth, DESIGN_DEFAULTS.designArrivalBannerMaxWidth, 40, 100),
     designArrivalBannerRadius: intSetting(map.designArrivalBannerRadius, DESIGN_DEFAULTS.designArrivalBannerRadius, 0, 60),
@@ -735,6 +744,10 @@ type AdminSettingInput = {
   designPopupLinkUrl?: unknown;
   designPopupAudience?: unknown;
   designPopupUserIds?: unknown;
+  designCardBackLine1?: unknown;
+  designCardBackLine2?: unknown;
+  designCardBackBrand?: unknown;
+  designCardBackUrl?: unknown;
   designArrivalEnabled?: unknown;
   designArrivalBannerMaxWidth?: unknown;
   designArrivalBannerRadius?: unknown;
@@ -1104,6 +1117,14 @@ export async function saveAdminSettings(values: AdminSettingInput) {
     updates.push({ key: "designPopupAudience", value: ["all", "selected"].includes(String(values.designPopupAudience)) ? String(values.designPopupAudience) : "all" });
   if (values.designPopupUserIds !== undefined)
     updates.push({ key: "designPopupUserIds", value: cleanCardNumberList(values.designPopupUserIds) });
+  if (values.designCardBackLine1 !== undefined)
+    updates.push({ key: "designCardBackLine1", value: cleanText(values.designCardBackLine1, DESIGN_DEFAULTS.designCardBackLine1, 120) });
+  if (values.designCardBackLine2 !== undefined)
+    updates.push({ key: "designCardBackLine2", value: cleanText(values.designCardBackLine2, DESIGN_DEFAULTS.designCardBackLine2, 120) });
+  if (values.designCardBackBrand !== undefined)
+    updates.push({ key: "designCardBackBrand", value: cleanText(values.designCardBackBrand, DESIGN_DEFAULTS.designCardBackBrand, 40) });
+  if (values.designCardBackUrl !== undefined)
+    updates.push({ key: "designCardBackUrl", value: cleanCardBackUrl(values.designCardBackUrl) });
   if (values.designArrivalEnabled !== undefined)
     updates.push({ key: "designArrivalEnabled", value: boolSetting(String(values.designArrivalEnabled), true) ? "true" : "false" });
   if (values.designArrivalCustomColors !== undefined)

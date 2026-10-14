@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { forbidden, requireApiSession } from '@/lib/api';
 import { writeAuditLog } from '@/lib/audit';
 import { createBulkBackCardsPdfBuffer } from '@/lib/card-generator';
+import { getPublicSettings } from '@/lib/settings';
 import { adminHasPermission } from '@/lib/admin-auth';
 
 export const runtime = 'nodejs';
@@ -27,7 +28,8 @@ export async function GET(request: NextRequest) {
     select: { cardNumber: true },
     orderBy: { createdAt: 'desc' }
   });
-  const buffer = await createBulkBackCardsPdfBuffer(users);
+  const settings = await getPublicSettings();
+  const buffer = await createBulkBackCardsPdfBuffer(users, settings.designCardBackUrl);
   await writeAuditLog(request, ids.length ? 'ADMIN_EXPORT_SELECTED_BACK_CARDS_PDF' : 'ADMIN_EXPORT_ALL_BACK_CARDS_PDF', { adminId: admin.sub }, {
     count: users.length,
     selected: ids.length || null,

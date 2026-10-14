@@ -79,6 +79,11 @@ export const DESIGN_DEFAULTS = {
   designPopupLinkUrl: '',
   designPopupAudience: 'all', // 'all' | 'selected'
   designPopupUserIds: '', // comma-separated card numbers when audience = 'selected'
+  // Editable card-back membership text (rendered onto card-back-base.png).
+  designCardBackLine1: 'بطاقة عضوية شخصية — لا يجوز التنازل عنها',
+  designCardBackLine2: 'تُعرض عند الطلب للاستفادة من خصومات أعضاء',
+  designCardBackBrand: 'RG-Card',
+  designCardBackUrl: '', // generated /uploads/design-card-back/... when customized
   // New Arrival / Coming Soon ticker on the offers page.
   designArrivalEnabled: true,
   designArrivalBannerMaxWidth: 100, // % of container width

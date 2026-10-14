@@ -99,6 +99,10 @@ const { createCanvas, loadImage, GlobalFonts } = require(path.join(root, 'node_m
   x.fillRect(W / 2 + 30, 478, 210, 2);
   x.save(); x.translate(W / 2, 479); x.rotate(Math.PI / 4); x.fillRect(-7, -7, 14, 14); x.restore();
 
+  // Emit the text-free base first (used by the server to overlay editable text).
+  fs.writeFileSync(path.join(root, 'public/card-back-base.png'), await c.encode('png'));
+
+  // The editable membership lines (default copy; matches the server defaults).
   x.fillStyle = 'rgba(243, 219, 164, .82)';
   x.direction = 'rtl';
   x.font = '600 30px "Segoe UI", Tahoma, Arial, sans-serif';
@@ -113,5 +117,5 @@ const { createCanvas, loadImage, GlobalFonts } = require(path.join(root, 'node_m
   x.fillText('RG-Card', W / 2, 616);
 
   fs.writeFileSync(path.join(root, 'public/card-back.png'), await c.encode('png'));
-  console.log('card-back.png', W, H);
+  console.log('card-back.png + card-back-base.png', W, H);
 })();
