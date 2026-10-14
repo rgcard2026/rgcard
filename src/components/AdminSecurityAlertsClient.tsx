@@ -36,7 +36,7 @@ async function readJson(response: Response) {
 }
 
 export default function AdminSecurityAlertsClient() {
-  const { language } = useUiPreferences();
+  const { language, t } = useUiPreferences();
   const isArabic = language === 'ar';
   const [settings, setSettings] = React.useState<Settings>(defaultSettings);
   const [token, setToken] = React.useState('');
@@ -104,8 +104,8 @@ export default function AdminSecurityAlertsClient() {
             <Stack direction="row" spacing={1.3} alignItems="center">
               <Box className="rg-section-icon-v21"><SecurityRoundedIcon /></Box>
               <Box>
-                <Typography variant="h5" fontWeight={950}>{isArabic ? 'تنبيهات الأمن: واتساب والبريد' : 'Security alerts: webhook and email'}</Typography>
-                <Typography color="text.secondary" fontSize={13}>{isArabic ? 'يتم التنبيه فقط عند الأحداث عالية الخطورة. لا يتم إرسال كلمات مرور أو أرقام كروت أو محتوى كامل للطلبات.' : 'Only high-risk events trigger alerts. Passwords, card numbers, and full request bodies are never sent.'}</Typography>
+                <Typography variant="h5" fontWeight={950}>{t('adm_292')}</Typography>
+                <Typography color="text.secondary" fontSize={13}>{t('adm_293')}</Typography>
               </Box>
             </Stack>
             {msg && <Alert severity={msg.includes('تعذر') || msg.includes('غير صالح') || msg.includes('لا توجد') ? 'error' : 'success'}>{msg}</Alert>}
@@ -133,7 +133,7 @@ export default function AdminSecurityAlertsClient() {
             {settings.securityAlertConfigSource === 'environment' && <Alert severity="info">يوجد Webhook مضبوط في Railway Variables؛ لذلك حقول الربط مقفلة وتأخذ قيمة البيئة كأولوية.</Alert>}
 
             <Divider />
-            <Stack direction="row" spacing={1} alignItems="center"><EmailRoundedIcon color="action" /><Typography fontWeight={950}>{isArabic ? 'تنبيهات البريد الإلكتروني' : 'Email alerts'}</Typography></Stack>
+            <Stack direction="row" spacing={1} alignItems="center"><EmailRoundedIcon color="action" /><Typography fontWeight={950}>{t('adm_294')}</Typography></Stack>
             <AdminTextField
               label="البريد المستلم للتنبيهات"
               value={settings.securityAlertEmailTo}
@@ -150,21 +150,21 @@ export default function AdminSecurityAlertsClient() {
               <AdminActionToggle
                 checked={settings.securityAlertEnabled}
                 onChange={(checked) => setSettings({ ...settings, securityAlertEnabled: checked })}
-                label={isArabic ? 'تفعيل التنبيهات' : 'Enable alerts'}
+                label={t('adm_295')}
               />
               <Typography color="text.secondary" fontSize={13}>الإرسال يتم عند حظر طلب مشبوه أو تكرار محاولات الدخول أو ظهور نشاط عالي الخطورة.</Typography>
             </Stack>
             <AdminTextField
               type="number"
-              label={isArabic ? 'فترة منع التكرار بالدقائق' : 'Cooldown period in minutes'}
+              label={t('adm_296')}
               value={settings.securityAlertCooldownMinutes}
               onChange={(event) => setSettings({ ...settings, securityAlertCooldownMinutes: Math.max(1, Math.min(60, Number(event.target.value || 5))) })}
               helperText="منع تكرار نفس التنبيه من نفس IP خلال هذه المدة."
               inputProps={{ min: 1, max: 60 }}
             />
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.2}>
-              <Button variant="contained" startIcon={<SaveRoundedIcon />} onClick={save} disabled={saving}>{saving ? (isArabic ? 'جاري الحفظ...' : 'Saving...') : (isArabic ? 'حفظ الإعدادات' : 'Save settings')}</Button>
-              <Button variant="outlined" startIcon={<SendRoundedIcon />} onClick={sendTest} disabled={!settings.securityAlertEnabled || !settings.securityAlertConfigured || testing}>{testing ? (isArabic ? 'جاري الإرسال...' : 'Sending...') : (isArabic ? 'إرسال رسالة اختبار' : 'Send test alert')}</Button>
+              <Button variant="contained" startIcon={<SaveRoundedIcon />} onClick={save} disabled={saving}>{saving ? (t('mem_47')) : (t('adm_297'))}</Button>
+              <Button variant="outlined" startIcon={<SendRoundedIcon />} onClick={sendTest} disabled={!settings.securityAlertEnabled || !settings.securityAlertConfigured || testing}>{testing ? (t('adm_298')) : (t('adm_299'))}</Button>
             </Stack>
           </Stack>
         </CardContent>
@@ -175,7 +175,7 @@ export default function AdminSecurityAlertsClient() {
       <Card className="rg-panel-card" sx={{ height: '100%' }}>
         <CardContent sx={{ p: { xs: 2, md: 3 } }}>
           <Stack spacing={1.4}>
-            <Typography variant="h6" fontWeight={950}>{isArabic ? 'حالة الربط' : 'Connection status'}</Typography>
+            <Typography variant="h6" fontWeight={950}>{t('adm_300')}</Typography>
             <Chip
               icon={settings.securityAlertWebhookConfigured ? <CheckCircleRoundedIcon /> : <ErrorOutlineRoundedIcon />}
               color={settings.securityAlertWebhookConfigured ? 'success' : 'default'}
@@ -196,7 +196,7 @@ export default function AdminSecurityAlertsClient() {
               البريد يتم إرساله من السيرفر عبر Resend API. عنوان المرسل يجب أن يكون مربوطًا ومتحققًا في حساب مزود البريد.
             </Typography>
             <Divider />
-            <Typography fontWeight={950}>{isArabic ? 'الأحداث التي يتم التنبيه عنها' : 'Alerted events'}</Typography>
+            <Typography fontWeight={950}>{t('adm_301')}</Typography>
             <Stack direction="row" spacing={.8} flexWrap="wrap" useFlexGap>
               <Chip size="small" label="Suspicious requests" />
               <Chip size="small" label="Brute force" />

@@ -70,23 +70,23 @@ export default function AdminShell({ children, title }: { children: React.ReactN
   }
 
   const groups: { label: string; items: NavItem[] }[] = [
-    { label: ar ? 'نظرة عامة' : 'Overview', items: [
+    { label: t('adm_311'), items: [
       { href: '/admin/dashboard', label: t('dashboard'), icon: <DashboardRoundedIcon />, permission: 'DASHBOARD' }
     ] },
-    { label: ar ? 'المحتوى' : 'Content', items: [
+    { label: t('adm_312'), items: [
       { href: '/admin/places', label: t('places'), icon: <StorefrontRoundedIcon />, permission: 'PLACES' },
       { href: '/admin/new-arrivals', label: t('arrivals'), icon: <AutoAwesomeRoundedIcon />, permission: 'PLACES' }
     ] },
-    { label: ar ? 'الأعضاء والصلاحيات' : 'People', items: [
+    { label: t('adm_313'), items: [
       { href: '/admin/users', label: t('users'), icon: <PeopleAltRoundedIcon />, permission: 'USERS' },
       { href: '/admin/admins', label: t('admins'), icon: <AdminPanelSettingsRoundedIcon />, permission: 'ADMINS' }
     ] },
-    { label: ar ? 'المتابعة والأمان' : 'Monitoring', items: [
+    { label: t('adm_314'), items: [
       { href: '/admin/logs', label: t('activityLog'), icon: <HistoryRoundedIcon />, permission: 'LOGS' },
       { href: '/admin/security-alerts', label: t('securityAlerts'), icon: <SecurityRoundedIcon />, permission: 'LOGS' },
       { href: '/admin/exports', label: t('exports'), icon: <FileDownloadRoundedIcon />, permission: 'EXPORTS' }
     ] },
-    { label: ar ? 'التصميم والإعدادات' : 'Design & settings', items: [
+    { label: t('adm_315'), items: [
       { href: '/admin/design', label: t('designStudio'), icon: <PaletteRoundedIcon />, permission: 'SETTINGS' },
       { href: '/admin/settings', label: t('accountSecurity'), icon: <SettingsRoundedIcon /> }
     ] }
@@ -102,11 +102,11 @@ export default function AdminShell({ children, title }: { children: React.ReactN
         <span className="ui-brand-mark" aria-hidden="true" />
         <span>
           <span className="ui-brand-name">RG-Card</span>
-          <span className="ui-brand-sub">{ar ? 'لوحة الإدارة' : 'Admin console'}</span>
+          <span className="ui-brand-sub">{t('adm_316')}</span>
         </span>
       </Link>
 
-      <nav className="ui-admin-nav" aria-label={ar ? 'قائمة الإدارة' : 'Admin navigation'}>
+      <nav className="ui-admin-nav" aria-label={t('adm_317')}>
         {loadingMe && Array.from({ length: 7 }, (_, i) => <span key={i} className="ui-admin-nav-skeleton" />)}
         {groups.map((group) => group.items.length > 0 && (
           <div key={group.label} className="ui-admin-nav-group">
@@ -129,7 +129,7 @@ export default function AdminShell({ children, title }: { children: React.ReactN
         <span className="ui-admin-avatar" aria-hidden="true">{initials(me?.name)}</span>
         <span className="ui-admin-account-text">
           <strong>{me?.name || '—'}</strong>
-          <small>{me ? (me.role === 'OWNER' ? (ar ? 'مالك النظام' : 'Owner') : (ar ? 'مسؤول' : 'Administrator')) : ''}</small>
+          <small>{me ? (me.role === 'OWNER' ? (t('adm_318')) : (t('adm_319'))) : ''}</small>
         </span>
         <button type="button" className="ui-icon-btn" onClick={logout} aria-label={t('logout')} title={t('logout')}>
           <LogoutRoundedIcon className="ui-flip-ltr" />
@@ -157,7 +157,7 @@ export default function AdminShell({ children, title }: { children: React.ReactN
               exit={{ x: dir === 'rtl' ? '100%' : '-100%' }}
               transition={{ type: 'spring', stiffness: 380, damping: 38 }}
             >
-              <button type="button" className="ui-icon-btn ui-admin-drawer-close" onClick={() => setMenuOpen(false)} aria-label={ar ? 'إغلاق القائمة' : 'Close menu'}><CloseRoundedIcon /></button>
+              <button type="button" className="ui-icon-btn ui-admin-drawer-close" onClick={() => setMenuOpen(false)} aria-label={t('adm_320')}><CloseRoundedIcon /></button>
               {sidebar}
             </motion.aside>
           </>
@@ -166,9 +166,9 @@ export default function AdminShell({ children, title }: { children: React.ReactN
 
       <div className="ui-admin-main rg-admin-main">
         <header className="ui-admin-topbar">
-          <button type="button" className="ui-icon-btn ui-admin-menu" onClick={() => setMenuOpen(true)} aria-label={ar ? 'فتح القائمة' : 'Open menu'}><MenuRoundedIcon /></button>
+          <button type="button" className="ui-icon-btn ui-admin-menu" onClick={() => setMenuOpen(true)} aria-label={t('adm_321')}><MenuRoundedIcon /></button>
           <div className="ui-admin-heading">
-            <nav className="ui-admin-crumbs" aria-label={ar ? 'مسار الصفحة' : 'Breadcrumb'}>
+            <nav className="ui-admin-crumbs" aria-label={t('adm_322')}>
               <Link href="/admin/dashboard">RG-Card</Link>
               <span aria-hidden="true">/</span>
               <span>{pageTitle}</span>

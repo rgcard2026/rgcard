@@ -16,7 +16,7 @@ const enableLoginEncryption = process.env.NEXT_PUBLIC_ENABLE_LOGIN_ENCRYPTION ==
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const { language } = useUiPreferences();
+  const { language, t } = useUiPreferences();
   const ar = language === 'ar';
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -35,7 +35,7 @@ export default function AdminLoginPage() {
         body = { payload: await encryptForLogin({ username, password }) };
       } catch {
         setLoading(false);
-        return setError(ar ? 'تعذر تشفير بيانات الدخول. استخدم HTTPS أو عطّل التشفير في بيئة التطوير.' : 'Unable to encrypt the sign-in request. Use HTTPS or disable encryption in development.');
+        return setError(t('adm_349'));
       }
     }
 
@@ -44,35 +44,35 @@ export default function AdminLoginPage() {
       const responseBody = await res.json();
       if (!res.ok) {
         setLoading(false);
-        return setError(responseBody.message || (ar ? 'بيانات الدخول غير صحيحة' : 'Invalid sign-in details'));
+        return setError(responseBody.message || (t('adm_350')));
       }
       router.push(responseBody.redirectTo || '/admin/dashboard');
     } catch {
       setLoading(false);
-      setError(ar ? 'تعذر الاتصال بالخادم. حاول مرة أخرى.' : 'Could not reach the server. Please try again.');
+      setError(t('adm_351'));
     }
   }
 
   return (
     <AuthLayout
-      title={ar ? 'دخول الإدارة' : 'Admin sign in'}
-      subtitle={ar ? 'لوحة تحكم RG-Card للمسؤولين المصرّح لهم فقط.' : 'RG-Card control panel for authorised administrators only.'}
-      brandSubtitle={ar ? 'إدارة الأعضاء والأماكن والعروض والتصميم من مكان واحد.' : 'Manage members, places, offers and design in one place.'}
+      title={t('adm_352')}
+      subtitle={t('adm_353')}
+      brandSubtitle={t('adm_354')}
     >
       <form className="ui-auth-form" onSubmit={submit}>
         {error && <div className="ui-alert ui-alert--error" role="alert"><ErrorOutlineRoundedIcon />{error}</div>}
         {!enableLoginEncryption && process.env.NODE_ENV === 'development' && (
-          <div className="ui-hint">{ar ? 'بيئة تطوير: تشفير طلب الدخول معطّل.' : 'Development: login encryption disabled.'}</div>
+          <div className="ui-hint">{t('adm_355')}</div>
         )}
         <div className="ui-field">
-          <label className="ui-label" htmlFor="admin-user">{ar ? 'اسم المستخدم' : 'Username'}</label>
+          <label className="ui-label" htmlFor="admin-user">{t('adm_356')}</label>
           <div className="ui-input-wrap">
             <AdminPanelSettingsRoundedIcon />
             <input id="admin-user" type="text" className="ui-input" value={username} onChange={(e) => setUsername(e.target.value)} required autoComplete="username" />
           </div>
         </div>
         <div className="ui-field">
-          <label className="ui-label" htmlFor="admin-password">{ar ? 'كلمة المرور' : 'Password'}</label>
+          <label className="ui-label" htmlFor="admin-password">{t('adm_71')}</label>
           <div className="ui-input-wrap">
             <LockRoundedIcon />
             <input id="admin-password" className="ui-input" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
@@ -82,7 +82,7 @@ export default function AdminLoginPage() {
           </div>
         </div>
         <button type="submit" className="ui-btn ui-btn--primary ui-btn--block" disabled={loading} style={{ marginTop: 6 }}>
-          {loading ? (ar ? 'جاري الدخول...' : 'Signing in...') : (ar ? 'دخول' : 'Sign in')}
+          {loading ? (t('adm_357')) : (t('adm_358'))}
           {!loading && <ArrowBackRoundedIcon className="ui-flip-ltr" />}
         </button>
       </form>

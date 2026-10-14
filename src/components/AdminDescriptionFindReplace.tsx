@@ -24,7 +24,7 @@ async function readJson(response: Response) {
 }
 
 export default function AdminDescriptionFindReplace({ onCompleted }: { onCompleted: () => Promise<void> | void }) {
-  const { language } = useUiPreferences();
+  const { language, t } = useUiPreferences();
   const isArabic = language === 'ar';
   const [open, setOpen] = React.useState(false);
   const [find, setFind] = React.useState('');
@@ -68,7 +68,7 @@ export default function AdminDescriptionFindReplace({ onCompleted }: { onComplet
       });
       const body = await readJson(response);
       if (!response.ok) {
-        setMessage(body.message || (isArabic ? 'تعذر تنفيذ العملية' : 'Unable to complete the operation'));
+        setMessage(body.message || (t('adm_258')));
         return null;
       }
       return body.data as Preview;
@@ -79,7 +79,7 @@ export default function AdminDescriptionFindReplace({ onCompleted }: { onComplet
 
   async function previewChanges() {
     if (!find.trim()) {
-      setMessage(isArabic ? 'أدخل النص المطلوب البحث عنه أولاً.' : 'Enter text to find first.');
+      setMessage(t('adm_259'));
       return;
     }
     const next = await request(true);
@@ -89,7 +89,7 @@ export default function AdminDescriptionFindReplace({ onCompleted }: { onComplet
   async function applyChanges() {
     if (!preview || !preview.totalRecords) return;
     if (confirmation.trim().toUpperCase() !== 'REPLACE') {
-      setMessage(isArabic ? 'اكتب REPLACE لتأكيد الاستبدال.' : 'Type REPLACE to confirm the replacement.');
+      setMessage(t('adm_260'));
       return;
     }
     const result = await request(false);
@@ -112,13 +112,13 @@ export default function AdminDescriptionFindReplace({ onCompleted }: { onComplet
 
   return <>
     <Button variant="outlined" startIcon={<FindReplaceRoundedIcon />} onClick={() => setOpen(true)}>
-      {isArabic ? 'بحث واستبدال المحتوى' : 'Find & replace content'}
+      {t('adm_261')}
     </Button>
     <Dialog open={open} onClose={close} fullWidth maxWidth="sm" className="rg-find-replace-dialog">
       <DialogTitle>
         <Stack spacing={.5}>
-          <Typography component="span" variant="h6" fontWeight={950}>{isArabic ? 'بحث واستبدال في الوصف والملاحظات' : 'Find & replace in descriptions and notes'}</Typography>
-          <Typography component="span" color="text.secondary" fontSize={13}>{isArabic ? 'اختر البيانات والحقول المطلوبة، ثم استخدم المعاينة واكتب REPLACE قبل التطبيق.' : 'Choose the records and fields, preview the result, then type REPLACE before applying.'}</Typography>
+          <Typography component="span" variant="h6" fontWeight={950}>{t('adm_262')}</Typography>
+          <Typography component="span" color="text.secondary" fontSize={13}>{t('adm_263')}</Typography>
         </Stack>
       </DialogTitle>
       <DialogContent dividers>
@@ -126,13 +126,13 @@ export default function AdminDescriptionFindReplace({ onCompleted }: { onComplet
           {message && <Alert severity={/تعذر|Unable|أدخل|Type REPLACE/.test(message) ? 'error' : 'success'}>{message}</Alert>}
           <AdminTextField
             autoFocus
-            label={isArabic ? 'النص المطلوب البحث عنه' : 'Find text'}
+            label={t('adm_264')}
             value={find}
             onChange={(event) => { setFind(event.target.value); resetPreview(); }}
-            helperText={isArabic ? 'يمكن البحث داخل الوصف أو الملاحظات أو الاثنين.' : 'Search descriptions, notes, or both.'}
+            helperText={t('adm_265')}
           />
           <AdminTextField
-            label={isArabic ? 'النص البديل' : 'Replace with'}
+            label={t('adm_266')}
             value={replacement}
             multiline
             minRows={2}
@@ -140,47 +140,47 @@ export default function AdminDescriptionFindReplace({ onCompleted }: { onComplet
           />
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
             <FormControl fullWidth>
-              <InputLabel>{isArabic ? 'نوع البيانات' : 'Records'}</InputLabel>
-              <Select label={isArabic ? 'نوع البيانات' : 'Records'} value={scope} onChange={(event) => { setScope(event.target.value as Scope); resetPreview(); }}>
+              <InputLabel>{t('adm_267')}</InputLabel>
+              <Select label={t('adm_267')} value={scope} onChange={(event) => { setScope(event.target.value as Scope); resetPreview(); }}>
                 <MenuItem value="both">{scopeLabel('both')}</MenuItem>
                 <MenuItem value="places">{scopeLabel('places')}</MenuItem>
                 <MenuItem value="offers">{scopeLabel('offers')}</MenuItem>
               </Select>
             </FormControl>
             <FormControl fullWidth>
-              <InputLabel>{isArabic ? 'الحقول' : 'Fields'}</InputLabel>
-              <Select label={isArabic ? 'الحقول' : 'Fields'} value={fields} onChange={(event) => { setFields(event.target.value as FieldScope); resetPreview(); }}>
+              <InputLabel>{t('adm_268')}</InputLabel>
+              <Select label={t('adm_268')} value={fields} onChange={(event) => { setFields(event.target.value as FieldScope); resetPreview(); }}>
                 <MenuItem value="both">{fieldLabel('both')}</MenuItem>
                 <MenuItem value="descriptions">{fieldLabel('descriptions')}</MenuItem>
                 <MenuItem value="notes">{fieldLabel('notes')}</MenuItem>
               </Select>
             </FormControl>
           </Stack>
-          <FormControlLabel control={<Checkbox checked={caseSensitive} onChange={(event) => { setCaseSensitive(event.target.checked); resetPreview(); }} />} label={isArabic ? 'مطابقة حالة الأحرف' : 'Match letter case'} />
+          <FormControlLabel control={<Checkbox checked={caseSensitive} onChange={(event) => { setCaseSensitive(event.target.checked); resetPreview(); }} />} label={t('adm_269')} />
           {preview && <>
             <Divider />
             <Stack spacing={1}>
-              <Typography fontWeight={950}>{isArabic ? 'نتيجة المعاينة' : 'Preview result'}</Typography>
+              <Typography fontWeight={950}>{t('adm_270')}</Typography>
               <Stack direction="row" spacing={.75} flexWrap="wrap" useFlexGap>
-                <Chip label={`${isArabic ? 'الأماكن' : 'Places'}: ${preview.places.records}`} />
-                <Chip label={`${isArabic ? 'العروض' : 'Offers'}: ${preview.offers.records}`} />
-                <Chip label={`${isArabic ? 'الوصف' : 'Descriptions'}: ${preview.fieldOccurrences.descriptions}`} />
-                <Chip label={`${isArabic ? 'الملاحظات' : 'Notes'}: ${preview.fieldOccurrences.notes}`} />
-                <Chip color="secondary" label={`${isArabic ? 'إجمالي الاستبدالات' : 'Total replacements'}: ${preview.totalOccurrences}`} />
+                <Chip label={`${t('adm_271')}: ${preview.places.records}`} />
+                <Chip label={`${t('adm_272')}: ${preview.offers.records}`} />
+                <Chip label={`${t('adm_273')}: ${preview.fieldOccurrences.descriptions}`} />
+                <Chip label={`${t('adm_274')}: ${preview.fieldOccurrences.notes}`} />
+                <Chip color="secondary" label={`${t('adm_275')}: ${preview.totalOccurrences}`} />
               </Stack>
               {preview.totalRecords > 0 ? <>
                 <Typography color="text.secondary" fontSize={13}>{isArabic ? `سيتم تحديث ${preview.totalRecords} سجل. اكتب REPLACE للتأكيد.` : `${preview.totalRecords} record(s) will be updated. Type REPLACE to confirm.`}</Typography>
-                <AdminTextField label={isArabic ? 'تأكيد الاستبدال' : 'Replacement confirmation'} placeholder="REPLACE" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} />
-              </> : <Alert severity="info">{isArabic ? 'لا توجد بيانات مطابقة للنص المكتوب.' : 'No matching content was found.'}</Alert>}
+                <AdminTextField label={t('adm_276')} placeholder="REPLACE" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} />
+              </> : <Alert severity="info">{t('adm_277')}</Alert>}
             </Stack>
           </>}
         </Stack>
       </DialogContent>
       <DialogActions sx={{ p: 2, gap: 1, flexWrap: 'wrap' }}>
-        <Button onClick={close} disabled={busy}>{isArabic ? 'إلغاء' : 'Cancel'}</Button>
+        <Button onClick={close} disabled={busy}>{t('adm_80')}</Button>
         <Box sx={{ flex: 1 }} />
-        <Button variant="outlined" startIcon={<PreviewRoundedIcon />} onClick={previewChanges} disabled={busy || !find.trim()}>{isArabic ? 'معاينة' : 'Preview'}</Button>
-        <Button variant="contained" color="warning" startIcon={<SaveRoundedIcon />} onClick={applyChanges} disabled={busy || !preview?.totalRecords || confirmation.trim().toUpperCase() !== 'REPLACE'}>{isArabic ? 'تطبيق الاستبدال' : 'Apply replacement'}</Button>
+        <Button variant="outlined" startIcon={<PreviewRoundedIcon />} onClick={previewChanges} disabled={busy || !find.trim()}>{t('adm_278')}</Button>
+        <Button variant="contained" color="warning" startIcon={<SaveRoundedIcon />} onClick={applyChanges} disabled={busy || !preview?.totalRecords || confirmation.trim().toUpperCase() !== 'REPLACE'}>{t('adm_279')}</Button>
       </DialogActions>
     </Dialog>
   </>;

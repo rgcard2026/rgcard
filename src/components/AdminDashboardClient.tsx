@@ -29,7 +29,7 @@ type Props = {
 const ease = [0.22, 1, 0.36, 1] as const;
 
 export default function AdminDashboardClient({ adminName, canExport, stats, loginSeries, alerts }: Props) {
-  const { language } = useUiPreferences();
+  const { language, t } = useUiPreferences();
   const ar = language === 'ar';
   const reduce = useReducedMotion();
   const locale = ar ? 'ar-EG-u-nu-latn' : 'en-GB';
@@ -38,18 +38,18 @@ export default function AdminDashboardClient({ adminName, canExport, stats, logi
   const totals = loginSeries.reduce((acc, d) => ({ success: acc.success + d.success, failed: acc.failed + d.failed }), { success: 0, failed: 0 });
 
   const kpis = [
-    { label: ar ? 'إجمالي الأعضاء' : 'Total members', value: stats.users, icon: <PeopleAltRoundedIcon />, href: '/admin/users' },
-    { label: ar ? 'بطاقات مفعّلة' : 'Active cards', value: stats.activeUsers, icon: <VerifiedUserRoundedIcon />, href: '/admin/users', meter: activePct, sub: ar ? `${activePct}% من الأعضاء` : `${activePct}% of members` },
-    { label: ar ? 'الأماكن والعروض' : 'Places & offers', value: stats.places, icon: <StorefrontRoundedIcon />, href: '/admin/places' },
-    { label: ar ? 'الفروع' : 'Branches', value: stats.branches, icon: <AccountTreeRoundedIcon />, href: '/admin/places' },
-    { label: ar ? 'الفئات' : 'Categories', value: stats.categories, icon: <CategoryRoundedIcon />, href: '/admin/places' },
-    { label: ar ? 'تنبيهات أمنية' : 'Security alerts', value: stats.alerts, icon: <SecurityRoundedIcon />, href: '/admin/security-alerts', tone: stats.alerts > 0 ? 'danger' : undefined }
+    { label: t('adm_323'), value: stats.users, icon: <PeopleAltRoundedIcon />, href: '/admin/users' },
+    { label: t('adm_324'), value: stats.activeUsers, icon: <VerifiedUserRoundedIcon />, href: '/admin/users', meter: activePct, sub: ar ? `${activePct}% من الأعضاء` : `${activePct}% of members` },
+    { label: t('adm_325'), value: stats.places, icon: <StorefrontRoundedIcon />, href: '/admin/places' },
+    { label: t('adm_326'), value: stats.branches, icon: <AccountTreeRoundedIcon />, href: '/admin/places' },
+    { label: t('adm_327'), value: stats.categories, icon: <CategoryRoundedIcon />, href: '/admin/places' },
+    { label: t('adm_328'), value: stats.alerts, icon: <SecurityRoundedIcon />, href: '/admin/security-alerts', tone: stats.alerts > 0 ? 'danger' : undefined }
   ];
 
   const quick = [
-    { href: '/admin/places', label: ar ? 'إضافة مكان' : 'Add place', icon: <AddBusinessRoundedIcon /> },
-    { href: '/admin/users', label: ar ? 'إضافة عضو' : 'Add member', icon: <PersonAddAltRoundedIcon /> },
-    { href: '/admin/design', label: ar ? 'استوديو التصميم' : 'Design studio', icon: <PaletteRoundedIcon /> }
+    { href: '/admin/places', label: t('adm_329'), icon: <AddBusinessRoundedIcon /> },
+    { href: '/admin/users', label: t('adm_330'), icon: <PersonAddAltRoundedIcon /> },
+    { href: '/admin/design', label: t('adm_331'), icon: <PaletteRoundedIcon /> }
   ];
 
   const enter = (i: number) => (reduce ? {} : { initial: { opacity: 0, y: 14 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.55, delay: i * 0.05, ease } });
@@ -61,7 +61,7 @@ export default function AdminDashboardClient({ adminName, canExport, stats, logi
         <div className="ui-dash-hero-copy">
           <span className="ui-eyebrow">{today}</span>
           <h2 className="ui-h2">{ar ? `مرحبًا، ${adminName}` : `Welcome, ${adminName}`}</h2>
-          <p className="ui-lead">{ar ? 'نظرة سريعة على الأعضاء والأماكن ونشاط الدخول خلال الأسبوع.' : 'A quick look at members, places and sign-in activity this week.'}</p>
+          <p className="ui-lead">{t('adm_332')}</p>
         </div>
         <div className="ui-dash-quick">
           {quick.map((q) => (
@@ -70,7 +70,7 @@ export default function AdminDashboardClient({ adminName, canExport, stats, logi
         </div>
       </motion.section>
 
-      <section className="ui-dash-kpis" aria-label={ar ? 'مؤشرات' : 'Key figures'}>
+      <section className="ui-dash-kpis" aria-label={t('adm_333')}>
         {kpis.map((k, i) => (
           <motion.div key={k.label} {...enter(i + 1)}>
             <Link href={k.href} className={`ui-kpi ${k.tone === 'danger' ? 'ui-kpi--danger' : ''}`}>
@@ -89,14 +89,14 @@ export default function AdminDashboardClient({ adminName, canExport, stats, logi
       <div className="ui-dash-grid">
         <motion.section className="ui-panel ui-panel--pad" {...enter(7)}>
           <div className="ui-dash-panel-head">
-            <div className="ui-panel-title" style={{ marginBottom: 0 }}><LoginRoundedIcon /><h3 className="ui-h3">{ar ? 'نشاط تسجيل الدخول' : 'Sign-in activity'}</h3></div>
-            <span className="ui-muted" style={{ fontSize: 12.5 }}>{ar ? 'آخر 7 أيام' : 'Last 7 days'}</span>
+            <div className="ui-panel-title" style={{ marginBottom: 0 }}><LoginRoundedIcon /><h3 className="ui-h3">{t('adm_334')}</h3></div>
+            <span className="ui-muted" style={{ fontSize: 12.5 }}>{t('adm_335')}</span>
           </div>
           <div className="ui-dash-totals">
-            <span><i className="ui-legend ui-legend--ok" />{ar ? 'ناجحة' : 'Successful'} <strong>{totals.success}</strong></span>
-            <span><i className="ui-legend ui-legend--fail" />{ar ? 'فاشلة / محظورة' : 'Failed / blocked'} <strong>{totals.failed}</strong></span>
+            <span><i className="ui-legend ui-legend--ok" />{t('adm_336')} <strong>{totals.success}</strong></span>
+            <span><i className="ui-legend ui-legend--fail" />{t('adm_337')} <strong>{totals.failed}</strong></span>
           </div>
-          <div className="ui-chart" role="img" aria-label={ar ? 'رسم بياني لعمليات الدخول' : 'Sign-in chart'}>
+          <div className="ui-chart" role="img" aria-label={t('adm_338')}>
             {loginSeries.map((d, i) => {
               const total = d.success + d.failed;
               const day = new Date(d.date);
@@ -124,8 +124,8 @@ export default function AdminDashboardClient({ adminName, canExport, stats, logi
 
         <motion.section className="ui-panel ui-panel--pad" {...enter(8)}>
           <div className="ui-dash-panel-head">
-            <div className="ui-panel-title" style={{ marginBottom: 0 }}><SecurityRoundedIcon /><h3 className="ui-h3">{ar ? 'التنبيهات الأمنية' : 'Security alerts'}</h3></div>
-            <Link href="/admin/security-alerts" className="ui-btn ui-btn--quiet ui-btn--sm">{ar ? 'عرض الكل' : 'View all'}</Link>
+            <div className="ui-panel-title" style={{ marginBottom: 0 }}><SecurityRoundedIcon /><h3 className="ui-h3">{t('adm_339')}</h3></div>
+            <Link href="/admin/security-alerts" className="ui-btn ui-btn--quiet ui-btn--sm">{t('adm_340')}</Link>
           </div>
           {alerts.length ? (
             <ul className="ui-alert-list">
@@ -133,8 +133,8 @@ export default function AdminDashboardClient({ adminName, canExport, stats, logi
                 <li key={a.id}>
                   <span className="ui-dot" style={{ color: 'var(--ui-danger)' }} />
                   <div>
-                    <strong>{a.name || (ar ? 'مستخدم غير معروف' : 'Unknown user')}</strong>
-                    <span className="ui-muted">{ar ? 'كارت' : 'Card'} {a.cardNumber || '—'} · ID {a.idNumber || '—'}</span>
+                    <strong>{a.name || (t('adm_341'))}</strong>
+                    <span className="ui-muted">{t('adm_342')} {a.cardNumber || '—'} · ID {a.idNumber || '—'}</span>
                   </div>
                   <time className="ui-muted">{new Date(a.createdAt).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}</time>
                 </li>
@@ -143,8 +143,8 @@ export default function AdminDashboardClient({ adminName, canExport, stats, logi
           ) : (
             <div className="ui-dash-empty">
               <GppGoodRoundedIcon />
-              <strong>{ar ? 'لا توجد تنبيهات حديثة' : 'No recent alerts'}</strong>
-              <span className="ui-muted">{ar ? 'لم يتم رصد محاولات دخول مشبوهة.' : 'No suspicious sign-in attempts detected.'}</span>
+              <strong>{t('adm_343')}</strong>
+              <span className="ui-muted">{t('adm_344')}</span>
             </div>
           )}
         </motion.section>
