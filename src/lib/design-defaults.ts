@@ -96,7 +96,7 @@ export const DESIGN_DEFAULTS = {
   designArrivalBannerMaxWidth: 100, // % of container width
   designArrivalBannerRadius: 24, // px
   designArrivalPaddingY: 14, // px vertical breathing room inside the banner
-  designArrivalTileWidth: 136, // px
+  designArrivalTileWidth: 104, // px (squarer so logos center nicely)
   designArrivalTileHeight: 84, // px
   designArrivalTileRadius: 14, // px
   designArrivalTileGap: 12, // px between tiles
