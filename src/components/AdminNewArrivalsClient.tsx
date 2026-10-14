@@ -3,7 +3,7 @@
 import * as React from 'react';
 import AdminTextField from '@/components/AdminTextField';
 import AdminActionToggle from '@/components/AdminActionToggle';
-import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Divider, Drawer, FormControlLabel, Grid, IconButton, Pagination, Stack, Tooltip, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Divider, Drawer, FormControlLabel, Grid, IconButton, Pagination, Snackbar, Stack, Tooltip, Typography } from '@mui/material';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
 import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
@@ -51,7 +51,7 @@ export default function AdminNewArrivalsClient() {
     try { await uploadLogo(body.data.id, newLogo); } catch (error) { return setMsg(error instanceof Error ? error.message : 'Unable to upload logo'); }
     setDraft({ title: '', targetUrl: '', isActive: true }); setNewLogo(null); setPanel(null); setMsg(isArabic ? 'تمت إضافة العنصر ورفع اللوجو وحفظه بنجاح' : 'Item added; its logo was uploaded and saved successfully'); await load();
   }
-  async function saveItem() { if (!selected) return; const res = await fetch(`/api/admin/new-arrivals/${selected.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(draft) }); const body = await readJson(res); if (!res.ok) return setMsg(body.message || (isArabic ? 'تعذر الحفظ' : 'Unable to save')); setMsg(isArabic ? 'تم الحفظ' : 'Saved'); await load(); }
+  async function saveItem() { if (!selected) return; const res = await fetch(`/api/admin/new-arrivals/${selected.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(draft) }); const body = await readJson(res); if (!res.ok) return setMsg(body.message || (isArabic ? 'تعذر الحفظ' : 'Unable to save')); setMsg(isArabic ? 'تم حفظ التعديلات بنجاح' : 'Changes saved successfully'); await load(); }
   async function removeItem(item: BannerItem) { if (!confirm(isArabic ? `حذف ${item.title}؟` : `Delete ${item.title}?`)) return; await fetch(`/api/admin/new-arrivals/${item.id}`, { method: 'DELETE' }); setPanel(null); setSelected(null); await load(); }
   async function replaceLogo(item: BannerItem, file: File) { try { await uploadLogo(item.id, file); setMsg(isArabic ? 'تم رفع اللوجو وحفظه بنجاح' : 'Logo uploaded and saved successfully'); await load(); } catch (error) { setMsg(error instanceof Error ? error.message : 'Unable to upload logo'); } }
   async function move(item: BannerItem, direction: -1 | 1) { const current = items.findIndex((candidate) => candidate.id === item.id); const target = current + direction; if (target < 0 || target >= items.length) return; const next = [...items]; [next[current], next[target]] = [next[target], next[current]]; const res = await fetch('/api/admin/new-arrivals/reorder', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: next.map((candidate) => candidate.id) }) }); if (!res.ok) return setMsg(isArabic ? 'تعذر حفظ الترتيب' : 'Unable to save order'); await load(); }
@@ -95,7 +95,21 @@ export default function AdminNewArrivalsClient() {
         {selectedIds.size > 0 && <><Button size="small" variant="outlined" color="success" disabled={bulkBusy} onClick={() => bulk('activate')}>{isArabic ? 'تفعيل' : 'Activate'}</Button><Button size="small" variant="outlined" color="warning" disabled={bulkBusy} onClick={() => bulk('deactivate')}>{isArabic ? 'إيقاف' : 'Pause'}</Button><Button size="small" variant="outlined" color="error" disabled={bulkBusy} onClick={() => bulk('delete')}>{t('delete')}</Button></>}
       </Stack>
     </CardContent></Card>
-    {msg && <Alert severity={/تعذر|Unable|failed/.test(msg) ? 'error' : 'success'} sx={{ mt: 1.5 }}>{msg}</Alert>}
+    <Snackbar
+      open={!!msg}
+      autoHideDuration={5000}
+      onClose={(_event, reason) => { if (reason !== 'clickaway') setMsg(''); }}
+      anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+    >
+      <Alert
+        variant="filled"
+        severity={/تعذر|Unable|failed/.test(msg) ? 'error' : 'success'}
+        onClose={() => setMsg('')}
+        sx={{ width: '100%', fontWeight: 900 }}
+      >
+        {msg}
+      </Alert>
+    </Snackbar>
     <Grid container spacing={1.5} className="rg-admin-directory-grid" sx={{ mt: .2 }}>
       {shown.map((item, index) => <Grid item xs={6} sm={4} md={3} lg={2} key={item.id}>
         <Card className="rg-admin-logo-card rg-logo-intro" style={{ '--rg-logo-delay': `${(index % 12) * 45}ms` } as React.CSSProperties}><CardContent sx={{ p: 1.2, position: 'relative' }}>

@@ -138,6 +138,7 @@ export default function AdminDesignStudioClient() {
   const [settings, setSettings] = React.useState<DesignState>(defaults);
   const [notice, setNotice] = React.useState<Notice>(null);
   const [busy, setBusy] = React.useState(false);
+  const [textFilter, setTextFilter] = React.useState('');
   const cardLayout = React.useMemo<CardRenderLayout>(() => ({
     ...CARD_TEMPLATE,
     width: settings.cardCanvasWidth,
@@ -738,11 +739,28 @@ export default function AdminDesignStudioClient() {
         <CardContent>
           <Typography variant="h5" fontWeight={950}>النصوص والترجمة (أسماء الأزرار والقوائم)</Typography>
           <Typography color="text.secondary" fontSize={13} sx={{ mb: 1.5 }}>
-            عدّل أي نص في الواجهة باللغتين. اترك الحقل فارغًا لاستخدام النص الافتراضي. تظهر التعديلات مباشرة بعد الحفظ.
+            عدّل أي نص في الواجهة (أسماء القوائم الجانبية والأزرار والعناوين) باللغتين العربية والإنجليزية. اترك الحقل فارغًا لاستخدام النص الافتراضي. تظهر التعديلات مباشرة بعد الحفظ.
           </Typography>
+          <AdminTextField
+            noExpand
+            fullWidth
+            size="small"
+            label="ابحث عن كلمة أو نص لتعديله (عربي / English)"
+            value={textFilter}
+            onChange={(e) => setTextFilter(e.target.value)}
+            sx={{ mb: 1.5 }}
+          />
           <div style={{ maxHeight: 420, overflowY: 'auto', paddingInlineEnd: 8 }}>
             <Grid container spacing={1.5}>
-              {TRANSLATION_KEYS.map((key) => (
+              {TRANSLATION_KEYS.filter((key) => {
+                const needle = textFilter.trim().toLowerCase();
+                if (!needle) return true;
+                return key.toLowerCase().includes(needle)
+                  || DEFAULT_COPY.ar[key].toLowerCase().includes(needle)
+                  || DEFAULT_COPY.en[key].toLowerCase().includes(needle)
+                  || (settings.uiTextOverrides?.ar?.[key] || '').toLowerCase().includes(needle)
+                  || (settings.uiTextOverrides?.en?.[key] || '').toLowerCase().includes(needle);
+              }).map((key) => (
                 <React.Fragment key={key}>
                   <Grid item xs={12} md={2}><Typography fontWeight={850} fontSize={13} sx={{ pt: 1.4 }}>{key}</Typography></Grid>
                   <Grid item xs={12} md={5}>
