@@ -724,7 +724,7 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
 .ui-arrival { flex: 0 0 auto; width: var(--ui-arrival-w, 136px); height: var(--ui-arrival-h, 84px); perspective: 700px; display: block; }
 .ui-arrival-inner { position: relative; display: block; width: 100%; height: 100%; transform-style: preserve-3d; }
 .ui-arrival-face { position: absolute; inset: 0; display: grid; place-items: center; padding: 10px; border-radius: var(--ui-arrival-radius, 14px); background: var(--ui-arrival-face-bg, var(--ui-plate)); border: 1px solid var(--ui-arrival-face-border, var(--ui-line)); backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; }
-.ui-arrival-face img { width: 86%; height: 86%; margin: auto; object-fit: contain; object-position: center; display: block; }
+.ui-arrival-face img { width: 100%; height: 100%; margin: auto; object-fit: contain; object-position: center; display: block; }
 .ui-arrival-back { transform: rotateY(180deg); background: radial-gradient(circle at 50% 35%, #1b1813, #070707); border-color: rgba(216, 178, 106, 0.4); align-content: center; gap: 4px; padding: 8px; border-radius: var(--ui-arrival-radius, 14px); }
 .ui-arrival-mark { width: 46px; aspect-ratio: 610 / 418; background: url('/brand/rg-emblem-gold.png') center / contain no-repeat; }
 .ui-arrival-name { max-width: 100%; color: var(--ui-arrival-name, #f2dba4); font-size: 11.5px; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
