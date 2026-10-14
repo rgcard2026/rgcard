@@ -17,6 +17,8 @@ type Props = {
   scrollProgress?: MotionValue<number>;
   /** Back artwork URL (customised card back); falls back to the bundled one. */
   backImageUrl?: string;
+  /** Membership-number position/size/opacity on the back (1573x1000 coords). */
+  backNumber?: { x: number; y: number; size: number; opacity: number };
 };
 
 const CARD_W = 3.146;
@@ -100,25 +102,30 @@ async function drawFront(tpl: CardRenderLayout, cardNumber: string, classText: s
 }
 
 /** Back face: public/card-back.png (built by scripts/build-card-back.cjs) + the member number. */
-async function drawBack(width: number, height: number, cardNumber: string, backImageUrl?: string) {
+type BackNumber = { x: number; y: number; size: number; opacity: number };
+const DEFAULT_BACK_NUMBER: BackNumber = { x: 1292, y: 896, size: 34, opacity: 100 };
+
+async function drawBack(width: number, height: number, cardNumber: string, backImageUrl?: string, num: BackNumber = DEFAULT_BACK_NUMBER) {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext('2d') as Ctx2D;
   const art = await loadImage(backImageUrl || '/card-back.png?v=3');
   ctx.drawImage(art, 0, 0, width, height);
-  // Number inside the bottom-right gold frame (artwork coords: x 1070–1515, y 852–940 on 1573×1000).
+  // Number inside the bottom-right gold frame (artwork coords on 1573×1000, configurable).
   const sx = width / 1573;
   const sy = height / 1000;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = `900 ${Math.round(34 * sy)}px Arial, Helvetica, sans-serif`;
+  ctx.font = `900 ${Math.round(num.size * sy)}px Arial, Helvetica, sans-serif`;
   ctx.letterSpacing = `${(2.4 * sx).toFixed(1)}px`;
+  ctx.globalAlpha = Math.max(0, Math.min(100, num.opacity)) / 100;
   ctx.lineWidth = 2;
   ctx.strokeStyle = 'rgba(0,0,0,.4)';
-  ctx.strokeText(`NO.${cardNumber}`, 1292 * sx, 896 * sy);
+  ctx.strokeText(`NO.${cardNumber}`, num.x * sx, num.y * sy);
   ctx.fillStyle = '#f2c15f';
-  ctx.fillText(`NO.${cardNumber}`, 1292 * sx, 896 * sy);
+  ctx.fillText(`NO.${cardNumber}`, num.x * sx, num.y * sy);
+  ctx.globalAlpha = 1;
   return canvas;
 }
 
@@ -130,7 +137,7 @@ function toTexture(canvas: HTMLCanvasElement, anisotropy: number) {
 }
 
 /** Interactive 3D membership card: drag to rotate, tap to flip, gentle pointer tilt. */
-export default function MemberCard3D({ cardNumber, isVip, membershipClass, validUntil, layout, onReady, scrollProgress, backImageUrl }: Props) {
+export default function MemberCard3D({ cardNumber, isVip, membershipClass, validUntil, layout, onReady, scrollProgress, backImageUrl, backNumber }: Props) {
   const host = React.useRef<HTMLDivElement | null>(null);
   const readyRef = React.useRef(onReady);
   readyRef.current = onReady;
@@ -261,7 +268,7 @@ export default function MemberCard3D({ cardNumber, isVip, membershipClass, valid
     const anisotropy = renderer.capabilities.getMaxAnisotropy();
     Promise.all([
       drawFront(tpl, cardNumber, membershipLabel(membershipClass, isVip), formatCardExpiry(validUntil)),
-      drawBack(tpl.width, tpl.height, cardNumber, backImageUrl)
+      drawBack(tpl.width, tpl.height, cardNumber, backImageUrl, backNumber)
     ]).then(([f, b]) => {
       if (disposed) return;
       frontMat.map = toTexture(f, anisotropy);
@@ -290,7 +297,7 @@ export default function MemberCard3D({ cardNumber, isVip, membershipClass, valid
       renderer.dispose();
       canvas.remove();
     };
-  }, [cardNumber, isVip, layout, membershipClass, validUntil, backImageUrl]);
+  }, [cardNumber, isVip, layout, membershipClass, validUntil, backImageUrl, backNumber]);
 
   return <div ref={host} style={{ position: 'absolute', inset: 0 }} />;
 }

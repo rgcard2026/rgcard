@@ -44,11 +44,22 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
   const [card3dReady, setCard3dReady] = React.useState(false);
   const onReady = React.useCallback(() => setCard3dReady(true), []);
   const [backImageUrl, setBackImageUrl] = React.useState('/card-back.png?v=3');
+  const [backNumber, setBackNumber] = React.useState({ x: 1292, y: 896, size: 34, opacity: 100 });
   React.useEffect(() => {
     let active = true;
     fetch('/api/settings', { cache: 'no-store' })
       .then((r) => r.json())
-      .then((body) => { if (active && body?.data?.designCardBackUrl) setBackImageUrl(body.data.designCardBackUrl); })
+      .then((body) => {
+        if (!active || !body?.data) return;
+        const d = body.data;
+        if (d.designCardBackUrl) setBackImageUrl(d.designCardBackUrl);
+        setBackNumber({
+          x: Number(d.designCardBackNumberX ?? 1292),
+          y: Number(d.designCardBackNumberY ?? 896),
+          size: Number(d.designCardBackNumberSize ?? 34),
+          opacity: Number(d.designCardBackNumberOpacity ?? 100),
+        });
+      })
       .catch(() => null);
     return () => { active = false; };
   }, []);
@@ -159,7 +170,7 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
                   )}
                   {webgl && (
                     <motion.div style={{ position: 'absolute', inset: 0, zIndex: 1 }} initial={{ opacity: 0 }} animate={{ opacity: card3dReady ? 1 : 0 }} transition={{ duration: 0.8 }}>
-                      <MemberCard3D cardNumber={cardNumber} isVip={isVip} membershipClass={membershipClass} validUntil={validUntil} layout={layout} onReady={onReady} scrollProgress={progress} backImageUrl={backImageUrl} />
+                      <MemberCard3D cardNumber={cardNumber} isVip={isVip} membershipClass={membershipClass} validUntil={validUntil} layout={layout} onReady={onReady} scrollProgress={progress} backImageUrl={backImageUrl} backNumber={backNumber} />
                     </motion.div>
                   )}
                   <div className="ui-card-caption">

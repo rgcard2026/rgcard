@@ -328,15 +328,47 @@ export default function AdminDesignStudioClient() {
     }
   }
 
+  async function uploadCardBackImage(file?: File) {
+    if (!file || busy) return;
+    setBusy(true);
+    setNotice(null);
+    try {
+      const form = new FormData();
+      form.append('image', file);
+      const response = await fetch('/api/admin/design/card-back-image', { method: 'POST', body: form });
+      const body = await readJson(response);
+      if (!response.ok) {
+        setNotice({ text: body.message || 'تعذر رفع تصميم الظهر', severity: 'error' });
+        return;
+      }
+      const next = { ...defaults, ...settings, ...body.data } as DesignState;
+      setSettings(next);
+      applyDesignSettings(next);
+      setNotice({ text: 'تم رفع تصميم الظهر. اضغط «حفظ وتوليد ظهر الكارت» لتطبيقه.', severity: 'success' });
+    } catch {
+      setNotice({ text: 'تعذر الاتصال بالخادم أثناء رفع تصميم الظهر', severity: 'error' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function regenerateCardBack() {
     if (busy) return;
     setBusy(true);
     setNotice(null);
     try {
+      const backKeys = [
+        'designCardBackLine1', 'designCardBackLine1Y', 'designCardBackLine1Size', 'designCardBackLine1Opacity', 'designCardBackLine1Color',
+        'designCardBackLine2', 'designCardBackLine2Y', 'designCardBackLine2Size', 'designCardBackLine2Opacity', 'designCardBackLine2Color',
+        'designCardBackBrand', 'designCardBackBrandY', 'designCardBackBrandSize', 'designCardBackBrandOpacity', 'designCardBackBrandColor',
+        'designCardBackImageUrl', 'designCardBackNumberX', 'designCardBackNumberY', 'designCardBackNumberSize', 'designCardBackNumberOpacity',
+      ] as const;
+      const payload: Record<string, unknown> = {};
+      for (const k of backKeys) payload[k] = (settings as Record<string, unknown>)[k];
       const response = await fetch('/api/admin/design/card-back', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ line1: settings.designCardBackLine1, line2: settings.designCardBackLine2, brand: settings.designCardBackBrand }),
+        body: JSON.stringify(payload),
       });
       const body = await readJson(response);
       if (!response.ok) {
@@ -607,23 +639,51 @@ export default function AdminDesignStudioClient() {
               <CardContent>
                 <Typography variant="h5" fontWeight={950}>نص ظهر الكارت</Typography>
                 <Typography color="text.secondary" fontSize={13} sx={{ mt: 0.5 }}>
-                  عدّل النص المكتوب على ظهر بطاقة العضوية. بعد الحفظ يُعاد توليد صورة الظهر وتظهر في بطاقة العضو وفي ملفات PDF.
+                  تحكّم كامل في ظهر البطاقة: ارفع تصميم ظهر جديد، وعدّل نصوص الأسطر الثلاثة (المكان والحجم والشفافية واللون)، وموضع رقم العضوية. بعد الحفظ يُعاد توليد الظهر ويظهر في بطاقة العضو وملفات PDF.
                 </Typography>
                 <Box sx={{ mt: 1.5, p: 1, borderRadius: 2, border: '1px solid rgba(214,166,79,.32)', bgcolor: '#090b10' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={settings.designCardBackUrl || '/card-back.png?v=3'} alt="معاينة ظهر الكارت" style={{ display: 'block', width: '100%', height: 'auto', borderRadius: 10 }} />
                 </Box>
-                <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
-                  <Grid item xs={12}>
-                    <AdminTextField noExpand fullWidth label="السطر الأول" value={settings.designCardBackLine1} onChange={(event) => update('designCardBackLine1', event.target.value)} inputProps={{ maxLength: 120 }} />
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 1.5 }} alignItems={{ sm: 'center' }}>
+                  <Button component="label" variant="outlined" startIcon={<UploadFileRoundedIcon />} disabled={busy}>
+                    رفع تصميم ظهر جديد
+                    <input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { uploadCardBackImage(event.target.files?.[0]); event.currentTarget.value = ''; }} />
+                  </Button>
+                  {settings.designCardBackImageUrl && <Button variant="text" color="inherit" onClick={() => update('designCardBackImageUrl', '' as never)}>إرجاع التصميم الافتراضي</Button>}
+                </Stack>
+
+                {([
+                  ['السطر الأول', 'designCardBackLine1', 'designCardBackLine1Y', 'designCardBackLine1Size', 'designCardBackLine1Opacity', 'designCardBackLine1Color', 120],
+                  ['السطر الثاني', 'designCardBackLine2', 'designCardBackLine2Y', 'designCardBackLine2Size', 'designCardBackLine2Opacity', 'designCardBackLine2Color', 120],
+                  ['سطر العلامة (مثل RG-Card)', 'designCardBackBrand', 'designCardBackBrandY', 'designCardBackBrandSize', 'designCardBackBrandOpacity', 'designCardBackBrandColor', 40],
+                ] as Array<[string, keyof DesignState, keyof DesignState, keyof DesignState, keyof DesignState, keyof DesignState, number]>).map(([label, textKey, yKey, sizeKey, opKey, colorKey, maxLen]) => (
+                  <Box key={textKey} sx={{ mt: 1.5, p: 1.5, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                    <AdminTextField noExpand fullWidth label={label} value={String(settings[textKey])} onChange={(event) => update(textKey, event.target.value as never)} inputProps={{ maxLength: maxLen }} />
+                    <Grid container spacing={1.5} sx={{ mt: 0.2 }} alignItems="center">
+                      <Grid item xs={12} sm={4}><RangeField label="الموضع الرأسي Y" value={Number(settings[yKey])} min={0} max={1000} onChange={(v) => update(yKey, v as never)} /></Grid>
+                      <Grid item xs={12} sm={4}><RangeField label="حجم الخط" value={Number(settings[sizeKey])} min={8} max={120} onChange={(v) => update(sizeKey, v as never)} /></Grid>
+                      <Grid item xs={12} sm={4}><RangeField label="الشفافية" value={Number(settings[opKey])} min={0} max={100} suffix="%" onChange={(v) => update(opKey, v as never)} /></Grid>
+                      <Grid item xs={12} sm={6}>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <Box component="input" type="color" value={String(settings[colorKey])} onChange={(event) => update(colorKey, event.target.value as never)} sx={{ width: 48, height: 44, border: 0, bgcolor: 'transparent', cursor: 'pointer' }} />
+                          <AdminTextField noExpand fullWidth label="اللون" value={String(settings[colorKey])} onChange={(event) => update(colorKey, event.target.value as never)} />
+                        </Stack>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                ))}
+
+                <Box sx={{ mt: 1.5, p: 1.5, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                  <Typography fontWeight={900} sx={{ mb: 1 }}>رقم العضوية على الظهر</Typography>
+                  <Grid container spacing={1.5}>
+                    <Grid item xs={12} sm={3}><RangeField label="الموضع الأفقي X" value={settings.designCardBackNumberX} min={0} max={1573} onChange={(v) => update('designCardBackNumberX', v)} /></Grid>
+                    <Grid item xs={12} sm={3}><RangeField label="الموضع الرأسي Y" value={settings.designCardBackNumberY} min={0} max={1000} onChange={(v) => update('designCardBackNumberY', v)} /></Grid>
+                    <Grid item xs={12} sm={3}><RangeField label="حجم الخط" value={settings.designCardBackNumberSize} min={8} max={120} onChange={(v) => update('designCardBackNumberSize', v)} /></Grid>
+                    <Grid item xs={12} sm={3}><RangeField label="الشفافية" value={settings.designCardBackNumberOpacity} min={0} max={100} suffix="%" onChange={(v) => update('designCardBackNumberOpacity', v)} /></Grid>
                   </Grid>
-                  <Grid item xs={12} md={8}>
-                    <AdminTextField noExpand fullWidth label="السطر الثاني" value={settings.designCardBackLine2} onChange={(event) => update('designCardBackLine2', event.target.value)} inputProps={{ maxLength: 120 }} />
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <AdminTextField noExpand fullWidth label="سطر العلامة (مثل RG-Card)" value={settings.designCardBackBrand} onChange={(event) => update('designCardBackBrand', event.target.value)} inputProps={{ maxLength: 40 }} />
-                  </Grid>
-                </Grid>
+                </Box>
+
                 <Button variant="contained" className="rg-royal-button" startIcon={<SaveRoundedIcon />} disabled={busy} onClick={regenerateCardBack} sx={{ mt: 1.5 }}>
                   {busy ? 'جارٍ التحديث…' : 'حفظ وتوليد ظهر الكارت'}
                 </Button>

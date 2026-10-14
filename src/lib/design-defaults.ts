@@ -79,11 +79,18 @@ export const DESIGN_DEFAULTS = {
   designPopupLinkUrl: '',
   designPopupAudience: 'all', // 'all' | 'selected'
   designPopupUserIds: '', // comma-separated card numbers when audience = 'selected'
-  // Editable card-back membership text (rendered onto card-back-base.png).
+  // Editable card-back membership text (rendered onto the back base image).
   designCardBackLine1: 'بطاقة عضوية شخصية — لا يجوز التنازل عنها',
   designCardBackLine2: 'تُعرض عند الطلب للاستفادة من خصومات أعضاء',
   designCardBackBrand: 'RG-Card',
   designCardBackUrl: '', // generated /uploads/design-card-back/... when customized
+  designCardBackImageUrl: '', // uploaded back template (replaces card-back-base.png)
+  // Per-line layout (position Y on a 1573x1000 canvas, font size, opacity %, color).
+  designCardBackLine1Y: 532, designCardBackLine1Size: 30, designCardBackLine1Opacity: 82, designCardBackLine1Color: '#F3DBA4',
+  designCardBackLine2Y: 578, designCardBackLine2Size: 26, designCardBackLine2Opacity: 60, designCardBackLine2Color: '#F3DBA4',
+  designCardBackBrandY: 616, designCardBackBrandSize: 26, designCardBackBrandOpacity: 72, designCardBackBrandColor: '#F3DBA4',
+  // Membership number on the back (drawn at runtime + in PDFs).
+  designCardBackNumberX: 1292, designCardBackNumberY: 896, designCardBackNumberSize: 34, designCardBackNumberOpacity: 100,
   // New Arrival / Coming Soon ticker on the offers page.
   designArrivalEnabled: true,
   designArrivalBannerMaxWidth: 100, // % of container width

@@ -1,8 +1,15 @@
 import path from 'path';
 import { readFile } from 'fs/promises';
 import { createCanvas, loadImage, GlobalFonts } from '@napi-rs/canvas';
+import { uploadsRoot } from './uploads';
 
-export type CardBackText = { line1?: string; line2?: string; brand?: string };
+export type CardBackLine = { text: string; y: number; size: number; opacity: number; color: string };
+export type CardBackOptions = {
+  baseImageUrl?: string; // uploaded back template (/uploads/design-card-back/... ) else bundled base
+  line1: CardBackLine;
+  line2: CardBackLine;
+  brand: CardBackLine;
+};
 
 export const CARD_BACK_DEFAULTS = {
   line1: 'بطاقة عضوية شخصية — لا يجوز التنازل عنها',
@@ -21,49 +28,57 @@ function registerFonts() {
     GlobalFonts.registerFromPath(path.join(dir, 'Amiri-Regular.ttf'), 'Amiri');
     GlobalFonts.registerFromPath(path.join(dir, 'Amiri-Bold.ttf'), 'AmiriBold');
   } catch {
-    // If registration fails the canvas falls back to a default font.
+    // falls back to a default font if registration fails
   }
   fontsRegistered = true;
 }
 
+function hexToRgba(hex: string, opacity: number) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '').trim());
+  const int = m ? parseInt(m[1], 16) : 0xf3dba4;
+  const r = (int >> 16) & 255, g = (int >> 8) & 255, b = int & 255;
+  const a = Math.max(0, Math.min(100, Number(opacity))) / 100;
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+}
+
+async function loadBaseImage(baseImageUrl?: string) {
+  const url = String(baseImageUrl || '').trim();
+  if (url.startsWith('/uploads/')) {
+    try {
+      return await loadImage(await readFile(path.join(uploadsRoot(), url.replace(/^\/uploads\//, ''))));
+    } catch {
+      // fall through to the bundled base
+    }
+  }
+  return loadImage(await readFile(path.join(process.cwd(), 'public', 'card-back-base.png')));
+}
+
 /**
- * Draws the editable membership text onto the text-free card back base and
- * returns a PNG buffer. Arabic is rendered with the bundled Amiri font so it
- * shapes correctly on any platform (including the Linux production container).
+ * Draws the editable membership text onto the back base image and returns a PNG
+ * buffer. Arabic renders with the bundled Amiri font so it shapes correctly on
+ * any platform.
  */
-export async function generateCardBackPng(text: CardBackText): Promise<Buffer> {
+export async function generateCardBackPng(options: CardBackOptions): Promise<Buffer> {
   registerFonts();
-  const basePath = path.join(process.cwd(), 'public', 'card-back-base.png');
-  const base = await loadImage(await readFile(basePath));
+  const base = await loadBaseImage(options.baseImageUrl);
   const canvas = createCanvas(W, H);
   const x = canvas.getContext('2d');
   x.drawImage(base, 0, 0, W, H);
-
-  const line1 = (text.line1 ?? CARD_BACK_DEFAULTS.line1).trim();
-  const line2 = (text.line2 ?? CARD_BACK_DEFAULTS.line2).trim();
-  const brand = (text.brand ?? CARD_BACK_DEFAULTS.brand).trim();
-
   x.textAlign = 'center';
   x.textBaseline = 'middle';
 
-  if (line1) {
-    x.direction = 'rtl';
-    x.fillStyle = 'rgba(243, 219, 164, .82)';
-    x.font = '700 30px AmiriBold, Amiri, "Segoe UI", Tahoma, sans-serif';
-    x.fillText(line1, W / 2, 532);
-  }
-  if (line2) {
-    x.direction = 'rtl';
-    x.fillStyle = 'rgba(243, 219, 164, .6)';
-    x.font = '400 26px Amiri, "Segoe UI", Tahoma, sans-serif';
-    x.fillText(line2, W / 2, 578);
-  }
-  if (brand) {
-    x.direction = 'ltr';
-    x.fillStyle = 'rgba(243, 219, 164, .72)';
-    x.font = '700 26px AmiriBold, Amiri, "Segoe UI", Tahoma, sans-serif';
-    x.fillText(brand, W / 2, 616);
-  }
+  const draw = (line: CardBackLine, rtl: boolean, bold: boolean) => {
+    const text = (line.text ?? '').trim();
+    if (!text) return;
+    x.direction = rtl ? 'rtl' : 'ltr';
+    x.fillStyle = hexToRgba(line.color, line.opacity);
+    x.font = `${bold ? '700' : '400'} ${Math.max(8, Math.round(line.size))}px ${bold ? 'AmiriBold, Amiri' : 'Amiri'}, "Segoe UI", Tahoma, sans-serif`;
+    x.fillText(text, W / 2, Math.round(line.y));
+  };
+
+  draw(options.line1, true, true);
+  draw(options.line2, true, false);
+  draw(options.brand, false, true);
 
   return canvas.encode('png');
 }

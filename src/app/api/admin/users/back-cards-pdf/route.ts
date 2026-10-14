@@ -29,7 +29,12 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: 'desc' }
   });
   const settings = await getPublicSettings();
-  const buffer = await createBulkBackCardsPdfBuffer(users, settings.designCardBackUrl);
+  const buffer = await createBulkBackCardsPdfBuffer(users, settings.designCardBackUrl, {
+    x: settings.designCardBackNumberX,
+    y: settings.designCardBackNumberY,
+    size: settings.designCardBackNumberSize,
+    opacity: settings.designCardBackNumberOpacity,
+  });
   await writeAuditLog(request, ids.length ? 'ADMIN_EXPORT_SELECTED_BACK_CARDS_PDF' : 'ADMIN_EXPORT_ALL_BACK_CARDS_PDF', { adminId: admin.sub }, {
     count: users.length,
     selected: ids.length || null,

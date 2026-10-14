@@ -71,6 +71,11 @@ function cleanCardBackUrl(value: unknown) {
   return raw.startsWith("/uploads/design-card-back/") ? raw : "";
 }
 
+function cleanCardBackImageUrl(value: unknown) {
+  const raw = String(value || "").trim();
+  return raw.startsWith("/uploads/design-card-back-template/") ? raw : "";
+}
+
 export function cleanCardNumberList(value: unknown) {
   const raw = String(value || "");
   const items = raw
@@ -306,6 +311,23 @@ function designSettingsFromMap(map: Record<string, string>) {
     designCardBackLine2: cleanText(map.designCardBackLine2, DESIGN_DEFAULTS.designCardBackLine2, 120),
     designCardBackBrand: cleanText(map.designCardBackBrand, DESIGN_DEFAULTS.designCardBackBrand, 40),
     designCardBackUrl: cleanCardBackUrl(map.designCardBackUrl),
+    designCardBackImageUrl: cleanCardBackImageUrl(map.designCardBackImageUrl),
+    designCardBackLine1Y: intSetting(map.designCardBackLine1Y, DESIGN_DEFAULTS.designCardBackLine1Y, 0, 1000),
+    designCardBackLine1Size: intSetting(map.designCardBackLine1Size, DESIGN_DEFAULTS.designCardBackLine1Size, 8, 120),
+    designCardBackLine1Opacity: intSetting(map.designCardBackLine1Opacity, DESIGN_DEFAULTS.designCardBackLine1Opacity, 0, 100),
+    designCardBackLine1Color: cleanHexColor(map.designCardBackLine1Color, DESIGN_DEFAULTS.designCardBackLine1Color),
+    designCardBackLine2Y: intSetting(map.designCardBackLine2Y, DESIGN_DEFAULTS.designCardBackLine2Y, 0, 1000),
+    designCardBackLine2Size: intSetting(map.designCardBackLine2Size, DESIGN_DEFAULTS.designCardBackLine2Size, 8, 120),
+    designCardBackLine2Opacity: intSetting(map.designCardBackLine2Opacity, DESIGN_DEFAULTS.designCardBackLine2Opacity, 0, 100),
+    designCardBackLine2Color: cleanHexColor(map.designCardBackLine2Color, DESIGN_DEFAULTS.designCardBackLine2Color),
+    designCardBackBrandY: intSetting(map.designCardBackBrandY, DESIGN_DEFAULTS.designCardBackBrandY, 0, 1000),
+    designCardBackBrandSize: intSetting(map.designCardBackBrandSize, DESIGN_DEFAULTS.designCardBackBrandSize, 8, 120),
+    designCardBackBrandOpacity: intSetting(map.designCardBackBrandOpacity, DESIGN_DEFAULTS.designCardBackBrandOpacity, 0, 100),
+    designCardBackBrandColor: cleanHexColor(map.designCardBackBrandColor, DESIGN_DEFAULTS.designCardBackBrandColor),
+    designCardBackNumberX: intSetting(map.designCardBackNumberX, DESIGN_DEFAULTS.designCardBackNumberX, 0, 1573),
+    designCardBackNumberY: intSetting(map.designCardBackNumberY, DESIGN_DEFAULTS.designCardBackNumberY, 0, 1000),
+    designCardBackNumberSize: intSetting(map.designCardBackNumberSize, DESIGN_DEFAULTS.designCardBackNumberSize, 8, 120),
+    designCardBackNumberOpacity: intSetting(map.designCardBackNumberOpacity, DESIGN_DEFAULTS.designCardBackNumberOpacity, 0, 100),
     designArrivalEnabled: boolSetting(map.designArrivalEnabled, DESIGN_DEFAULTS.designArrivalEnabled),
     designArrivalBannerMaxWidth: intSetting(map.designArrivalBannerMaxWidth, DESIGN_DEFAULTS.designArrivalBannerMaxWidth, 40, 100),
     designArrivalBannerRadius: intSetting(map.designArrivalBannerRadius, DESIGN_DEFAULTS.designArrivalBannerRadius, 0, 60),
@@ -748,6 +770,11 @@ type AdminSettingInput = {
   designCardBackLine2?: unknown;
   designCardBackBrand?: unknown;
   designCardBackUrl?: unknown;
+  designCardBackImageUrl?: unknown;
+  designCardBackLine1Y?: unknown; designCardBackLine1Size?: unknown; designCardBackLine1Opacity?: unknown; designCardBackLine1Color?: unknown;
+  designCardBackLine2Y?: unknown; designCardBackLine2Size?: unknown; designCardBackLine2Opacity?: unknown; designCardBackLine2Color?: unknown;
+  designCardBackBrandY?: unknown; designCardBackBrandSize?: unknown; designCardBackBrandOpacity?: unknown; designCardBackBrandColor?: unknown;
+  designCardBackNumberX?: unknown; designCardBackNumberY?: unknown; designCardBackNumberSize?: unknown; designCardBackNumberOpacity?: unknown;
   designArrivalEnabled?: unknown;
   designArrivalBannerMaxWidth?: unknown;
   designArrivalBannerRadius?: unknown;
@@ -1125,6 +1152,39 @@ export async function saveAdminSettings(values: AdminSettingInput) {
     updates.push({ key: "designCardBackBrand", value: cleanText(values.designCardBackBrand, DESIGN_DEFAULTS.designCardBackBrand, 40) });
   if (values.designCardBackUrl !== undefined)
     updates.push({ key: "designCardBackUrl", value: cleanCardBackUrl(values.designCardBackUrl) });
+  if (values.designCardBackImageUrl !== undefined)
+    updates.push({ key: "designCardBackImageUrl", value: cleanCardBackImageUrl(values.designCardBackImageUrl) });
+  const cardBackNumberFields: Array<[keyof AdminSettingInput, string, number, number, number]> = [
+    ["designCardBackLine1Y", "designCardBackLine1Y", DESIGN_DEFAULTS.designCardBackLine1Y, 0, 1000],
+    ["designCardBackLine1Size", "designCardBackLine1Size", DESIGN_DEFAULTS.designCardBackLine1Size, 8, 120],
+    ["designCardBackLine1Opacity", "designCardBackLine1Opacity", DESIGN_DEFAULTS.designCardBackLine1Opacity, 0, 100],
+    ["designCardBackLine2Y", "designCardBackLine2Y", DESIGN_DEFAULTS.designCardBackLine2Y, 0, 1000],
+    ["designCardBackLine2Size", "designCardBackLine2Size", DESIGN_DEFAULTS.designCardBackLine2Size, 8, 120],
+    ["designCardBackLine2Opacity", "designCardBackLine2Opacity", DESIGN_DEFAULTS.designCardBackLine2Opacity, 0, 100],
+    ["designCardBackBrandY", "designCardBackBrandY", DESIGN_DEFAULTS.designCardBackBrandY, 0, 1000],
+    ["designCardBackBrandSize", "designCardBackBrandSize", DESIGN_DEFAULTS.designCardBackBrandSize, 8, 120],
+    ["designCardBackBrandOpacity", "designCardBackBrandOpacity", DESIGN_DEFAULTS.designCardBackBrandOpacity, 0, 100],
+    ["designCardBackNumberX", "designCardBackNumberX", DESIGN_DEFAULTS.designCardBackNumberX, 0, 1573],
+    ["designCardBackNumberY", "designCardBackNumberY", DESIGN_DEFAULTS.designCardBackNumberY, 0, 1000],
+    ["designCardBackNumberSize", "designCardBackNumberSize", DESIGN_DEFAULTS.designCardBackNumberSize, 8, 120],
+    ["designCardBackNumberOpacity", "designCardBackNumberOpacity", DESIGN_DEFAULTS.designCardBackNumberOpacity, 0, 100],
+  ];
+  for (const [inputKey, storageKey, fallback, min, max] of cardBackNumberFields) {
+    const value = values[inputKey];
+    if (value !== undefined) updates.push({ key: storageKey, value: String(intSetting(String(value), fallback, min, max)) });
+  }
+  const cardBackColorFields: Array<[keyof AdminSettingInput, string]> = [
+    ["designCardBackLine1Color", "designCardBackLine1Color"],
+    ["designCardBackLine2Color", "designCardBackLine2Color"],
+    ["designCardBackBrandColor", "designCardBackBrandColor"],
+  ];
+  for (const [inputKey, storageKey] of cardBackColorFields) {
+    const value = values[inputKey];
+    if (value !== undefined) {
+      const fallback = DESIGN_DEFAULTS[storageKey as keyof typeof DESIGN_DEFAULTS] as string;
+      updates.push({ key: storageKey, value: cleanHexColor(value, fallback) });
+    }
+  }
   if (values.designArrivalEnabled !== undefined)
     updates.push({ key: "designArrivalEnabled", value: boolSetting(String(values.designArrivalEnabled), true) ? "true" : "false" });
   if (values.designArrivalCustomColors !== undefined)
