@@ -19,7 +19,7 @@ function uniqueIds(raw: unknown) {
 export async function PATCH(request: NextRequest) {
   const session = await requireApiSession(request, 'admin');
   if (!session) return unauthorized();
-  if (!(await adminHasPermission(session, 'PLACES' as any))) return json({ ok: false, message: 'ليست لديك صلاحية إدارة البانر' }, 403);
+  if (!(await adminHasPermission(session, 'NEW_ARRIVALS'))) return json({ ok: false, message: 'ليست لديك صلاحية إدارة البانر' }, 403);
 
   const body = await request.json().catch(() => ({}));
   const ids = uniqueIds(body?.ids);

@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   const session = await requireApiSession(request, 'admin');
   if (!session) return unauthorized();
-  if (!(await adminHasPermission(session, 'LOGS' as any))) return json({ ok: false, message: 'ليست لديك صلاحية إدارة التنبيهات' }, 403);
+  if (!(await adminHasPermission(session, 'SECURITY'))) return json({ ok: false, message: 'ليست لديك صلاحية إدارة التنبيهات' }, 403);
 
   const config = await getSecurityAlertConfig();
   if (!config.configured) return json({ ok: false, message: 'لا توجد وسيلة إرسال مُعدّة. أضف Webhook أو أضف إعدادات البريد في Railway ثم بريد المستلم من صفحة التنبيهات.' }, 400);

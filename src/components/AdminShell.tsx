@@ -75,7 +75,7 @@ export default function AdminShell({ children, title }: { children: React.ReactN
     ] },
     { label: t('adm_312'), items: [
       { href: '/admin/places', label: t('places'), icon: <StorefrontRoundedIcon />, permission: 'PLACES' },
-      { href: '/admin/new-arrivals', label: t('arrivals'), icon: <AutoAwesomeRoundedIcon />, permission: 'PLACES' }
+      { href: '/admin/new-arrivals', label: t('arrivals'), icon: <AutoAwesomeRoundedIcon />, permission: 'NEW_ARRIVALS' }
     ] },
     { label: t('adm_313'), items: [
       { href: '/admin/users', label: t('users'), icon: <PeopleAltRoundedIcon />, permission: 'USERS' },
@@ -83,11 +83,11 @@ export default function AdminShell({ children, title }: { children: React.ReactN
     ] },
     { label: t('adm_314'), items: [
       { href: '/admin/logs', label: t('activityLog'), icon: <HistoryRoundedIcon />, permission: 'LOGS' },
-      { href: '/admin/security-alerts', label: t('securityAlerts'), icon: <SecurityRoundedIcon />, permission: 'LOGS' },
+      { href: '/admin/security-alerts', label: t('securityAlerts'), icon: <SecurityRoundedIcon />, permission: 'SECURITY' },
       { href: '/admin/exports', label: t('exports'), icon: <FileDownloadRoundedIcon />, permission: 'EXPORTS' }
     ] },
     { label: t('adm_315'), items: [
-      { href: '/admin/design', label: t('designStudio'), icon: <PaletteRoundedIcon />, permission: 'SETTINGS' },
+      { href: '/admin/design', label: t('designStudio'), icon: <PaletteRoundedIcon />, permission: 'DESIGN' },
       { href: '/admin/settings', label: t('accountSecurity'), icon: <SettingsRoundedIcon /> }
     ] }
   ].map((g) => ({ ...g, items: g.items.filter((item) => !loadingMe && canAccess(me, item.permission)) })).filter((g) => g.items.length || loadingMe);

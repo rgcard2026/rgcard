@@ -14,7 +14,7 @@ import AdminActionToggle from './AdminActionToggle';
 import PasswordStrength, { isStrongEnough } from './PasswordStrength';
 
 const PERMS = [
-  ['DASHBOARD', 'Dashboard'], ['USERS', 'Users & Cards'], ['PLACES', 'Places & Offers'], ['ADMINS', 'Admins'], ['LOGS', 'Activity Logs'], ['EXPORTS', 'Export / PDF'], ['SETTINGS', 'Settings']
+  ['DASHBOARD', 'Dashboard'], ['USERS', 'Users & Cards'], ['PLACES', 'Places & Offers'], ['NEW_ARRIVALS', 'New Arrivals'], ['ADMINS', 'Admins'], ['LOGS', 'Activity Logs'], ['SECURITY', 'Security Alerts'], ['EXPORTS', 'Export / PDF'], ['DESIGN', 'Design Studio'], ['SETTINGS', 'Account & Settings']
 ] as const;
 type Admin = { id: string; username: string; name: string; role: string; permissions: string; isActive: boolean; createdAt: string };
 type Edit = Partial<Admin> & { password?: string };

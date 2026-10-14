@@ -20,7 +20,7 @@ function parseMetadata(value?: string | null): ReviewMetadata {
 
 async function requireLogsAccess() {
   const session = await getSession('admin');
-  if (!session || !(await adminHasPermission(session, 'LOGS'))) return null;
+  if (!session || !(await adminHasPermission(session, 'SECURITY'))) return null;
   return session;
 }
 

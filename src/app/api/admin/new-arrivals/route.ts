@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 async function requireBannerPermission(request: NextRequest) {
   const session = await requireApiSession(request, 'admin');
   if (!session) return null;
-  if (!(await adminHasPermission(session, 'PLACES' as any))) return 'forbidden' as const;
+  if (!(await adminHasPermission(session, 'NEW_ARRIVALS'))) return 'forbidden' as const;
   return session;
 }
 
