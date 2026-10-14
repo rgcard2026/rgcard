@@ -5,34 +5,28 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
 import { useUiPreferences } from '@/components/UiPreferences';
 
-type PopupSettings = {
-  designPopupEnabled?: boolean;
-  designPopupTitle?: string;
-  designPopupText?: string;
-  designPopupImageUrl?: string;
-  designPopupLinkUrl?: string;
-};
+type Popup = { title?: string; text?: string; imageUrl?: string; linkUrl?: string };
 
 const SEEN_KEY = 'rg-login-popup-seen';
 
 export default function LoginPopup() {
   const { language } = useUiPreferences();
   const isArabic = language === 'ar';
-  const [popup, setPopup] = React.useState<PopupSettings | null>(null);
+  const [popup, setPopup] = React.useState<Popup | null>(null);
   const [open, setOpen] = React.useState(false);
 
   React.useEffect(() => {
     let active = true;
-    fetch('/api/settings', { cache: 'no-store' })
+    let seen = false;
+    try { seen = window.sessionStorage.getItem(SEEN_KEY) === '1'; } catch { /* ignore */ }
+    if (seen) return;
+    // The server decides whether THIS user is in the popup's audience.
+    fetch('/api/me/popup', { cache: 'no-store' })
       .then((r) => r.json())
       .then((body) => {
-        if (!active || !body?.data) return;
-        const data = body.data as PopupSettings;
-        const hasContent = Boolean(data.designPopupTitle || data.designPopupText || data.designPopupImageUrl);
-        if (!data.designPopupEnabled || !hasContent) return;
-        let seen = false;
-        try { seen = window.sessionStorage.getItem(SEEN_KEY) === '1'; } catch { /* ignore */ }
-        if (seen) return;
+        if (!active || !body?.popup) return;
+        const data = body.popup as Popup;
+        if (!data.title && !data.text && !data.imageUrl) return;
         setPopup(data);
         setOpen(true);
         try { window.sessionStorage.setItem(SEEN_KEY, '1'); } catch { /* ignore */ }
@@ -43,13 +37,13 @@ export default function LoginPopup() {
 
   if (!open || !popup) return null;
 
-  const link = (popup.designPopupLinkUrl || '').trim();
-  const image = (popup.designPopupImageUrl || '').trim();
+  const link = (popup.linkUrl || '').trim();
+  const image = (popup.imageUrl || '').trim();
   const close = () => setOpen(false);
 
   const imageEl = image ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={image} alt={popup.designPopupTitle || ''} className="rg-popup-image" />
+    <img src={image} alt={popup.title || ''} className="rg-popup-image" />
   ) : null;
 
   return (
@@ -61,8 +55,8 @@ export default function LoginPopup() {
         {imageEl && (link
           ? <a href={link} target="_blank" rel="noopener noreferrer" className="rg-popup-image-link">{imageEl}</a>
           : imageEl)}
-        {popup.designPopupTitle && <h2 className="rg-popup-title">{popup.designPopupTitle}</h2>}
-        {popup.designPopupText && <p className="rg-popup-text">{popup.designPopupText}</p>}
+        {popup.title && <h2 className="rg-popup-title">{popup.title}</h2>}
+        {popup.text && <p className="rg-popup-text">{popup.text}</p>}
         <div className="rg-popup-actions">
           {link && (
             <a href={link} target="_blank" rel="noopener noreferrer" className="ui-btn ui-btn--primary">

@@ -4,11 +4,13 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
   Card,
   CardContent,
   Checkbox,
+  CircularProgress,
   FormControl,
   FormControlLabel,
   Grid,
@@ -18,6 +20,7 @@ import {
   Slider,
   Snackbar,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
@@ -139,6 +142,41 @@ export default function AdminDesignStudioClient() {
   const [notice, setNotice] = React.useState<Notice>(null);
   const [busy, setBusy] = React.useState(false);
   const [textFilter, setTextFilter] = React.useState('');
+  const [popupUserOptions, setPopupUserOptions] = React.useState<string[]>([]);
+  const [popupUserLabels, setPopupUserLabels] = React.useState<Record<string, string>>({});
+  const [popupUserSearching, setPopupUserSearching] = React.useState(false);
+  const popupSearchTimer = React.useRef<number | null>(null);
+
+  const popupUserIds = React.useMemo(
+    () => String(settings.designPopupUserIds || '').split(',').map((s) => s.trim()).filter(Boolean),
+    [settings.designPopupUserIds],
+  );
+
+  function searchPopupUsers(query: string) {
+    if (popupSearchTimer.current) window.clearTimeout(popupSearchTimer.current);
+    const q = query.trim();
+    if (!q) { setPopupUserOptions([]); return; }
+    popupSearchTimer.current = window.setTimeout(async () => {
+      setPopupUserSearching(true);
+      try {
+        const res = await fetch(`/api/admin/users?q=${encodeURIComponent(q)}`, { cache: 'no-store' });
+        const body = await res.json().catch(() => ({}));
+        const rows: Array<{ cardNumber?: string; fullName?: string }> = Array.isArray(body?.data) ? body.data : [];
+        const labels: Record<string, string> = {};
+        const options: string[] = [];
+        for (const row of rows) {
+          const card = String(row.cardNumber || '').trim();
+          if (!card) continue;
+          options.push(card);
+          labels[card] = `${row.fullName || ''} — ${card}`.trim();
+        }
+        setPopupUserOptions(options);
+        setPopupUserLabels((current) => ({ ...current, ...labels }));
+      } catch { /* ignore */ } finally {
+        setPopupUserSearching(false);
+      }
+    }, 300);
+  }
   const cardLayout = React.useMemo<CardRenderLayout>(() => ({
     ...CARD_TEMPLATE,
     width: settings.cardCanvasWidth,
@@ -564,6 +602,42 @@ export default function AdminDesignStudioClient() {
                   <Grid item xs={12}>
                     <AdminTextField noExpand fullWidth multiline minRows={3} label="نص الرسالة (اختياري)" value={settings.designPopupText} onChange={(event) => update('designPopupText', event.target.value)} inputProps={{ maxLength: 600 }} />
                   </Grid>
+                  <Grid item xs={12} md={5}>
+                    <FormControl fullWidth size="small">
+                      <InputLabel>من يرى الرسالة؟</InputLabel>
+                      <Select label="من يرى الرسالة؟" value={settings.designPopupAudience || 'all'} onChange={(event) => update('designPopupAudience', String(event.target.value) as never)}>
+                        <MenuItem value="all">كل الأعضاء</MenuItem>
+                        <MenuItem value="selected">أعضاء محددون فقط</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  {settings.designPopupAudience === 'selected' && (
+                    <Grid item xs={12} md={7}>
+                      <Autocomplete
+                        multiple
+                        freeSolo
+                        size="small"
+                        options={popupUserOptions}
+                        value={popupUserIds}
+                        loading={popupUserSearching}
+                        getOptionLabel={(option) => popupUserLabels[option] || option}
+                        filterOptions={(options) => options}
+                        onInputChange={(_e, value) => searchPopupUsers(value)}
+                        onChange={(_e, value) => update('designPopupUserIds', (value as string[]).map((v) => String(v).trim()).filter(Boolean).join(',') as never)}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="اختر الأعضاء (بالاسم أو رقم الكارت)"
+                            placeholder="ابحث ثم اختر، أو اكتب رقم الكارت واضغط Enter"
+                            InputProps={{ ...params.InputProps, endAdornment: (<>{popupUserSearching ? <CircularProgress size={16} /> : null}{params.InputProps.endAdornment}</>) }}
+                          />
+                        )}
+                      />
+                      <Typography color="text.secondary" fontSize={12} sx={{ mt: 0.5 }}>
+                        المحددون: {popupUserIds.length} عضو. تظهر الرسالة فقط لهؤلاء الأعضاء بعد تسجيل دخولهم.
+                      </Typography>
+                    </Grid>
+                  )}
                 </Grid>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 1.5 }} alignItems={{ sm: 'center' }}>
                   <Button component="label" variant="outlined" startIcon={<UploadFileRoundedIcon />} disabled={busy}>

@@ -66,6 +66,17 @@ function cleanPopupImageUrl(value: unknown) {
   return raw.startsWith("/uploads/design-popup/") ? raw : "";
 }
 
+export function cleanCardNumberList(value: unknown) {
+  const raw = String(value || "");
+  const items = raw
+    .split(/[\s,;\n]+/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => part.slice(0, 80));
+  // Dedupe, cap the number of targeted users to a sane limit.
+  return Array.from(new Set(items)).slice(0, 2000).join(",");
+}
+
 function cleanHttpsUrl(value: unknown) {
   const raw = String(value || "").trim();
   if (!raw) return "";
@@ -558,6 +569,8 @@ export async function getAdminSettings() {
   const emailDestination = resolveSecurityAlertEmailDestination(map);
   return {
     ...publicSettings,
+    designPopupAudience: ["all", "selected"].includes(map.designPopupAudience || "") ? map.designPopupAudience : "all",
+    designPopupUserIds: cleanCardNumberList(map.designPopupUserIds),
     cardTemplateUrl: cardLayout.templateUrl,
     cardCanvasWidth: cardLayout.width,
     cardCanvasHeight: cardLayout.height,
@@ -720,6 +733,8 @@ type AdminSettingInput = {
   designPopupText?: unknown;
   designPopupImageUrl?: unknown;
   designPopupLinkUrl?: unknown;
+  designPopupAudience?: unknown;
+  designPopupUserIds?: unknown;
   designArrivalEnabled?: unknown;
   designArrivalBannerMaxWidth?: unknown;
   designArrivalBannerRadius?: unknown;
@@ -1085,6 +1100,10 @@ export async function saveAdminSettings(values: AdminSettingInput) {
     updates.push({ key: "designPopupImageUrl", value: cleanPopupImageUrl(values.designPopupImageUrl) });
   if (values.designPopupLinkUrl !== undefined)
     updates.push({ key: "designPopupLinkUrl", value: cleanHttpsUrl(values.designPopupLinkUrl) });
+  if (values.designPopupAudience !== undefined)
+    updates.push({ key: "designPopupAudience", value: ["all", "selected"].includes(String(values.designPopupAudience)) ? String(values.designPopupAudience) : "all" });
+  if (values.designPopupUserIds !== undefined)
+    updates.push({ key: "designPopupUserIds", value: cleanCardNumberList(values.designPopupUserIds) });
   if (values.designArrivalEnabled !== undefined)
     updates.push({ key: "designArrivalEnabled", value: boolSetting(String(values.designArrivalEnabled), true) ? "true" : "false" });
   if (values.designArrivalCustomColors !== undefined)

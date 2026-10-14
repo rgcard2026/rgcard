@@ -77,6 +77,8 @@ export const DESIGN_DEFAULTS = {
   designPopupText: '',
   designPopupImageUrl: '',
   designPopupLinkUrl: '',
+  designPopupAudience: 'all', // 'all' | 'selected'
+  designPopupUserIds: '', // comma-separated card numbers when audience = 'selected'
   // New Arrival / Coming Soon ticker on the offers page.
   designArrivalEnabled: true,
   designArrivalBannerMaxWidth: 100, // % of container width
