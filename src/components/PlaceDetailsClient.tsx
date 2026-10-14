@@ -26,7 +26,7 @@ type Props = {
 };
 
 export default function PlaceDetailsClient({ cardNumber, place, discount, hasCustomDiscount, offers, governorates, branches }: Props) {
-  const { language } = useUiPreferences();
+  const { language, t } = useUiPreferences();
   const isArabic = language === 'ar';
   const [logoFailed, setLogoFailed] = React.useState(false);
 
@@ -36,7 +36,7 @@ export default function PlaceDetailsClient({ cardNumber, place, discount, hasCus
         <div className="ui-container">
           <Link href="/offers" className="ui-back">
             <ArrowForwardRoundedIcon className="ui-flip-ltr" />
-            {isArabic ? 'كل الأماكن' : 'All places'}
+            {t('mem_27')}
           </Link>
 
           <Reveal className="ui-panel ui-hairline-top ui-place-hero ui-box">
@@ -48,20 +48,20 @@ export default function PlaceDetailsClient({ cardNumber, place, discount, hasCus
             <div className="ui-place-info">
               <div className="ui-place-tags">
                 <span className="ui-chip">{place.categoryName}</span>
-                {hasCustomDiscount && <span className="ui-chip ui-chip--success"><VerifiedRoundedIcon style={{ fontSize: 16 }} />{isArabic ? 'خصم خاص لك' : 'Your special rate'}</span>}
+                {hasCustomDiscount && <span className="ui-chip ui-chip--success"><VerifiedRoundedIcon style={{ fontSize: 16 }} />{t('mem_28')}</span>}
               </div>
               <h1 className="ui-display">{place.name}</h1>
             </div>
             <div className="ui-discount">
-              <small>{isArabic ? 'خصم الأعضاء' : 'Member discount'}</small>
+              <small>{t('mem_29')}</small>
               <strong>{discount}</strong>
             </div>
           </Reveal>
 
           <div className="ui-place-grid">
             <Reveal delay={0.05} className="ui-panel ui-panel--pad">
-              <div className="ui-panel-title"><LocalOfferRoundedIcon /><h2 className="ui-h3">{isArabic ? 'تفاصيل العرض' : 'Offer details'}</h2></div>
-              <p className="ui-desc">{place.description || (isArabic ? 'تفاصيل العرض متاحة لأعضاء RG-Card.' : 'Offer details are available to RG-Card members.')}</p>
+              <div className="ui-panel-title"><LocalOfferRoundedIcon /><h2 className="ui-h3">{t('mem_30')}</h2></div>
+              <p className="ui-desc">{place.description || (t('mem_31'))}</p>
               {offers.length > 0 && (
                 <div style={{ marginTop: 18 }}>
                   {offers.map((offer) => (
@@ -78,7 +78,7 @@ export default function PlaceDetailsClient({ cardNumber, place, discount, hasCus
             </Reveal>
 
             <Reveal delay={0.1} className="ui-panel ui-panel--pad">
-              <div className="ui-panel-title"><StorefrontRoundedIcon /><h2 className="ui-h3">{isArabic ? 'الفروع المتاحة' : 'Available branches'}</h2></div>
+              <div className="ui-panel-title"><StorefrontRoundedIcon /><h2 className="ui-h3">{t('mem_32')}</h2></div>
               <BranchSelector governorates={governorates} branches={branches} />
             </Reveal>
           </div>

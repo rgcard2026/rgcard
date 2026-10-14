@@ -86,12 +86,12 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
   const [showingBack, setShowingBack] = React.useState(false);
   useMotionValueEvent(progress, 'change', (v) => setShowingBack(v > 0.5));
 
-  const tier = classLabel || (isArabic ? 'عضوية أساسية' : 'Standard');
+  const tier = classLabel || (t('mc_3'));
   const firstName = (name || '').trim();
 
   const actions = [
-    { href: '/offers', icon: <LocalOfferRoundedIcon />, title: t('viewOffers'), body: isArabic ? 'كل الأماكن والخصومات المتاحة لعضويتك، مع البحث بالمحافظة والفئة.' : 'Every place and discount available to you, filterable by governorate and category.' },
-    { href: supportLink, external: true, icon: <WhatsAppIcon />, title: t('whatsapp'), body: isArabic ? 'فريق الدعم متاح لأي استفسار بخصوص حسابك أو الخصومات.' : 'Our team is on hand for any question about your account or discounts.' }
+    { href: '/offers', icon: <LocalOfferRoundedIcon />, title: t('viewOffers'), body: t('mc_4') },
+    { href: supportLink, external: true, icon: <WhatsAppIcon />, title: t('whatsapp'), body: t('mc_5') }
   ];
 
   const fade = (delay: number) => (reduce ? {} : { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] } });
@@ -110,16 +110,16 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
                     {t('activeMembership')}
                   </motion.span>
                   <motion.h1 className="ui-display" {...fade(0.12)}>
-                    {isArabic ? 'أهلًا،' : 'Welcome,'}<br />
+                    {t('mc_6')}<br />
                     <span className="ui-gold-text">{firstName}</span>
                   </motion.h1>
                   <motion.p className="ui-lead" {...fade(0.2)}>
-                    {isArabic ? 'بطاقتك الرقمية جاهزة. اعرضها في أي مكان من أعضاء RG-Card لتحصل على خصمك فورًا.' : 'Your digital card is ready. Show it anywhere in the RG-Card network to redeem your discount instantly.'}
+                    {t('mc_7')}
                   </motion.p>
                   <motion.dl className="ui-member-meta" {...fade(0.28)}>
-                    <div><dt>{isArabic ? 'رقم البطاقة' : 'Card number'}</dt><dd className="ui-ltr">{cardNumber}</dd></div>
-                    <div><dt>{isArabic ? 'الفئة' : 'Tier'}</dt><dd>{tier}</dd></div>
-                    <div><dt>{isArabic ? 'صالحة حتى' : 'Valid until'}</dt><dd>{formatDate(validUntil, language)}</dd></div>
+                    <div><dt>{t('mc_8')}</dt><dd className="ui-ltr">{cardNumber}</dd></div>
+                    <div><dt>{t('mc_9')}</dt><dd>{tier}</dd></div>
+                    <div><dt>{t('mc_10')}</dt><dd>{formatDate(validUntil, language)}</dd></div>
                   </motion.dl>
                   <motion.div className="ui-member-actions" {...fade(0.36)}>
                     <Link href="/offers" className="ui-btn ui-btn--primary"><LocalOfferRoundedIcon />{t('viewOffers')}</Link>
@@ -155,12 +155,12 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
                   )}
                   <div className="ui-card-caption">
                     <span className="ui-card-face-label">
-                      {showingBack ? (isArabic ? 'ظهر البطاقة' : 'Card back') : (isArabic ? 'وجه البطاقة' : 'Card front')}
+                      {showingBack ? (t('mc_11')) : (t('mc_12'))}
                     </span>
                     <span className="ui-card-progress" aria-hidden="true"><motion.span style={{ scaleX: progress }} /></span>
                     <span className="ui-card-hint">
                       <ThreeSixtyRoundedIcon />
-                      {isArabic ? 'مرّر لأسفل لقلب البطاقة، أو اسحبها لتدويرها' : 'Scroll to flip the card, or drag to rotate'}
+                      {t('mc_13')}
                     </span>
                   </div>
                 </div>
@@ -178,8 +178,8 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
           <section className="ui-section">
             <Reveal className="ui-section-head">
               <div style={{ display: 'grid', gap: 8 }}>
-                <span className="ui-eyebrow">{isArabic ? 'اختصارات' : 'Shortcuts'}</span>
-                <h2 className="ui-h2">{isArabic ? 'كل ما تحتاجه من عضويتك' : 'Everything your membership offers'}</h2>
+                <span className="ui-eyebrow">{t('mc_14')}</span>
+                <h2 className="ui-h2">{t('mc_15')}</h2>
               </div>
             </Reveal>
             <div className="ui-action-grid">

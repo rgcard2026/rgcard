@@ -397,7 +397,7 @@ export default function OffersPage() {
     if (top) window.scrollTo({ top: top.getBoundingClientRect().top + window.scrollY - 90, behavior: reduce ? 'auto' : 'smooth' });
   }
 
-  const chipOptions = [{ value: '', label: isArabic ? 'الكل' : 'All' }, ...categoryOptions];
+  const chipOptions = [{ value: '', label: t('mem_16') }, ...categoryOptions];
   const PrevIcon = isArabic ? ChevronRightRoundedIcon : ChevronLeftRoundedIcon;
   const NextIcon = isArabic ? ChevronLeftRoundedIcon : ChevronRightRoundedIcon;
 
@@ -412,13 +412,13 @@ export default function OffersPage() {
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
             <div style={{ display: 'grid', gap: 12 }}>
-              <span className="ui-eyebrow">{isArabic ? 'شبكة الامتيازات' : 'Privilege network'}</span>
+              <span className="ui-eyebrow">{t('mem_17')}</span>
               <h1 className="ui-display">{isArabic ? <>اكتشف <span className="ui-gold-text">امتيازاتك</span></> : <>Discover your <span className="ui-gold-text">privileges</span></>}</h1>
-              <p className="ui-lead">{isArabic ? 'ابحث بالاسم أو العنوان أو أي تفصيلة، ثم افتح المكان لترى الخصم والفروع.' : 'Search by name, address or any detail, then open a place to see its discount and branches.'}</p>
+              <p className="ui-lead">{t('mem_18')}</p>
             </div>
             <div className="ui-stat">
               <strong>{loading ? '—' : <CountUp value={places.length} />}</strong>
-              <span>{isArabic ? 'مكان وعرض متاح' : 'places & offers'}</span>
+              <span>{t('mem_19')}</span>
             </div>
           </motion.header>
 
@@ -431,8 +431,8 @@ export default function OffersPage() {
               transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
             >
               <div className="ui-arrivals-label">
-                <strong>{isArabic ? 'وصل حديثًا' : 'New arrivals'}</strong>
-                <span>{isArabic ? 'أحدث العلامات في الشبكة' : 'Latest brands in the network'}</span>
+                <strong>{t('mem_20')}</strong>
+                <span>{t('mem_21')}</span>
               </div>
               <div className="ui-arrivals-viewport" ref={arrivalViewportRef}>
                 <div className="ui-arrivals-track">
@@ -478,8 +478,8 @@ export default function OffersPage() {
                   className="ui-input"
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder={isArabic ? 'ابحث بالاسم، العنوان، الخصم أو الفرع…' : 'Search name, address, discount or branch…'}
-                  aria-label={isArabic ? 'بحث شامل في الأماكن والعروض' : 'Search all places and offers'}
+                  placeholder={t('mem_22')}
+                  aria-label={t('mem_23')}
                 />
                 {query && <button type="button" className="ui-input-action" onClick={() => setQuery('')} aria-label={t('clear')}><CloseRoundedIcon /></button>}
               </div>
@@ -520,8 +520,8 @@ export default function OffersPage() {
             {!loading && !visiblePlaces.length && (
               <div className="ui-empty">
                 <TravelExploreRoundedIcon />
-                <strong style={{ color: 'var(--ui-text)' }}>{isArabic ? 'لا توجد نتائج' : 'No results'}</strong>
-                <span>{isArabic ? 'جرّب كلمة بحث أخرى أو امسح الفلاتر.' : 'Try another search term or clear the filters.'}</span>
+                <strong style={{ color: 'var(--ui-text)' }}>{t('mem_24')}</strong>
+                <span>{t('mem_25')}</span>
                 {hasFilters && <button type="button" className="ui-btn ui-btn--ghost ui-btn--sm" onClick={clearFilters} style={{ marginTop: 6 }}>{t('clear')}</button>}
               </div>
             )}
@@ -531,7 +531,7 @@ export default function OffersPage() {
           </section>
 
           {totalPages > 1 && (
-            <nav className="ui-pager" aria-label={isArabic ? 'صفحات الأماكن' : 'Place pages'}>
+            <nav className="ui-pager" aria-label={t('mem_26')}>
               <button type="button" className="ui-page" disabled={safePage <= 1} onClick={() => goToPage(Math.max(1, safePage - 1))} aria-label={t('previous')}>
                 <PrevIcon /><span className="ui-hide-sm">{t('previous')}</span>
               </button>

@@ -65,9 +65,17 @@ const copy: Record<UiLanguage, Record<CopyKey, string>> = {
   }
 };
 
-export type TranslationKey = CopyKey;
-export const DEFAULT_COPY = copy;
-export const TRANSLATION_KEYS = Object.keys(copy.ar) as CopyKey[];
+import { EXTRA_COPY } from '@/lib/i18n-extra';
+
+// Merge the base dictionary with incrementally-added entries (i18n-extra.ts).
+const mergedCopy: Record<UiLanguage, Record<string, string>> = {
+  ar: { ...copy.ar, ...EXTRA_COPY.ar },
+  en: { ...copy.en, ...EXTRA_COPY.en },
+};
+
+export type TranslationKey = string;
+export const DEFAULT_COPY = mergedCopy;
+export const TRANSLATION_KEYS = Object.keys(mergedCopy.ar);
 
 const rtlCache = createCache({ key: 'rg-rtl', stylisPlugins: [prefixer, rtlPlugin] });
 const ltrCache = createCache({ key: 'rg-ltr', stylisPlugins: [prefixer] });
@@ -79,7 +87,7 @@ type UiPreferencesValue = {
   setLanguage: (language: UiLanguage) => void;
   toggleLanguage: () => void;
   toggleMode: () => void;
-  t: (key: CopyKey) => string;
+  t: (key: string) => string;
 };
 
 const UiPreferencesContext = React.createContext<UiPreferencesValue | null>(null);
@@ -152,7 +160,7 @@ export default function UiPreferencesProvider({ children }: { children: React.Re
     setLanguage: setLanguageState,
     toggleLanguage: () => setLanguageState((current) => current === 'ar' ? 'en' : 'ar'),
     toggleMode: () => setMode((current) => current === 'light' ? 'dark' : 'light'),
-    t: (key) => overrides[language]?.[key] || copy[language][key]
+    t: (key) => overrides[language]?.[key] || mergedCopy[language][key] || key
   }), [dir, language, mode, overrides]);
 
   return (

@@ -12,7 +12,7 @@ import { useUiPreferences } from '@/components/UiPreferences';
 
 export default function ChangePasswordPage() {
   const router = useRouter();
-  const { language } = useUiPreferences();
+  const { language, t } = useUiPreferences();
   const isArabic = language === 'ar';
   const [currentPassword, setCurrentPassword] = React.useState('');
   const [newPassword, setNewPassword] = React.useState('');
@@ -27,7 +27,7 @@ export default function ChangePasswordPage() {
     const res = await fetch('/api/auth/change-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ currentPassword, newPassword }) });
     const body = await res.json();
     setLoading(false);
-    if (!res.ok) return setMsg(body.message || (isArabic ? 'تعذر تغيير كلمة المرور' : 'Could not change the password'));
+    if (!res.ok) return setMsg(body.message || (t('mem_41')));
     router.push(body.redirectTo || '/valid');
   }
 
@@ -39,13 +39,13 @@ export default function ChangePasswordPage() {
 
   return (
     <AuthLayout
-      title={isArabic ? 'تغيير كلمة المرور' : 'Change password'}
-      subtitle={isArabic ? 'مطلوب تغيير كلمة المرور أول مرة قبل استخدام البطاقة.' : 'Please set a new password before using your card for the first time.'}
+      title={t('mem_42')}
+      subtitle={t('mem_43')}
     >
       <form className="ui-auth-form" onSubmit={submit}>
         {msg && <div className="ui-alert ui-alert--error" role="alert"><ErrorOutlineRoundedIcon />{msg}</div>}
         <div className="ui-field">
-          <label className="ui-label" htmlFor="cp-current">{isArabic ? 'كلمة المرور الحالية' : 'Current password'}</label>
+          <label className="ui-label" htmlFor="cp-current">{t('mem_44')}</label>
           <div className="ui-input-wrap">
             <LockRoundedIcon />
             <input id="cp-current" className="ui-input" type={show ? 'text' : 'password'} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required autoComplete="current-password" />
@@ -53,15 +53,15 @@ export default function ChangePasswordPage() {
           </div>
         </div>
         <div className="ui-field">
-          <label className="ui-label" htmlFor="cp-new">{isArabic ? 'كلمة المرور الجديدة' : 'New password'}</label>
+          <label className="ui-label" htmlFor="cp-new">{t('mem_45')}</label>
           <div className="ui-input-wrap">
             <LockResetRoundedIcon />
             <input id="cp-new" className="ui-input" type={show ? 'text' : 'password'} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required autoComplete="new-password" />
           </div>
-          <span className="ui-hint">{isArabic ? 'لا تستخدم رقم البطاقة أو الرقم التعريفي أو الاسم داخل كلمة المرور.' : 'Do not include your card number, ID or name in the password.'}</span>
+          <span className="ui-hint">{t('mem_46')}</span>
         </div>
         <button type="submit" className="ui-btn ui-btn--primary ui-btn--block" disabled={loading}>
-          {loading ? (isArabic ? 'جاري الحفظ...' : 'Saving...') : (isArabic ? 'حفظ ومتابعة' : 'Save and continue')}
+          {loading ? (t('mem_47')) : (t('mem_48'))}
         </button>
       </form>
     </AuthLayout>

@@ -23,7 +23,7 @@ type Props = {
 
 /** Split-screen auth page: cinematic brand panel + focused form. */
 export default function AuthLayout({ title, subtitle, brandTitle = 'RG-Card', brandSubtitle, footer, align = 'start', showLogo = true, children }: Props) {
-  const { language, dir } = useUiPreferences();
+  const { language, dir, t } = useUiPreferences();
   const isArabic = language === 'ar';
   const webgl = useWebGLAllowed();
   const reduce = useReducedMotion();
@@ -39,7 +39,7 @@ export default function AuthLayout({ title, subtitle, brandTitle = 'RG-Card', br
             <span className="ui-brand">
               <span className="ui-brand-name">{brandTitle}</span>
             </span>
-            <span className="ui-eyebrow">{isArabic ? 'عضوية ملكية' : 'Royal membership'}</span>
+            <span className="ui-eyebrow">{t('mem_38')}</span>
           </div>
           {showLogo ? (
             <motion.div
@@ -50,8 +50,8 @@ export default function AuthLayout({ title, subtitle, brandTitle = 'RG-Card', br
             />
           ) : <span />}
           <motion.div className="ui-auth-tagline" {...enter(0.4)}>
-            <h2 className="ui-display">{isArabic ? 'امتيازات تليق بك.' : 'Privileges, refined.'}</h2>
-            <p>{brandSubtitle || (isArabic ? 'خصومات حصرية لدى شبكة مختارة من الأماكن والعلامات التجارية.' : 'Exclusive discounts across a curated network of places and brands.')}</p>
+            <h2 className="ui-display">{t('mem_39')}</h2>
+            <p>{brandSubtitle || (t('mem_40'))}</p>
           </motion.div>
         </aside>
 

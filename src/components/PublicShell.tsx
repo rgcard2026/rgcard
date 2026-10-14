@@ -70,7 +70,7 @@ export default function PublicShell({ children, watermarkText, page = 'public' }
   }
 
   const nav = [
-    { href: '/valid', label: isArabic ? 'بطاقتي' : 'My card', icon: <CreditCardRoundedIcon />, match: (p: string) => p === '/valid' || p.startsWith('/member-card') },
+    { href: '/valid', label: t('mem_33'), icon: <CreditCardRoundedIcon />, match: (p: string) => p === '/valid' || p.startsWith('/member-card') },
     { href: '/offers', label: t('offers'), icon: <LocalOfferRoundedIcon />, match: (p: string) => p.startsWith('/offers') || p.startsWith('/places') }
   ];
 
@@ -85,11 +85,11 @@ export default function PublicShell({ children, watermarkText, page = 'public' }
             <span className="ui-brand-mark" aria-hidden="true" />
             <span>
               <span className="ui-brand-name">RG-Card</span>
-              <span className="ui-brand-sub">{isArabic ? 'امتيازات العضوية' : 'Membership privileges'}</span>
+              <span className="ui-brand-sub">{t('mem_34')}</span>
             </span>
           </Link>
 
-          <nav className="ui-nav" aria-label={isArabic ? 'التنقل الرئيسي' : 'Main navigation'}>
+          <nav className="ui-nav" aria-label={t('mem_35')}>
             {nav.map((item) => {
               const active = item.match(pathname);
               return (
@@ -117,7 +117,7 @@ export default function PublicShell({ children, watermarkText, page = 'public' }
 
       <div style={{ position: 'relative', zIndex: 1 }}>{children}</div>
 
-      <nav className="ui-tabbar" aria-label={isArabic ? 'التنقل' : 'Navigation'}>
+      <nav className="ui-tabbar" aria-label={t('mem_36')}>
         {nav.map((item) => {
           const active = item.match(pathname);
           return (
@@ -135,7 +135,7 @@ export default function PublicShell({ children, watermarkText, page = 'public' }
       </nav>
 
       {logoLoading && (
-        <div className="ui-loader" role="status" aria-live="polite" aria-label={isArabic ? 'جاري فتح التفاصيل' : 'Opening details'}>
+        <div className="ui-loader" role="status" aria-live="polite" aria-label={t('mem_37')}>
           <span className="ui-loader-mark" />
         </div>
       )}

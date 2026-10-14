@@ -11,7 +11,7 @@ type Gov = { id: number; name: string };
 type Branch = { id: number; name: string; address?: string | null; phone?: string | null; mapUrl?: string | null; governorate: Gov };
 
 export default function BranchSelector({ governorates, branches }: { governorates: Gov[]; branches: Branch[] }) {
-  const { language } = useUiPreferences();
+  const { language, t } = useUiPreferences();
   const isArabic = language === 'ar';
   const [governorateId, setGovernorateId] = React.useState<number | ''>(governorates[0]?.id || '');
   const isGlobalBranch = (branch: Branch) => /جميع الفروع|جميع المحافظات|الفروع المتاحة|اونلاين|أونلاين/i.test(branch.name);
@@ -22,7 +22,7 @@ export default function BranchSelector({ governorates, branches }: { governorate
   return (
     <>
       {governorates.length > 0 ? (
-        <div className="ui-seg" role="tablist" aria-label={isArabic ? 'اختر المحافظة' : 'Choose governorate'}>
+        <div className="ui-seg" role="tablist" aria-label={t('mem_49')}>
           {governorates.map((gov) => {
             const active = gov.id === governorateId;
             return (
@@ -34,7 +34,7 @@ export default function BranchSelector({ governorates, branches }: { governorate
           })}
         </div>
       ) : (
-        <p className="ui-muted" style={{ margin: '0 0 14px' }}>{isArabic ? 'لم يتم تحديد محافظات لهذا المكان بعد.' : 'No governorates assigned to this place yet.'}</p>
+        <p className="ui-muted" style={{ margin: '0 0 14px' }}>{t('mem_50')}</p>
       )}
 
       <AnimatePresence mode="wait">
@@ -45,13 +45,13 @@ export default function BranchSelector({ governorates, branches }: { governorate
                 <div className="ui-branch-name">{branch.name}</div>
                 <div className="ui-branch-addr">
                   <LocationOnRoundedIcon />
-                  <span>{isGlobalBranch(branch) ? (branch.address || (isArabic ? 'متاح بجميع المحافظات' : 'Available in all governorates')) : `${branch.governorate.name} — ${branch.address || (isArabic ? 'العنوان غير متوفر' : 'Address not available')}`}</span>
+                  <span>{isGlobalBranch(branch) ? (branch.address || (t('mem_51'))) : `${branch.governorate.name} — ${branch.address || (t('mem_52'))}`}</span>
                 </div>
               </div>
               {(branch.phone || branch.mapUrl) && (
                 <div className="ui-branch-actions">
-                  {branch.phone && <a className="ui-btn ui-btn--ghost ui-btn--sm" href={`tel:${branch.phone}`}><CallRoundedIcon />{isArabic ? 'اتصال' : 'Call'}</a>}
-                  {branch.mapUrl && <a className="ui-btn ui-btn--primary ui-btn--sm" href={branch.mapUrl} target="_blank" rel="noopener noreferrer"><MapRoundedIcon />{isArabic ? 'الخريطة' : 'Map'}</a>}
+                  {branch.phone && <a className="ui-btn ui-btn--ghost ui-btn--sm" href={`tel:${branch.phone}`}><CallRoundedIcon />{t('mem_53')}</a>}
+                  {branch.mapUrl && <a className="ui-btn ui-btn--primary ui-btn--sm" href={branch.mapUrl} target="_blank" rel="noopener noreferrer"><MapRoundedIcon />{t('mem_54')}</a>}
                 </div>
               )}
             </div>
@@ -59,8 +59,8 @@ export default function BranchSelector({ governorates, branches }: { governorate
           {governorateId !== '' && !filtered.length && (
             <div className="ui-branch" style={{ borderStyle: 'dashed' }}>
               <div>
-                <div className="ui-branch-name">{isArabic ? 'المكان متاح في المحافظة المحددة' : 'Available in this governorate'}</div>
-                <div className="ui-branch-addr"><span>{isArabic ? 'بيانات الفرع التفصيلية غير مضافة حاليًا.' : 'Detailed branch information has not been added yet.'}</span></div>
+                <div className="ui-branch-name">{t('mem_55')}</div>
+                <div className="ui-branch-addr"><span>{t('mem_56')}</span></div>
               </div>
             </div>
           )}
