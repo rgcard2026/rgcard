@@ -102,11 +102,15 @@ const { createCanvas, loadImage, GlobalFonts } = require(path.join(root, 'node_m
   x.fillStyle = 'rgba(243, 219, 164, .82)';
   x.direction = 'rtl';
   x.font = '600 30px "Segoe UI", Tahoma, Arial, sans-serif';
-  x.fillText('بطاقة عضوية شخصية — لا يجوز التنازل عنها', W / 2, 540);
+  x.fillText('بطاقة عضوية شخصية — لا يجوز التنازل عنها', W / 2, 532);
   x.font = '400 24px "Segoe UI", Tahoma, Arial, sans-serif';
   x.fillStyle = 'rgba(243, 219, 164, .6)';
-  x.fillText('تُعرض عند الطلب للاستفادة من خصومات أعضاء RG-Card', W / 2, 590);
+  x.fillText('تُعرض عند الطلب للاستفادة من خصومات أعضاء', W / 2, 578);
+  // Keep the brand on its own centred line so the LTR word never breaks awkwardly.
   x.direction = 'ltr';
+  x.font = '600 26px "Segoe UI", Tahoma, Arial, sans-serif';
+  x.fillStyle = 'rgba(243, 219, 164, .72)';
+  x.fillText('RG-Card', W / 2, 616);
 
   fs.writeFileSync(path.join(root, 'public/card-back.png'), await c.encode('png'));
   console.log('card-back.png', W, H);

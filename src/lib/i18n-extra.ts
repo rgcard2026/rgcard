@@ -368,6 +368,7 @@ export const EXTRA_COPY: { ar: Record<string, string>; en: Record<string, string
     'pw_requirements': '٨ أحرف على الأقل، مع اثنين على الأقل من: أحرف كبيرة وصغيرة، رقم، رمز.',
     'pw_match': 'كلمتا المرور متطابقتان',
     'pw_nomatch': 'كلمتا المرور غير متطابقتين',
+    'adm_backcards': 'كل كروت الظهر PDF',
     /* @extra-ar-end */
   },
   en: {
@@ -734,6 +735,7 @@ export const EXTRA_COPY: { ar: Record<string, string>; en: Record<string, string
     'pw_requirements': 'Use 8+ characters plus any two: mixed case, a number, or a symbol.',
     'pw_match': 'Passwords match',
     'pw_nomatch': 'Passwords do not match',
+    'adm_backcards': 'All back cards PDF',
     /* @extra-en-end */
   },
 };

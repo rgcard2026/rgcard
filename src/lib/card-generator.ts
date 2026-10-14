@@ -87,3 +87,40 @@ export async function createBulkCardsPdfBuffer(users: { cardNumber: string; isVi
   }
   return Buffer.from(await pdf.save());
 }
+
+// --- Card back (NO.<cardNumber> drawn on the baked card-back.png) ---
+
+const BACK_WIDTH = 1573;
+const BACK_HEIGHT = 1000;
+// Gold number frame on the back artwork (same coords the 3D card uses).
+const BACK_NUMBER_BOX = { x: 1070, y: 852, width: 445, height: 88, fontSize: 34 };
+
+let cachedBackBytes: Buffer | null = null;
+async function readCardBackBytes(): Promise<Buffer> {
+  if (cachedBackBytes) return cachedBackBytes;
+  cachedBackBytes = await readFile(path.join(process.cwd(), 'public', 'card-back.png'));
+  return cachedBackBytes;
+}
+
+export async function drawMemberCardBackPage(pdf: PDFDocument, cardNumber: string) {
+  const bytes = await readCardBackBytes();
+  const image = await pdf.embedPng(bytes);
+  const page = pdf.addPage([BACK_WIDTH, BACK_HEIGHT]);
+  page.drawImage(image, { x: 0, y: 0, width: BACK_WIDTH, height: BACK_HEIGHT });
+  const font = await pdf.embedFont(StandardFonts.HelveticaBold);
+  drawCenteredTextInBox(page, font, `NO.${cardNumber}`, BACK_NUMBER_BOX, BACK_HEIGHT, { letterSpacing: 2.4 });
+}
+
+export async function createMemberCardBackPdfBuffer(cardNumber: string): Promise<Buffer> {
+  const pdf = await PDFDocument.create();
+  await drawMemberCardBackPage(pdf, cardNumber);
+  return Buffer.from(await pdf.save());
+}
+
+export async function createBulkBackCardsPdfBuffer(users: { cardNumber: string }[]): Promise<Buffer> {
+  const pdf = await PDFDocument.create();
+  for (const user of users) {
+    await drawMemberCardBackPage(pdf, user.cardNumber);
+  }
+  return Buffer.from(await pdf.save());
+}
