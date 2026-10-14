@@ -150,6 +150,7 @@ export function applyDesignSettings(settings: DesignSettings, requestedMode?: 'l
   root.dataset.uiArrivals = settings.designArrivalEnabled === false ? 'off' : 'on';
   if (settings.designArrivalBannerMaxWidth !== undefined) set('--ui-arrivals-maxw', `${Math.max(40, Math.min(100, Number(settings.designArrivalBannerMaxWidth) || 100))}%`);
   set('--ui-arrivals-radius', px(settings.designArrivalBannerRadius));
+  set('--ui-arrivals-pad-y', px(settings.designArrivalPaddingY));
   set('--ui-arrival-w', px(settings.designArrivalTileWidth));
   set('--ui-arrival-h', px(settings.designArrivalTileHeight));
   set('--ui-arrival-radius', px(settings.designArrivalTileRadius));

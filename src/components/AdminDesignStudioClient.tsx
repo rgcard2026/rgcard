@@ -456,7 +456,7 @@ export default function AdminDesignStudioClient() {
                   تحكّم كامل في بانر وصل حديثًا الظاهر في صفحة العروض: العرض والارتفاع والانحناء والمسافات والألوان، مع إمكانية إظهاره أو إخفائه. التغييرات تظهر مباشرة في المعاينة وتُحفظ مع التصميم.
                 </Typography>
 
-                <Box className="ui-root" sx={{ mt: 2, mb: 1, p: 1.5, borderRadius: 2, bgcolor: 'rgba(0,0,0,.14)' }}>
+                <Box sx={{ mt: 2, mb: 1, p: 1.5, borderRadius: 2, bgcolor: 'rgba(0,0,0,.14)' }}>
                   <div className="ui-arrivals" aria-hidden="true">
                     <div className="ui-arrivals-label">
                       <strong>وصل حديثًا</strong>
@@ -481,8 +481,9 @@ export default function AdminDesignStudioClient() {
                 <Grid container spacing={2} sx={{ mt: 0.5 }}>
                   <Grid item xs={12} sm={6}><RangeField label="عرض البانر" value={settings.designArrivalBannerMaxWidth} min={40} max={100} suffix="%" onChange={(value) => update('designArrivalBannerMaxWidth', value)} /></Grid>
                   <Grid item xs={12} sm={6}><RangeField label="انحناء حواف البانر" value={settings.designArrivalBannerRadius} min={0} max={60} onChange={(value) => update('designArrivalBannerRadius', value)} /></Grid>
+                  <Grid item xs={12} sm={6}><RangeField label="ارتفاع البانر (المسافة الرأسية)" value={settings.designArrivalPaddingY} min={0} max={80} onChange={(value) => update('designArrivalPaddingY', value)} /></Grid>
                   <Grid item xs={12} sm={6}><RangeField label="عرض البطاقة" value={settings.designArrivalTileWidth} min={80} max={280} onChange={(value) => update('designArrivalTileWidth', value)} /></Grid>
-                  <Grid item xs={12} sm={6}><RangeField label="ارتفاع البطاقة (وارتفاع البانر)" value={settings.designArrivalTileHeight} min={50} max={200} onChange={(value) => update('designArrivalTileHeight', value)} /></Grid>
+                  <Grid item xs={12} sm={6}><RangeField label="ارتفاع البطاقة" value={settings.designArrivalTileHeight} min={50} max={200} onChange={(value) => update('designArrivalTileHeight', value)} /></Grid>
                   <Grid item xs={12} sm={6}><RangeField label="انحناء حواف البطاقة" value={settings.designArrivalTileRadius} min={0} max={40} onChange={(value) => update('designArrivalTileRadius', value)} /></Grid>
                   <Grid item xs={12} sm={6}><RangeField label="المسافة بين البطاقات" value={settings.designArrivalTileGap} min={4} max={40} onChange={(value) => update('designArrivalTileGap', value)} /></Grid>
                 </Grid>

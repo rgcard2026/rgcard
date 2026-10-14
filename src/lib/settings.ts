@@ -267,6 +267,7 @@ function designSettingsFromMap(map: Record<string, string>) {
     designArrivalEnabled: boolSetting(map.designArrivalEnabled, DESIGN_DEFAULTS.designArrivalEnabled),
     designArrivalBannerMaxWidth: intSetting(map.designArrivalBannerMaxWidth, DESIGN_DEFAULTS.designArrivalBannerMaxWidth, 40, 100),
     designArrivalBannerRadius: intSetting(map.designArrivalBannerRadius, DESIGN_DEFAULTS.designArrivalBannerRadius, 0, 60),
+    designArrivalPaddingY: intSetting(map.designArrivalPaddingY, DESIGN_DEFAULTS.designArrivalPaddingY, 0, 80),
     designArrivalTileWidth: intSetting(map.designArrivalTileWidth, DESIGN_DEFAULTS.designArrivalTileWidth, 80, 280),
     designArrivalTileHeight: intSetting(map.designArrivalTileHeight, DESIGN_DEFAULTS.designArrivalTileHeight, 50, 200),
     designArrivalTileRadius: intSetting(map.designArrivalTileRadius, DESIGN_DEFAULTS.designArrivalTileRadius, 0, 40),
@@ -695,6 +696,7 @@ type AdminSettingInput = {
   designArrivalEnabled?: unknown;
   designArrivalBannerMaxWidth?: unknown;
   designArrivalBannerRadius?: unknown;
+  designArrivalPaddingY?: unknown;
   designArrivalTileWidth?: unknown;
   designArrivalTileHeight?: unknown;
   designArrivalTileRadius?: unknown;
@@ -1053,6 +1055,7 @@ export async function saveAdminSettings(values: AdminSettingInput) {
   const arrivalNumberFields: Array<[keyof AdminSettingInput, string, number, number, number]> = [
     ["designArrivalBannerMaxWidth", "designArrivalBannerMaxWidth", DESIGN_DEFAULTS.designArrivalBannerMaxWidth, 40, 100],
     ["designArrivalBannerRadius", "designArrivalBannerRadius", DESIGN_DEFAULTS.designArrivalBannerRadius, 0, 60],
+    ["designArrivalPaddingY", "designArrivalPaddingY", DESIGN_DEFAULTS.designArrivalPaddingY, 0, 80],
     ["designArrivalTileWidth", "designArrivalTileWidth", DESIGN_DEFAULTS.designArrivalTileWidth, 80, 280],
     ["designArrivalTileHeight", "designArrivalTileHeight", DESIGN_DEFAULTS.designArrivalTileHeight, 50, 200],
     ["designArrivalTileRadius", "designArrivalTileRadius", DESIGN_DEFAULTS.designArrivalTileRadius, 0, 40],
