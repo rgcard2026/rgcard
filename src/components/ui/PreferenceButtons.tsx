@@ -7,13 +7,13 @@ import { useUiPreferences } from '../UiPreferences';
 /** Compact language + theme toggles used across the member experience. */
 export default function PreferenceButtons() {
   const { language, mode, toggleMode, toggleLanguage, t } = useUiPreferences();
-  const languageLabel = language === 'ar' ? 'English' : 'العربية';
+  const languageLabel = t('adm_256');
   const themeLabel = mode === 'light' ? t('darkMode') : t('lightMode');
 
   return (
     <>
       <button type="button" className="ui-icon-btn" onClick={toggleLanguage} aria-label={languageLabel} title={languageLabel}>
-        <span className="ui-lang-code">{language === 'ar' ? 'EN' : 'ع'}</span>
+        <span className="ui-lang-code">{t('adm_257')}</span>
       </button>
       <button type="button" className="ui-icon-btn" onClick={toggleMode} aria-label={themeLabel} title={themeLabel}>
         {mode === 'dark' ? <LightModeRoundedIcon /> : <DarkModeRoundedIcon />}

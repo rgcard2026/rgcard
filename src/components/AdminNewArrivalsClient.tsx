@@ -34,7 +34,7 @@ export default function AdminNewArrivalsClient() {
 
   const load = React.useCallback(async () => {
     const res = await fetch('/api/admin/new-arrivals', { cache: 'no-store' }); const body = await readJson(res);
-    if (!res.ok) setMsg(body.message || (isArabic ? 'تعذر تحميل العناصر' : 'Unable to load items'));
+    if (!res.ok) setMsg(body.message || (t('adm_81')));
     setItems(body.data || []);
   }, [isArabic]);
   React.useEffect(() => { load(); }, [load]);
@@ -45,16 +45,16 @@ export default function AdminNewArrivalsClient() {
   function openEdit(item: BannerItem) { setSelected(item); setDraft({ title: item.title, targetUrl: item.targetUrl, isActive: item.isActive }); setPanel('edit'); }
   async function uploadLogo(id: number, file: File) { const fd = new FormData(); fd.append('logo', file); const res = await fetch(`/api/admin/new-arrivals/${id}/logo`, { method: 'POST', body: fd }); const body = await readJson(res); if (!res.ok) throw new Error(body.message || 'Unable to upload logo'); return body; }
   async function createItem(e: React.FormEvent) {
-    e.preventDefault(); if (!newLogo) return setMsg(isArabic ? 'اختر اللوجو أولًا' : 'Choose a logo first');
+    e.preventDefault(); if (!newLogo) return setMsg(t('adm_82'));
     const res = await fetch('/api/admin/new-arrivals', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: draft.title, targetUrl: draft.targetUrl }) }); const body = await readJson(res);
-    if (!res.ok) return setMsg(body.message || (isArabic ? 'تعذر إضافة العنصر' : 'Unable to add item'));
+    if (!res.ok) return setMsg(body.message || (t('adm_83')));
     try { await uploadLogo(body.data.id, newLogo); } catch (error) { return setMsg(error instanceof Error ? error.message : 'Unable to upload logo'); }
-    setDraft({ title: '', targetUrl: '', isActive: true }); setNewLogo(null); setPanel(null); setMsg(isArabic ? 'تمت إضافة العنصر ورفع اللوجو وحفظه بنجاح' : 'Item added; its logo was uploaded and saved successfully'); await load();
+    setDraft({ title: '', targetUrl: '', isActive: true }); setNewLogo(null); setPanel(null); setMsg(t('adm_84')); await load();
   }
-  async function saveItem() { if (!selected) return; const res = await fetch(`/api/admin/new-arrivals/${selected.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(draft) }); const body = await readJson(res); if (!res.ok) return setMsg(body.message || (isArabic ? 'تعذر الحفظ' : 'Unable to save')); setMsg(isArabic ? 'تم حفظ التعديلات بنجاح' : 'Changes saved successfully'); await load(); }
+  async function saveItem() { if (!selected) return; const res = await fetch(`/api/admin/new-arrivals/${selected.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(draft) }); const body = await readJson(res); if (!res.ok) return setMsg(body.message || (t('adm_61'))); setMsg(t('adm_85')); await load(); }
   async function removeItem(item: BannerItem) { if (!confirm(isArabic ? `حذف ${item.title}؟` : `Delete ${item.title}?`)) return; await fetch(`/api/admin/new-arrivals/${item.id}`, { method: 'DELETE' }); setPanel(null); setSelected(null); await load(); }
-  async function replaceLogo(item: BannerItem, file: File) { try { await uploadLogo(item.id, file); setMsg(isArabic ? 'تم رفع اللوجو وحفظه بنجاح' : 'Logo uploaded and saved successfully'); await load(); } catch (error) { setMsg(error instanceof Error ? error.message : 'Unable to upload logo'); } }
-  async function move(item: BannerItem, direction: -1 | 1) { const current = items.findIndex((candidate) => candidate.id === item.id); const target = current + direction; if (target < 0 || target >= items.length) return; const next = [...items]; [next[current], next[target]] = [next[target], next[current]]; const res = await fetch('/api/admin/new-arrivals/reorder', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: next.map((candidate) => candidate.id) }) }); if (!res.ok) return setMsg(isArabic ? 'تعذر حفظ الترتيب' : 'Unable to save order'); await load(); }
+  async function replaceLogo(item: BannerItem, file: File) { try { await uploadLogo(item.id, file); setMsg(t('adm_86')); await load(); } catch (error) { setMsg(error instanceof Error ? error.message : 'Unable to upload logo'); } }
+  async function move(item: BannerItem, direction: -1 | 1) { const current = items.findIndex((candidate) => candidate.id === item.id); const target = current + direction; if (target < 0 || target >= items.length) return; const next = [...items]; [next[current], next[target]] = [next[target], next[current]]; const res = await fetch('/api/admin/new-arrivals/reorder', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: next.map((candidate) => candidate.id) }) }); if (!res.ok) return setMsg(t('adm_87')); await load(); }
   async function bulk(action: 'activate' | 'deactivate' | 'delete') {
     const ids = Array.from(selectedIds);
     if (!ids.length || bulkBusy) return;
@@ -69,10 +69,10 @@ export default function AdminNewArrivalsClient() {
       setSelectedIds(new Set(failedIds));
       setMsg(failedIds.length
         ? (isArabic ? `تعذر تنفيذ العملية على ${failedIds.length} من العناصر المحددة` : `The action failed for ${failedIds.length} selected items`)
-        : (isArabic ? 'تم تنفيذ العملية' : 'Action completed'));
+        : (t('adm_88')));
       await load();
     } catch {
-      setMsg(isArabic ? 'تعذر الاتصال بالخادم أثناء تنفيذ العملية' : 'Unable to reach the server while processing the action');
+      setMsg(t('adm_89'));
     } finally {
       setBulkBusy(false);
     }
@@ -88,11 +88,11 @@ export default function AdminNewArrivalsClient() {
       <Stack direction="row" alignItems="center" spacing={.75} flexWrap="wrap" useFlexGap sx={{ mt: 1.5 }}>
         <FormControlLabel
           control={<Checkbox disabled={shown.length === 0} checked={shown.length > 0 && shown.every((item) => selectedIds.has(item.id))} indeterminate={shown.some((item) => selectedIds.has(item.id)) && !shown.every((item) => selectedIds.has(item.id))} onChange={(event) => setSelectedIds(event.target.checked ? new Set([...Array.from(selectedIds), ...shown.map((item) => item.id)]) : new Set(Array.from(selectedIds).filter((id) => !shown.some((item) => item.id === id))))} />}
-          label={isArabic ? 'اختيار الظاهر' : 'Select visible'}
+          label={t('adm_90')}
           disabled={shown.length === 0}
           sx={{ m: 0, minHeight: 44, '& .MuiFormControlLabel-label': { fontWeight: 900, fontSize: 13 } }}
         />
-        {selectedIds.size > 0 && <><Button size="small" variant="outlined" color="success" disabled={bulkBusy} onClick={() => bulk('activate')}>{isArabic ? 'تفعيل' : 'Activate'}</Button><Button size="small" variant="outlined" color="warning" disabled={bulkBusy} onClick={() => bulk('deactivate')}>{isArabic ? 'إيقاف' : 'Pause'}</Button><Button size="small" variant="outlined" color="error" disabled={bulkBusy} onClick={() => bulk('delete')}>{t('delete')}</Button></>}
+        {selectedIds.size > 0 && <><Button size="small" variant="outlined" color="success" disabled={bulkBusy} onClick={() => bulk('activate')}>{t('adm_91')}</Button><Button size="small" variant="outlined" color="warning" disabled={bulkBusy} onClick={() => bulk('deactivate')}>{t('adm_92')}</Button><Button size="small" variant="outlined" color="error" disabled={bulkBusy} onClick={() => bulk('delete')}>{t('delete')}</Button></>}
       </Stack>
     </CardContent></Card>
     <Snackbar
@@ -118,7 +118,7 @@ export default function AdminNewArrivalsClient() {
           <Button size="small" fullWidth startIcon={<EditRoundedIcon />} onClick={() => openEdit(item)}>{t('details')}</Button>
         </CardContent></Card>
       </Grid>)}
-      {!shown.length && <Grid item xs={12}><Card className="rg-panel-card"><CardContent><Typography align="center" color="text.secondary">{isArabic ? 'لا توجد عناصر بعد.' : 'No items yet.'}</Typography></CardContent></Card></Grid>}
+      {!shown.length && <Grid item xs={12}><Card className="rg-panel-card"><CardContent><Typography align="center" color="text.secondary">{t('adm_93')}</Typography></CardContent></Card></Grid>}
     </Grid>
     {totalPages > 1 && <Stack alignItems="center" className="rg-admin-pagination" sx={{ mt: 3 }}><Pagination count={totalPages} page={page} onChange={(_, value) => setPage(value)} color="primary" shape="rounded" /></Stack>}
 
@@ -127,10 +127,10 @@ export default function AdminNewArrivalsClient() {
         <Typography variant="h5" fontWeight={950}>{panel === 'create' ? t('addArrival') : t('edit')}</Typography>
         {msg && <Alert severity={/تعذر|Unable|failed/.test(msg) ? 'error' : 'success'} onClose={() => setMsg('')} sx={{ fontWeight: 800 }}>{msg}</Alert>}
         {selected && panel === 'edit' && <Box className="rg-admin-drawer-logo">{selected.logoUrl ? <Box component="img" src={selected.logoUrl} alt={selected.title} /> : initials(selected.title)}</Box>}
-        <AdminTextField label={isArabic ? 'اسم داخلي' : 'Internal title'} value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} required />
-        <AdminTextField label={isArabic ? 'الرابط الخارجي' : 'External link'} value={draft.targetUrl} onChange={(e) => setDraft({ ...draft, targetUrl: e.target.value })} required helperText="https://..." />
-        <Button component="label" variant="outlined" startIcon={<UploadRoundedIcon />}>{newLogo?.name || (isArabic ? 'رفع / تغيير اللوجو' : 'Upload / change logo')}<input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { const file = event.target.files?.[0]; if (!file) return; if (panel === 'edit' && selected) replaceLogo(selected, file); else setNewLogo(file); event.currentTarget.value = ''; }} /></Button>
-        {panel === 'edit' && <><AdminActionToggle checked={draft.isActive} onChange={(checked) => setDraft({ ...draft, isActive: checked })} label={isArabic ? 'ظاهر للمستخدمين' : 'Visible to users'} /><Stack direction="row" spacing={1} className="rg-admin-drawer-actions"><Button variant="outlined" onClick={() => selected && move(selected, -1)} startIcon={<ArrowUpwardRoundedIcon />}>{isArabic ? 'تحريك للأعلى' : 'Move up'}</Button><Button variant="outlined" onClick={() => selected && move(selected, 1)} startIcon={<ArrowDownwardRoundedIcon />}>{isArabic ? 'تحريك للأسفل' : 'Move down'}</Button></Stack><Divider /><Stack direction="row" spacing={1} className="rg-admin-drawer-actions"><Button type="submit" fullWidth variant="contained" startIcon={<SaveRoundedIcon />}>{t('save')}</Button><Button color="error" variant="outlined" onClick={() => selected && removeItem(selected)} startIcon={<DeleteOutlineRoundedIcon />}>{t('delete')}</Button></Stack><Button component="a" href={draft.targetUrl} target="_blank" rel="noopener noreferrer" variant="text" startIcon={<OpenInNewRoundedIcon />}>{isArabic ? 'فتح الرابط' : 'Open link'}</Button></>}
+        <AdminTextField label={t('adm_94')} value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} required />
+        <AdminTextField label={t('adm_95')} value={draft.targetUrl} onChange={(e) => setDraft({ ...draft, targetUrl: e.target.value })} required helperText="https://..." />
+        <Button component="label" variant="outlined" startIcon={<UploadRoundedIcon />}>{newLogo?.name || (t('adm_96'))}<input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { const file = event.target.files?.[0]; if (!file) return; if (panel === 'edit' && selected) replaceLogo(selected, file); else setNewLogo(file); event.currentTarget.value = ''; }} /></Button>
+        {panel === 'edit' && <><AdminActionToggle checked={draft.isActive} onChange={(checked) => setDraft({ ...draft, isActive: checked })} label={t('adm_97')} /><Stack direction="row" spacing={1} className="rg-admin-drawer-actions"><Button variant="outlined" onClick={() => selected && move(selected, -1)} startIcon={<ArrowUpwardRoundedIcon />}>{t('adm_98')}</Button><Button variant="outlined" onClick={() => selected && move(selected, 1)} startIcon={<ArrowDownwardRoundedIcon />}>{t('adm_99')}</Button></Stack><Divider /><Stack direction="row" spacing={1} className="rg-admin-drawer-actions"><Button type="submit" fullWidth variant="contained" startIcon={<SaveRoundedIcon />}>{t('save')}</Button><Button color="error" variant="outlined" onClick={() => selected && removeItem(selected)} startIcon={<DeleteOutlineRoundedIcon />}>{t('delete')}</Button></Stack><Button component="a" href={draft.targetUrl} target="_blank" rel="noopener noreferrer" variant="text" startIcon={<OpenInNewRoundedIcon />}>{t('adm_100')}</Button></>}
         {panel === 'create' && <Button type="submit" className="rg-royal-button" variant="contained" startIcon={<AddRoundedIcon />}>{t('add')}</Button>}
       </Stack>
     </Drawer>

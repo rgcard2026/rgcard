@@ -36,7 +36,6 @@ type LogEntry = { id: number; action: string; path?: string | null; ip?: string 
 async function readJson(res: Response) { const text = await res.text(); try { return JSON.parse(text); } catch { return { ok: false, message: text || 'Unable to read server response' }; } }
 function toDateInput(value?: string | null) { return value ? new Date(value).toISOString().slice(0, 10) : ''; }
 function initials(name: string) { return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'RG'; }
-function passwordMessage(isArabic: boolean) { return isArabic ? 'استخدم كلمة مرور قوية ومتطابقة (8 أحرف على الأقل مع رقم ورمز).' : 'Use a strong matching password (8+ characters with a number and symbol).'; }
 
 
 type AdminSidePanelProps = {
@@ -174,10 +173,10 @@ function AdminSidePanel({ open, anchor, title, onClose, children }: AdminSidePan
 }
 
 function userSecurityState(user: User, isArabic: boolean) {
-  if (user.expiredAt || (user.validUntil && new Date(user.validUntil) < new Date())) return { label: isArabic ? 'منتهي' : 'Expired', color: 'error' as const };
-  if (user.lockedAt || !user.isActive) return { label: isArabic ? 'موقوف' : 'Inactive', color: 'error' as const };
-  if (user.blockedUntil && new Date(user.blockedUntil) > new Date()) return { label: isArabic ? 'محظور مؤقتًا' : 'Temporarily blocked', color: 'warning' as const };
-  return { label: isArabic ? 'نشط' : 'Active', color: 'success' as const };
+  if (user.expiredAt || (user.validUntil && new Date(user.validUntil) < new Date())) return { label: (isArabic ? 'منتهي' : 'Expired'), color: 'error' as const };
+  if (user.lockedAt || !user.isActive) return { label: (isArabic ? 'موقوف' : 'Inactive'), color: 'error' as const };
+  if (user.blockedUntil && new Date(user.blockedUntil) > new Date()) return { label: (isArabic ? 'محظور مؤقتًا' : 'Temporarily blocked'), color: 'warning' as const };
+  return { label: (isArabic ? 'نشط' : 'Active'), color: 'success' as const };
 }
 
 export default function AdminUsersClient() {
@@ -201,7 +200,7 @@ export default function AdminUsersClient() {
     const params = new URLSearchParams({ take: String(pageSize), skip: String((page - 1) * pageSize) }); if (q.trim()) params.set('q', q.trim());
     const [usersResponse, placesResponse] = await Promise.all([fetch(`/api/admin/users?${params}`, { cache: 'no-store' }), fetch('/api/admin/places', { cache: 'no-store' })]);
     const usersBody = await readJson(usersResponse); const placesBody = await readJson(placesResponse);
-    if (!usersResponse.ok) setMsg(usersBody.message || (isArabic ? 'تعذر تحميل المستخدمين' : 'Unable to load users'));
+    if (!usersResponse.ok) setMsg(usersBody.message || (t('adm_181')));
     setUsers(usersBody.data || []); setTotal(usersBody.total || 0); setPlaces(placesBody.data || []);
   }, [isArabic, page, q]);
   React.useEffect(() => { load(); }, [load]);
@@ -239,19 +238,19 @@ export default function AdminUsersClient() {
   async function createUser(e: React.FormEvent) {
     e.preventDefault();
     if (busyAction) return;
-    if (!isStrongEnough(createForm.password) || createForm.password !== createPasswordConfirm) return setMsg(passwordMessage(isArabic));
+    if (!isStrongEnough(createForm.password) || createForm.password !== createPasswordConfirm) return setMsg(t('adm_174'));
     setBusyAction('create');
     try {
       const res = await fetch('/api/admin/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...createForm, isVip: createForm.membershipClass === 'VIP' }) });
       const body = await readJson(res);
-      if (!res.ok) return setMsg(body.message || (isArabic ? 'تعذر إضافة المستخدم' : 'Unable to add user'));
+      if (!res.ok) return setMsg(body.message || (t('adm_182')));
       setCreateForm({ ...createForm, fullName: '', idNumber: '', cardNumber: '', password: '' });
       setCreatePasswordConfirm('');
       closePanel();
-      setMsg(isArabic ? 'تمت إضافة المستخدم بنجاح' : 'User added successfully');
+      setMsg(t('adm_183'));
       await load();
     } catch {
-      setMsg(isArabic ? 'تعذر الاتصال بالخادم' : 'Unable to reach the server');
+      setMsg(t('adm_184'));
     } finally {
       setBusyAction(null);
     }
@@ -259,22 +258,22 @@ export default function AdminUsersClient() {
 
   async function saveUser() {
     if (!selected || busyAction) return;
-    if (resetPasswordMode && (!edit.password || !isStrongEnough(edit.password) || edit.password !== editPasswordConfirm)) return setMsg(passwordMessage(isArabic));
+    if (resetPasswordMode && (!edit.password || !isStrongEnough(edit.password) || edit.password !== editPasswordConfirm)) return setMsg(t('adm_174'));
     setBusyAction('save');
     try {
       const payload = { ...edit, isVip: edit.membershipClass === 'VIP' } as EditState & { isVip?: boolean };
       if (!resetPasswordMode) delete payload.password;
       const res = await fetch(`/api/admin/users/${selected.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const body = await readJson(res);
-      if (!res.ok) return setMsg(body.message || (isArabic ? 'تعذر الحفظ' : 'Unable to save'));
+      if (!res.ok) return setMsg(body.message || (t('adm_61')));
       setEditPasswordConfirm('');
       setResetPasswordMode(false);
       setEdit((current) => ({ ...current, password: '' }));
       await load();
       closePanel();
-      setMsg(resetPasswordMode ? (isArabic ? 'تم حفظ البيانات وتغيير كلمة المرور بنجاح' : 'Details and password updated successfully') : (isArabic ? 'تم حفظ التعديلات بنجاح' : 'Changes saved successfully'));
+      setMsg(resetPasswordMode ? (t('adm_185')) : (t('adm_85')));
     } catch {
-      setMsg(isArabic ? 'تعذر الاتصال بالخادم' : 'Unable to reach the server');
+      setMsg(t('adm_184'));
     } finally {
       setBusyAction(null);
     }
@@ -291,14 +290,14 @@ export default function AdminUsersClient() {
     try {
       const res = await fetch(`/api/admin/users/${pendingDelete.id}`, { method: 'DELETE' });
       const body = await readJson(res);
-      if (!res.ok) return setMsg(body.message || (isArabic ? 'تعذر الحذف' : 'Unable to delete'));
+      if (!res.ok) return setMsg(body.message || (t('adm_63')));
       closePanel();
       setSelected(null);
       setPendingDelete(null);
-      setMsg(isArabic ? 'تم حذف المستخدم' : 'User deleted');
+      setMsg(t('adm_186'));
       await load();
     } catch {
-      setMsg(isArabic ? 'تعذر الاتصال بالخادم' : 'Unable to reach the server');
+      setMsg(t('adm_184'));
     } finally {
       setBusyAction(null);
     }
@@ -311,14 +310,14 @@ export default function AdminUsersClient() {
     try {
       const res = await fetch(`/api/admin/users/${selected.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isActive: nextActive }) });
       const body = await readJson(res);
-      if (!res.ok) return setMsg(body.message || (isArabic ? 'تعذر تغيير حالة الحساب' : 'Unable to change account status'));
+      if (!res.ok) return setMsg(body.message || (t('adm_187')));
       setEdit((current) => ({ ...current, isActive: nextActive }));
       setSelected((current) => current ? { ...current, isActive: nextActive, ...(nextActive ? { lockedAt: null, blockedUntil: null } : {}) } : current);
       await load();
       closePanel();
-      setMsg(nextActive ? (isArabic ? 'تم تشغيل الحساب بنجاح' : 'Account activated successfully') : (isArabic ? 'تم إيقاف الحساب بنجاح' : 'Account deactivated successfully'));
+      setMsg(nextActive ? (t('adm_188')) : (t('adm_189')));
     } catch {
-      setMsg(isArabic ? 'تعذر الاتصال بالخادم' : 'Unable to reach the server');
+      setMsg(t('adm_184'));
     } finally {
       setBusyAction(null);
     }
@@ -331,12 +330,12 @@ export default function AdminUsersClient() {
       const [discountResponse, logResponse] = await Promise.all([fetch(`/api/admin/users/${selected.id}/discounts`), fetch(`/api/admin/users/${selected.id}/logs?take=12`)]);
       const discountBody = await readJson(discountResponse);
       const logBody = await readJson(logResponse);
-      if (!discountResponse.ok || !logResponse.ok) return setMsg(isArabic ? 'تعذر تحديث السجل' : 'Unable to refresh activity');
+      if (!discountResponse.ok || !logResponse.ok) return setMsg(t('adm_190'));
       setDiscounts(discountBody.data || []);
       setLogs(logBody.data || []);
-      setMsg(isArabic ? 'تم تحديث السجل' : 'Activity refreshed');
+      setMsg(t('adm_191'));
     } catch {
-      setMsg(isArabic ? 'تعذر الاتصال بالخادم' : 'Unable to reach the server');
+      setMsg(t('adm_184'));
     } finally {
       setBusyAction(null);
     }
@@ -348,14 +347,14 @@ export default function AdminUsersClient() {
     try {
       const res = await fetch(`/api/admin/users/${selected.id}/discounts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ placeId: Number(discount.placeId), discountText: discount.discountText }) });
       const body = await readJson(res);
-      if (!res.ok) return setMsg(body.message || (isArabic ? 'تعذر حفظ الخصم' : 'Unable to save discount'));
+      if (!res.ok) return setMsg(body.message || (t('adm_192')));
       setDiscount({ placeId: '', discountText: '' });
       const discountResponse = await fetch(`/api/admin/users/${selected.id}/discounts`);
       const discountBody = await readJson(discountResponse);
       setDiscounts(discountBody.data || []);
-      setMsg(isArabic ? 'تم حفظ الخصم' : 'Discount saved');
+      setMsg(t('adm_193'));
     } catch {
-      setMsg(isArabic ? 'تعذر الاتصال بالخادم' : 'Unable to reach the server');
+      setMsg(t('adm_184'));
     } finally {
       setBusyAction(null);
     }
@@ -366,18 +365,18 @@ export default function AdminUsersClient() {
     setBusyAction('discount');
     try {
       const res = await fetch(`/api/admin/users/${selected.id}/discounts?placeId=${placeId}`, { method: 'DELETE' });
-      if (!res.ok) return setMsg(isArabic ? 'تعذر حذف الخصم' : 'Unable to delete discount');
+      if (!res.ok) return setMsg(t('adm_194'));
       setDiscounts((current) => current.filter((item) => item.place.id !== placeId));
-      setMsg(isArabic ? 'تم حذف الخصم' : 'Discount removed');
+      setMsg(t('adm_195'));
     } catch {
-      setMsg(isArabic ? 'تعذر الاتصال بالخادم' : 'Unable to reach the server');
+      setMsg(t('adm_184'));
     } finally {
       setBusyAction(null);
     }
   }
 
   async function importCsv() {
-    if (!csvFile) return setMsg(isArabic ? 'اختر ملف CSV أولًا' : 'Choose a CSV file first');
+    if (!csvFile) return setMsg(t('adm_118'));
     if (busyAction) return;
     setBusyAction('import');
     try {
@@ -386,13 +385,13 @@ export default function AdminUsersClient() {
       fd.append('validUntil', csvValidUntil);
       const res = await fetch('/api/admin/users/import', { method: 'POST', body: fd });
       const body = await readJson(res);
-      if (!res.ok) return setMsg(body.message || (isArabic ? 'تعذر الاستيراد' : 'Import failed'));
+      if (!res.ok) return setMsg(body.message || (t('adm_119')));
       setMsg(isArabic ? `تم إنشاء ${body.data?.created || 0} مستخدم` : `${body.data?.created || 0} users created`);
       setCsvFile(null);
       closePanel();
       await load();
     } catch {
-      setMsg(isArabic ? 'تعذر الاتصال بالخادم' : 'Unable to reach the server');
+      setMsg(t('adm_184'));
     } finally {
       setBusyAction(null);
     }
@@ -412,171 +411,171 @@ export default function AdminUsersClient() {
       setSelectedIds(new Set(failedIds));
       setMsg(failedIds.length
         ? (isArabic ? `تعذر تنفيذ العملية على ${failedIds.length} من المستخدمين المحددين` : `The action failed for ${failedIds.length} selected users`)
-        : (isArabic ? 'تم تنفيذ العملية' : 'Action completed'));
+        : (t('adm_88')));
       await load();
     } catch {
-      setMsg(isArabic ? 'تعذر الاتصال بالخادم' : 'Unable to reach the server');
+      setMsg(t('adm_184'));
     } finally {
       setBusyAction(null);
     }
   }
 
-  const drawerAnchor = language === 'ar' ? 'right' : 'left';
+  const drawerAnchor = language === 'ar' ? 'left' : 'right';
 
   return <>
     <Card className="rg-panel-card rg-admin-directory-header"><CardContent sx={{ p: { xs: 2, sm: 2.7 } }}>
-      <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1.5} alignItems={{ xs: 'stretch', md: 'center' }}><Box><Typography variant="h5" fontWeight={950}>{t('users')}</Typography><Typography color="text.secondary" fontSize={13}>{isArabic ? 'عرض مختصر بالأسماء فقط. افتح الاسم لمراجعة الكارت، البيانات، والخصومات داخل لوحة جانبية.' : 'A compact names-only directory. Open a name to manage the card, details, and personal discounts in a side panel.'}</Typography></Box><Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}><Button variant="outlined" component="a" href="/api/admin/users/cards-pdf?includeInactive=1" target="_blank" startIcon={<PictureAsPdfRoundedIcon />}>{isArabic ? 'كل الكروت PDF' : 'All cards PDF'}</Button><Button variant="outlined" component="a" href="/admin/exports" startIcon={<FileDownloadRoundedIcon />}>{isArabic ? 'التصدير' : 'Exports'}</Button><Button type="button" variant="outlined" onClick={() => { setMsg(''); setPanel('tools'); }} startIcon={<UploadFileRoundedIcon />}>{isArabic ? 'استيراد' : 'Import'}</Button><Button type="button" variant="contained" className="rg-royal-button" startIcon={<PersonAddAltRoundedIcon />} onClick={() => { setMsg(''); setPanel('create'); }}>{isArabic ? 'إضافة مستخدم' : 'Add user'}</Button></Stack></Stack>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 2 }}><AdminTextField size="small" placeholder={isArabic ? 'بحث بالاسم أو رقم الكارت أو ID...' : 'Search name, card, or ID...'} value={q} onChange={(e) => setQ(e.target.value)} sx={{ flex: 1 }} /><Chip label={`${total} ${isArabic ? 'مستخدم' : 'users'}`} /></Stack>
-      <Stack direction="row" spacing={.75} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 1.4 }}><Checkbox disabled={busyAction === 'bulk'} checked={users.length > 0 && users.every((user) => selectedIds.has(user.id))} indeterminate={users.some((user) => selectedIds.has(user.id)) && !users.every((user) => selectedIds.has(user.id))} onChange={(event) => setSelectedIds(event.target.checked ? new Set([...Array.from(selectedIds), ...users.map((user) => user.id)]) : new Set(Array.from(selectedIds).filter((id) => !users.some((user) => user.id === id))))} /><Typography fontSize={13} fontWeight={900}>{isArabic ? 'اختيار الظاهر' : 'Select visible'}</Typography>{selectedIds.size > 0 && <><Button size="small" variant="outlined" startIcon={<PictureAsPdfRoundedIcon />} onClick={() => window.open(`/api/admin/users/cards-pdf?ids=${encodeURIComponent(Array.from(selectedIds).join(','))}&download=1`, '_blank', 'noopener,noreferrer')}>{isArabic ? 'PDF للمختار' : 'Selected PDF'}</Button><Button size="small" color="success" variant="outlined" disabled={busyAction === 'bulk'} onClick={() => bulk('activate')}>{isArabic ? 'تفعيل' : 'Activate'}</Button><Button size="small" color="warning" variant="outlined" disabled={busyAction === 'bulk'} onClick={() => bulk('deactivate')}>{isArabic ? 'إيقاف' : 'Pause'}</Button><Button size="small" color="error" variant="outlined" disabled={busyAction === 'bulk'} onClick={() => bulk('delete')}>{t('delete')}</Button></>}</Stack>
+      <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1.5} alignItems={{ xs: 'stretch', md: 'center' }}><Box><Typography variant="h5" fontWeight={950}>{t('users')}</Typography><Typography color="text.secondary" fontSize={13}>{t('adm_197')}</Typography></Box><Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}><Button variant="outlined" component="a" href="/api/admin/users/cards-pdf?includeInactive=1" target="_blank" startIcon={<PictureAsPdfRoundedIcon />}>{t('adm_198')}</Button><Button variant="outlined" component="a" href="/admin/exports" startIcon={<FileDownloadRoundedIcon />}>{t('adm_199')}</Button><Button type="button" variant="outlined" onClick={() => { setMsg(''); setPanel('tools'); }} startIcon={<UploadFileRoundedIcon />}>{t('adm_165')}</Button><Button type="button" variant="contained" className="rg-royal-button" startIcon={<PersonAddAltRoundedIcon />} onClick={() => { setMsg(''); setPanel('create'); }}>{t('adm_200')}</Button></Stack></Stack>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 2 }}><AdminTextField size="small" placeholder={t('adm_201')} value={q} onChange={(e) => setQ(e.target.value)} sx={{ flex: 1 }} /><Chip label={`${total} ${t('adm_202')}`} /></Stack>
+      <Stack direction="row" spacing={.75} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 1.4 }}><Checkbox disabled={busyAction === 'bulk'} checked={users.length > 0 && users.every((user) => selectedIds.has(user.id))} indeterminate={users.some((user) => selectedIds.has(user.id)) && !users.every((user) => selectedIds.has(user.id))} onChange={(event) => setSelectedIds(event.target.checked ? new Set([...Array.from(selectedIds), ...users.map((user) => user.id)]) : new Set(Array.from(selectedIds).filter((id) => !users.some((user) => user.id === id))))} /><Typography fontSize={13} fontWeight={900}>{t('adm_90')}</Typography>{selectedIds.size > 0 && <><Button size="small" variant="outlined" startIcon={<PictureAsPdfRoundedIcon />} onClick={() => window.open(`/api/admin/users/cards-pdf?ids=${encodeURIComponent(Array.from(selectedIds).join(','))}&download=1`, '_blank', 'noopener,noreferrer')}>{t('adm_203')}</Button><Button size="small" color="success" variant="outlined" disabled={busyAction === 'bulk'} onClick={() => bulk('activate')}>{t('adm_91')}</Button><Button size="small" color="warning" variant="outlined" disabled={busyAction === 'bulk'} onClick={() => bulk('deactivate')}>{t('adm_92')}</Button><Button size="small" color="error" variant="outlined" disabled={busyAction === 'bulk'} onClick={() => bulk('delete')}>{t('delete')}</Button></>}</Stack>
     </CardContent></Card>
-    <Grid container spacing={1.5} className="rg-admin-directory-grid" sx={{ mt: .2 }}>{users.map((user, index) => { const state = userSecurityState(user, isArabic); return <Grid item xs={6} sm={4} md={3} lg={2} key={user.id}><Card className="rg-admin-name-card rg-logo-intro" style={{ '--rg-logo-delay': `${(index % 12) * 45}ms` } as React.CSSProperties}><CardContent sx={{ p: 1.2, position: 'relative' }}><Checkbox size="small" checked={selectedIds.has(user.id)} onChange={() => setSelectedIds((current) => { const next = new Set(current); next.has(user.id) ? next.delete(user.id) : next.add(user.id); return next; })} sx={{ position: 'absolute', top: 2, right: 2 }} /><Tooltip title={user.fullName}><Box component="button" type="button" className="rg-admin-name-button" onClick={() => openEdit(user)}><Box className="rg-admin-user-avatar">{initials(user.fullName)}</Box><Typography className="rg-admin-name-text">{user.fullName}</Typography><Chip size="small" label={state.label} color={state.color} /></Box></Tooltip><Button type="button" size="small" fullWidth startIcon={<EditRoundedIcon />} onClick={() => openEdit(user)}>{t('details')}</Button></CardContent></Card></Grid>; })}{!users.length && <Grid item xs={12}><Card className="rg-panel-card"><CardContent><Typography align="center" color="text.secondary">{isArabic ? 'لا توجد نتائج.' : 'No results found.'}</Typography></CardContent></Card></Grid>}</Grid>
+    <Grid container spacing={1.5} className="rg-admin-directory-grid" sx={{ mt: .2 }}>{users.map((user, index) => { const state = userSecurityState(user, isArabic); return <Grid item xs={6} sm={4} md={3} lg={2} key={user.id}><Card className="rg-admin-name-card rg-logo-intro" style={{ '--rg-logo-delay': `${(index % 12) * 45}ms` } as React.CSSProperties}><CardContent sx={{ p: 1.2, position: 'relative' }}><Checkbox size="small" checked={selectedIds.has(user.id)} onChange={() => setSelectedIds((current) => { const next = new Set(current); next.has(user.id) ? next.delete(user.id) : next.add(user.id); return next; })} sx={{ position: 'absolute', top: 2, right: 2 }} /><Tooltip title={user.fullName}><Box component="button" type="button" className="rg-admin-name-button" onClick={() => openEdit(user)}><Box className="rg-admin-user-avatar">{initials(user.fullName)}</Box><Typography className="rg-admin-name-text">{user.fullName}</Typography><Chip size="small" label={state.label} color={state.color} /></Box></Tooltip><Button type="button" size="small" fullWidth startIcon={<EditRoundedIcon />} onClick={() => openEdit(user)}>{t('details')}</Button></CardContent></Card></Grid>; })}{!users.length && <Grid item xs={12}><Card className="rg-panel-card"><CardContent><Typography align="center" color="text.secondary">{t('adm_142')}</Typography></CardContent></Card></Grid>}</Grid>
     {totalPages > 1 && <Stack alignItems="center" className="rg-admin-pagination" sx={{ mt: 3 }}><Pagination count={totalPages} page={page} onChange={(_, value) => setPage(value)} color="primary" shape="rounded" /></Stack>}
 
-    <AdminSidePanel open={panel === 'create'} anchor={drawerAnchor} onClose={closePanel} title={isArabic ? 'إغلاق إضافة المستخدم' : 'Close add user'}>
+    <AdminSidePanel open={panel === 'create'} anchor={drawerAnchor} onClose={closePanel} title={t('adm_204')}>
       <Stack component="form" onSubmit={createUser} spacing={2} className="rg-admin-edit-drawer rg-user-editor rg-user-editor-create" sx={{ p: { xs: 2, sm: 3 } }}>
         <Box className="rg-user-editor-intro">
-          <Typography className="rg-user-editor-eyebrow">{isArabic ? 'عضوية جديدة' : 'NEW MEMBERSHIP'}</Typography>
-          <Typography variant="h5" fontWeight={950}>{isArabic ? 'إضافة مستخدم وكارت' : 'Add user & card'}</Typography>
-          <Typography color="text.secondary" fontSize={13}>{isArabic ? 'أدخل البيانات الأساسية، ثم حدّد صلاحية وفئة العضوية.' : 'Enter the member details, then set their membership and access.'}</Typography>
+          <Typography className="rg-user-editor-eyebrow">{t('adm_205')}</Typography>
+          <Typography variant="h5" fontWeight={950}>{t('adm_206')}</Typography>
+          <Typography color="text.secondary" fontSize={13}>{t('adm_207')}</Typography>
         </Box>
         {msg && <Alert severity={messageIsError ? 'error' : 'success'} onClose={() => setMsg('')} sx={{ fontWeight: 850 }}>{msg}</Alert>}
         <section className="rg-user-form-section">
-          <div className="rg-user-section-heading"><Typography fontWeight={950}>{isArabic ? 'بيانات المستخدم' : 'Member details'}</Typography><Typography color="text.secondary" fontSize={12}>{isArabic ? 'الاسم والرقم التعريفي مطلوبان.' : 'Name and ID are required.'}</Typography></div>
+          <div className="rg-user-section-heading"><Typography fontWeight={950}>{t('adm_208')}</Typography><Typography color="text.secondary" fontSize={12}>{t('adm_209')}</Typography></div>
           <div className="rg-user-form-grid">
-            <UserEditorField className="rg-user-form-field-wide" label={isArabic ? 'الاسم بالكامل' : 'Full name'} value={createForm.fullName} onChange={(e) => setCreateForm({ ...createForm, fullName: e.target.value })} required />
-            <UserEditorField label={isArabic ? 'الرقم التعريفي' : 'ID number'} value={createForm.idNumber} onChange={(e) => setCreateForm({ ...createForm, idNumber: e.target.value })} required />
-            <UserEditorField label={isArabic ? 'رقم الكارت (اختياري)' : 'Card number (optional)'} value={createForm.cardNumber} onChange={(e) => setCreateForm({ ...createForm, cardNumber: e.target.value })} />
+            <UserEditorField className="rg-user-form-field-wide" label={t('adm_210')} value={createForm.fullName} onChange={(e) => setCreateForm({ ...createForm, fullName: e.target.value })} required />
+            <UserEditorField label={t('adm_211')} value={createForm.idNumber} onChange={(e) => setCreateForm({ ...createForm, idNumber: e.target.value })} required />
+            <UserEditorField label={t('adm_212')} value={createForm.cardNumber} onChange={(e) => setCreateForm({ ...createForm, cardNumber: e.target.value })} />
           </div>
         </section>
         <section className="rg-user-form-section">
-          <div className="rg-user-section-heading"><Typography fontWeight={950}>{isArabic ? 'بيانات الدخول' : 'Sign-in details'}</Typography><Typography color="text.secondary" fontSize={12}>{isArabic ? 'كلمة مرور قوية تحمي حساب العضو.' : 'A strong password helps protect the member account.'}</Typography></div>
+          <div className="rg-user-section-heading"><Typography fontWeight={950}>{t('adm_213')}</Typography><Typography color="text.secondary" fontSize={12}>{t('adm_214')}</Typography></div>
           <div className="rg-user-form-grid">
             <UserPasswordField
-              label={isArabic ? 'كلمة المرور' : 'Password'}
+              label={t('adm_71')}
               isArabic={isArabic}
               value={createForm.password}
               onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
               required
             />
-            <UserPasswordField label={isArabic ? 'تأكيد كلمة المرور' : 'Confirm password'} isArabic={isArabic} value={createPasswordConfirm} onChange={(e) => setCreatePasswordConfirm(e.target.value)} required />
+            <UserPasswordField label={t('adm_72')} isArabic={isArabic} value={createPasswordConfirm} onChange={(e) => setCreatePasswordConfirm(e.target.value)} required />
             <div className="rg-user-form-field-wide"><PasswordStrength value={createForm.password} confirmValue={createPasswordConfirm} language={language} required /></div>
           </div>
         </section>
         <section className="rg-user-form-section">
-          <div className="rg-user-section-heading"><Typography fontWeight={950}>{isArabic ? 'العضوية والصلاحية' : 'Membership & access'}</Typography></div>
+          <div className="rg-user-section-heading"><Typography fontWeight={950}>{t('adm_215')}</Typography></div>
           <div className="rg-user-form-grid">
-            <UserEditorSelect label={isArabic ? 'فئة العضوية' : 'Membership class'} value={createForm.membershipClass} onChange={(value) => setCreateForm({ ...createForm, membershipClass: value })}>
+            <UserEditorSelect label={t('adm_216')} value={createForm.membershipClass} onChange={(value) => setCreateForm({ ...createForm, membershipClass: value })}>
               {MEMBERSHIP_CLASSES.map((membership) => <MenuItem key={membership} value={membership}>{membership}</MenuItem>)}
             </UserEditorSelect>
-            <UserEditorField label={isArabic ? 'صالح حتى' : 'Valid until'} type="date" value={createForm.validUntil} onChange={(e) => setCreateForm({ ...createForm, validUntil: e.target.value })} />
-            <div className="rg-user-form-field-wide"><AdminActionToggle checked={createForm.mustChangePassword} onChange={(checked) => setCreateForm({ ...createForm, mustChangePassword: checked })} label={isArabic ? 'طلب تغيير كلمة المرور عند أول دخول' : 'Require a password change on first login'} disabled={busyAction !== null} /></div>
+            <UserEditorField label={t('adm_217')} type="date" value={createForm.validUntil} onChange={(e) => setCreateForm({ ...createForm, validUntil: e.target.value })} />
+            <div className="rg-user-form-field-wide"><AdminActionToggle checked={createForm.mustChangePassword} onChange={(checked) => setCreateForm({ ...createForm, mustChangePassword: checked })} label={t('adm_218')} disabled={busyAction !== null} /></div>
           </div>
         </section>
         <Stack direction="row" spacing={1} className="rg-user-editor-footer">
           <Button className="rg-royal-button" type="submit" variant="contained" startIcon={busyAction === 'create' ? <CircularProgress size={18} color="inherit" /> : <AddRoundedIcon />} disabled={busyAction !== null}>
-            {busyAction === 'create' ? (isArabic ? 'جارٍ الإضافة…' : 'Adding…') : (isArabic ? 'إنشاء المستخدم' : 'Create user')}
+            {busyAction === 'create' ? (t('adm_219')) : (t('adm_220'))}
           </Button>
-          <Button type="button" variant="outlined" onClick={closePanel}>{isArabic ? 'إلغاء' : 'Cancel'}</Button>
+          <Button type="button" variant="outlined" onClick={closePanel}>{t('adm_80')}</Button>
         </Stack>
       </Stack>
     </AdminSidePanel>
 
-    <AdminSidePanel open={panel === 'edit'} anchor={drawerAnchor} onClose={closePanel} title={isArabic ? 'إغلاق تعديل المستخدم' : 'Close edit user'}>
+    <AdminSidePanel open={panel === 'edit'} anchor={drawerAnchor} onClose={closePanel} title={t('adm_221')}>
       {selected && <Stack spacing={1.5} className="rg-admin-edit-drawer rg-user-editor rg-user-editor-edit" sx={{ p: { xs: 2, sm: 3 } }}>
         <Box className="rg-user-identity-header">
           <Box className="rg-admin-user-avatar">{initials(selected.fullName)}</Box>
           <Box className="rg-user-identity-copy">
-            <Typography className="rg-user-editor-eyebrow">{isArabic ? 'إدارة العضو' : 'MEMBER PROFILE'}</Typography>
+            <Typography className="rg-user-editor-eyebrow">{t('adm_222')}</Typography>
             <Typography variant="h5" fontWeight={950} className="rg-user-identity-name">{selected.fullName}</Typography>
             <Typography color="text.secondary" fontSize={13}>{isArabic ? `رقم تعريفي: ${selected.idNumber}` : `ID: ${selected.idNumber}`}</Typography>
           </Box>
-          <Button className="rg-user-card-link" component="a" target="_blank" href={`/admin/users/${selected.id}/card`} aria-label={isArabic ? 'فتح كارت العضو' : 'Open member card'} title={isArabic ? 'فتح الكارت' : 'Open card'} startIcon={<CreditCardRoundedIcon />}>{isArabic ? 'الكارت' : 'Card'}</Button>
+          <Button className="rg-user-card-link" component="a" target="_blank" href={`/admin/users/${selected.id}/card`} aria-label={t('adm_223')} title={t('adm_224')} startIcon={<CreditCardRoundedIcon />}>{t('adm_225')}</Button>
         </Box>
-        <div className="rg-user-editor-tabs" role="group" aria-label={isArabic ? 'أقسام بيانات العضو' : 'Member sections'}>
-          <button type="button" aria-pressed={editTab === 'profile'} className={editTab === 'profile' ? 'rg-user-editor-tab rg-user-editor-tab-active' : 'rg-user-editor-tab'} onClick={() => setEditTab('profile')}>{isArabic ? 'البيانات والوصول' : 'Profile & access'}</button>
-          <button type="button" aria-pressed={editTab === 'benefits'} className={editTab === 'benefits' ? 'rg-user-editor-tab rg-user-editor-tab-active' : 'rg-user-editor-tab'} onClick={() => setEditTab('benefits')}><LocalOfferRoundedIcon fontSize="small" />{isArabic ? 'الخصومات والنشاط' : 'Discounts & activity'}</button>
+        <div className="rg-user-editor-tabs" role="group" aria-label={t('adm_226')}>
+          <button type="button" aria-pressed={editTab === 'profile'} className={editTab === 'profile' ? 'rg-user-editor-tab rg-user-editor-tab-active' : 'rg-user-editor-tab'} onClick={() => setEditTab('profile')}>{t('adm_227')}</button>
+          <button type="button" aria-pressed={editTab === 'benefits'} className={editTab === 'benefits' ? 'rg-user-editor-tab rg-user-editor-tab-active' : 'rg-user-editor-tab'} onClick={() => setEditTab('benefits')}><LocalOfferRoundedIcon fontSize="small" />{t('adm_228')}</button>
         </div>
         {msg && <Alert severity={messageIsError ? 'error' : 'success'} onClose={() => setMsg('')} sx={{ fontWeight: 850 }}>{msg}</Alert>}
         {editTab === 'profile' ? <>
           <section className="rg-user-form-section">
-            <div className="rg-user-section-heading"><Typography fontWeight={950}>{isArabic ? 'البيانات الأساسية' : 'Personal details'}</Typography></div>
+            <div className="rg-user-section-heading"><Typography fontWeight={950}>{t('adm_229')}</Typography></div>
             <div className="rg-user-form-grid">
-              <UserEditorField className="rg-user-form-field-wide" label={isArabic ? 'الاسم بالكامل' : 'Full name'} value={edit.fullName || ''} onChange={(e) => setEdit({ ...edit, fullName: e.target.value })} />
-              <UserEditorField label={isArabic ? 'الرقم التعريفي' : 'ID number'} value={edit.idNumber || ''} onChange={(e) => setEdit({ ...edit, idNumber: e.target.value })} />
-              <UserEditorField label={isArabic ? 'رقم الكارت' : 'Card number'} value={edit.cardNumber || ''} onChange={(e) => setEdit({ ...edit, cardNumber: e.target.value })} />
+              <UserEditorField className="rg-user-form-field-wide" label={t('adm_210')} value={edit.fullName || ''} onChange={(e) => setEdit({ ...edit, fullName: e.target.value })} />
+              <UserEditorField label={t('adm_211')} value={edit.idNumber || ''} onChange={(e) => setEdit({ ...edit, idNumber: e.target.value })} />
+              <UserEditorField label={t('adm_230')} value={edit.cardNumber || ''} onChange={(e) => setEdit({ ...edit, cardNumber: e.target.value })} />
             </div>
           </section>
           <section className="rg-user-form-section">
-            <div className="rg-user-section-heading"><Typography fontWeight={950}>{isArabic ? 'العضوية' : 'Membership'}</Typography></div>
+            <div className="rg-user-section-heading"><Typography fontWeight={950}>{t('adm_231')}</Typography></div>
             <div className="rg-user-form-grid">
-              <UserEditorSelect label={isArabic ? 'فئة العضوية' : 'Membership class'} value={edit.membershipClass || 'Regular'} onChange={(value) => setEdit({ ...edit, membershipClass: value })}>
+              <UserEditorSelect label={t('adm_216')} value={edit.membershipClass || 'Regular'} onChange={(value) => setEdit({ ...edit, membershipClass: value })}>
                 {MEMBERSHIP_CLASSES.map((membership) => <MenuItem key={membership} value={membership}>{membership}</MenuItem>)}
               </UserEditorSelect>
-              <UserEditorField label={isArabic ? 'صالح حتى' : 'Valid until'} type="date" value={String(edit.validUntil || '')} onChange={(e) => setEdit({ ...edit, validUntil: e.target.value })} />
+              <UserEditorField label={t('adm_217')} type="date" value={String(edit.validUntil || '')} onChange={(e) => setEdit({ ...edit, validUntil: e.target.value })} />
             </div>
           </section>
           <section className="rg-user-form-section">
-            <div className="rg-user-section-heading"><Typography fontWeight={950}>{isArabic ? 'أمان الحساب' : 'Account security'}</Typography><Typography color="text.secondary" fontSize={12}>{isArabic ? 'تغيير كلمة المرور اختياري.' : 'Changing the password is optional.'}</Typography></div>
-            <AdminActionToggle checked={resetPasswordMode} onChange={(checked) => { setResetPasswordMode(checked); if (!checked) { setEdit((current) => ({ ...current, password: '' })); setEditPasswordConfirm(''); } }} label={isArabic ? 'تعيين كلمة مرور جديدة' : 'Set a new password'} disabled={busyAction !== null} />
+            <div className="rg-user-section-heading"><Typography fontWeight={950}>{t('adm_232')}</Typography><Typography color="text.secondary" fontSize={12}>{t('adm_233')}</Typography></div>
+            <AdminActionToggle checked={resetPasswordMode} onChange={(checked) => { setResetPasswordMode(checked); if (!checked) { setEdit((current) => ({ ...current, password: '' })); setEditPasswordConfirm(''); } }} label={t('adm_234')} disabled={busyAction !== null} />
             {resetPasswordMode && <div className="rg-user-form-grid rg-user-password-fields">
               <UserPasswordField
-                label={isArabic ? 'كلمة المرور الجديدة' : 'New password'}
+                label={t('mem_45')}
                 isArabic={isArabic}
                 value={edit.password || ''}
                 onChange={(e) => setEdit({ ...edit, password: e.target.value })}
               />
-              <UserPasswordField label={isArabic ? 'تأكيد كلمة المرور الجديدة' : 'Confirm new password'} isArabic={isArabic} value={editPasswordConfirm} onChange={(e) => setEditPasswordConfirm(e.target.value)} />
+              <UserPasswordField label={t('adm_75')} isArabic={isArabic} value={editPasswordConfirm} onChange={(e) => setEditPasswordConfirm(e.target.value)} />
               <div className="rg-user-form-field-wide"><PasswordStrength value={edit.password || ''} confirmValue={editPasswordConfirm} language={language} /></div>
             </div>}
             <div className="rg-user-account-toggles">
-              <AdminActionToggle checked={Boolean(edit.isActive)} onChange={(checked) => setEdit({ ...edit, isActive: checked })} label={isArabic ? 'الحساب مفعل' : 'Account active'} disabled={busyAction !== null} />
-              <AdminActionToggle checked={Boolean(edit.mustChangePassword)} onChange={(checked) => setEdit({ ...edit, mustChangePassword: checked })} label={isArabic ? 'طلب تغيير كلمة المرور عند الدخول' : 'Require password change on next login'} disabled={busyAction !== null} />
+              <AdminActionToggle checked={Boolean(edit.isActive)} onChange={(checked) => setEdit({ ...edit, isActive: checked })} label={t('adm_76')} disabled={busyAction !== null} />
+              <AdminActionToggle checked={Boolean(edit.mustChangePassword)} onChange={(checked) => setEdit({ ...edit, mustChangePassword: checked })} label={t('adm_235')} disabled={busyAction !== null} />
             </div>
           </section>
-          <section className="rg-user-account-actions" aria-label={isArabic ? 'إجراءات الحساب' : 'Account actions'}>
-            <Button variant="outlined" color={selected.isActive ? 'warning' : 'success'} onClick={() => void toggleUserStatus()} startIcon={busyAction === 'status' ? <CircularProgress size={18} /> : (selected.isActive ? <LockRoundedIcon /> : <LockOpenRoundedIcon />)} disabled={busyAction !== null}>{selected.isActive ? (isArabic ? 'إيقاف الحساب' : 'Deactivate account') : (isArabic ? 'تشغيل الحساب' : 'Activate account')}</Button>
+          <section className="rg-user-account-actions" aria-label={t('adm_236')}>
+            <Button variant="outlined" color={selected.isActive ? 'warning' : 'success'} onClick={() => void toggleUserStatus()} startIcon={busyAction === 'status' ? <CircularProgress size={18} /> : (selected.isActive ? <LockRoundedIcon /> : <LockOpenRoundedIcon />)} disabled={busyAction !== null}>{selected.isActive ? (t('adm_237')) : (t('adm_238'))}</Button>
             <Button variant="text" color="error" onClick={() => removeUser(selected)} startIcon={<DeleteRoundedIcon />} disabled={busyAction !== null}>{t('delete')}</Button>
           </section>
         </> : <>
           <section className="rg-user-form-section">
-            <div className="rg-user-section-heading"><Typography fontWeight={950}>{isArabic ? 'خصومات العضو' : 'Member discounts'}</Typography><Typography color="text.secondary" fontSize={12}>{isArabic ? 'خصومات مخصصة تظهر لهذا العضو.' : 'Custom offers available to this member.'}</Typography></div>
+            <div className="rg-user-section-heading"><Typography fontWeight={950}>{t('adm_239')}</Typography><Typography color="text.secondary" fontSize={12}>{t('adm_240')}</Typography></div>
             <div className="rg-user-form-grid rg-user-discount-form">
-              <UserEditorSelect label={isArabic ? 'المكان' : 'Place'} value={discount.placeId} onChange={(value) => setDiscount({ ...discount, placeId: value })}>
+              <UserEditorSelect label={t('adm_241')} value={discount.placeId} onChange={(value) => setDiscount({ ...discount, placeId: value })}>
                 {places.map((place) => <MenuItem key={place.id} value={place.id}>{place.name}</MenuItem>)}
               </UserEditorSelect>
-              <UserEditorField label={isArabic ? 'تفاصيل الخصم' : 'Discount details'} value={discount.discountText} onChange={(e) => setDiscount({ ...discount, discountText: e.target.value })} />
-              <Button className="rg-user-discount-save" variant="outlined" onClick={() => void saveDiscount()} disabled={busyAction !== null || !discount.placeId || !discount.discountText} startIcon={busyAction === 'discount' ? <CircularProgress size={18} /> : <AddRoundedIcon />}>{isArabic ? 'إضافة الخصم' : 'Add discount'}</Button>
+              <UserEditorField label={t('adm_242')} value={discount.discountText} onChange={(e) => setDiscount({ ...discount, discountText: e.target.value })} />
+              <Button className="rg-user-discount-save" variant="outlined" onClick={() => void saveDiscount()} disabled={busyAction !== null || !discount.placeId || !discount.discountText} startIcon={busyAction === 'discount' ? <CircularProgress size={18} /> : <AddRoundedIcon />}>{t('adm_243')}</Button>
             </div>
             <div className="rg-user-discount-list">
-              {discounts.length ? <Stack direction="row" spacing={.75} flexWrap="wrap" useFlexGap>{discounts.map((item) => <Chip key={item.id} label={`${item.place.name}: ${item.discountText}`} onDelete={busyAction ? undefined : () => deleteDiscount(item.place.id)} />)}</Stack> : <Typography color="text.secondary" fontSize={13}>{isArabic ? 'لا توجد خصومات مخصصة لهذا العضو.' : 'No custom discounts for this member yet.'}</Typography>}
+              {discounts.length ? <Stack direction="row" spacing={.75} flexWrap="wrap" useFlexGap>{discounts.map((item) => <Chip key={item.id} label={`${item.place.name}: ${item.discountText}`} onDelete={busyAction ? undefined : () => deleteDiscount(item.place.id)} />)}</Stack> : <Typography color="text.secondary" fontSize={13}>{t('adm_244')}</Typography>}
             </div>
           </section>
           <section className="rg-user-form-section">
             <div className="rg-user-section-heading rg-user-activity-heading">
-              <Box><Typography fontWeight={950}>{t('userActivityLogs')}</Typography><Typography color="text.secondary" fontSize={12}>{isArabic ? 'آخر نشاطات الحساب.' : 'Recent account activity.'}</Typography></Box>
-              <Button type="button" size="small" onClick={() => void loadDetails()} startIcon={busyAction === 'details' ? <CircularProgress size={16} /> : <HistoryRoundedIcon />} disabled={busyAction !== null}>{isArabic ? 'تحديث السجل' : 'Refresh'}</Button>
+              <Box><Typography fontWeight={950}>{t('userActivityLogs')}</Typography><Typography color="text.secondary" fontSize={12}>{t('adm_245')}</Typography></Box>
+              <Button type="button" size="small" onClick={() => void loadDetails()} startIcon={busyAction === 'details' ? <CircularProgress size={16} /> : <HistoryRoundedIcon />} disabled={busyAction !== null}>{t('adm_246')}</Button>
             </div>
-            {logs.length ? <Box className="rg-user-log-panel">{logs.map((log) => <Box key={log.id} className="rg-user-log-entry"><Typography fontSize={12} fontWeight={800}>{log.action}</Typography><Typography color="text.secondary" fontSize={11}>{new Date(log.createdAt).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-GB')}</Typography></Box>)}</Box> : <Typography className="rg-user-empty-state" color="text.secondary" fontSize={13}>{isArabic ? 'حدّث السجل لعرض نشاط هذا الحساب.' : 'Refresh the activity log to see this account’s recent activity.'}</Typography>}
+            {logs.length ? <Box className="rg-user-log-panel">{logs.map((log) => <Box key={log.id} className="rg-user-log-entry"><Typography fontSize={12} fontWeight={800}>{log.action}</Typography><Typography color="text.secondary" fontSize={11}>{new Date(log.createdAt).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-GB')}</Typography></Box>)}</Box> : <Typography className="rg-user-empty-state" color="text.secondary" fontSize={13}>{t('adm_247')}</Typography>}
           </section>
         </>}
         {editTab === 'profile' && <Stack direction="row" spacing={1} className="rg-user-editor-footer">
           <Button className="rg-royal-button" type="button" fullWidth variant="contained" onClick={() => void saveUser()} startIcon={busyAction === 'save' ? <CircularProgress size={18} color="inherit" /> : <SaveRoundedIcon />} disabled={busyAction !== null}>
-            {busyAction === 'save' ? (isArabic ? 'جارٍ الحفظ…' : 'Saving…') : t('save')}
+            {busyAction === 'save' ? (t('adm_248')) : t('save')}
           </Button>
-          <Button type="button" variant="outlined" onClick={closePanel}>{isArabic ? 'إغلاق' : 'Close'}</Button>
+          <Button type="button" variant="outlined" onClick={closePanel}>{t('adm_249')}</Button>
         </Stack>}
       </Stack>}
     </AdminSidePanel>
 
-    <AdminSidePanel open={panel === 'tools'} anchor={drawerAnchor} onClose={closePanel} title={isArabic ? 'إغلاق أدوات الاستيراد' : 'Close import tools'}>
+    <AdminSidePanel open={panel === 'tools'} anchor={drawerAnchor} onClose={closePanel} title={t('adm_250')}>
       <Stack spacing={1.5} className="rg-admin-edit-drawer" sx={{ p: { xs: 2, sm: 3 } }}>
-        <Typography variant="h5" fontWeight={950}>{isArabic ? 'استيراد مستخدمين CSV' : 'Import users CSV'}</Typography>
+        <Typography variant="h5" fontWeight={950}>{t('adm_251')}</Typography>
         <Typography color="text.secondary" fontSize={13}>name, idNumber, password, membershipClass, vip</Typography>
-        <Button component="a" href="/api/admin/users/import" download variant="outlined" color="secondary" startIcon={<FileDownloadRoundedIcon />}>{isArabic ? 'تنزيل قالب CSV جاهز' : 'Download ready CSV template'}</Button>
-        <AdminTextField label={isArabic ? 'صلاحية الكروت' : 'Card validity'} type="date" value={csvValidUntil} onChange={(e) => setCsvValidUntil(e.target.value)} InputLabelProps={{ shrink: true }} />
+        <Button component="a" href="/api/admin/users/import" download variant="outlined" color="secondary" startIcon={<FileDownloadRoundedIcon />}>{t('adm_164')}</Button>
+        <AdminTextField label={t('adm_252')} type="date" value={csvValidUntil} onChange={(e) => setCsvValidUntil(e.target.value)} InputLabelProps={{ shrink: true }} />
         <Button component="label" variant="outlined" startIcon={<UploadFileRoundedIcon />} disabled={busyAction !== null}>{csvFile?.name || 'CSV'}<input hidden type="file" accept=".csv,text/csv" onChange={(event) => setCsvFile(event.target.files?.[0] || null)} /></Button>
-        <Button type="button" variant="contained" disabled={!csvFile || busyAction !== null} onClick={() => void importCsv()} startIcon={busyAction === 'import' ? <CircularProgress size={18} color="inherit" /> : <UploadFileRoundedIcon />}>{busyAction === 'import' ? (isArabic ? 'جارٍ الاستيراد…' : 'Importing…') : (isArabic ? 'استيراد' : 'Import')}</Button>
-        <Button type="button" variant="text" onClick={closePanel} startIcon={<CloseRoundedIcon />}>{isArabic ? 'إغلاق' : 'Close'}</Button>
+        <Button type="button" variant="contained" disabled={!csvFile || busyAction !== null} onClick={() => void importCsv()} startIcon={busyAction === 'import' ? <CircularProgress size={18} color="inherit" /> : <UploadFileRoundedIcon />}>{busyAction === 'import' ? (t('adm_253')) : (t('adm_165'))}</Button>
+        <Button type="button" variant="text" onClick={closePanel} startIcon={<CloseRoundedIcon />}>{t('adm_249')}</Button>
       </Stack>
     </AdminSidePanel>
 
@@ -591,10 +590,10 @@ export default function AdminUsersClient() {
     </Snackbar>
     <ConfirmActionDialog
       open={Boolean(pendingDelete)}
-      title={isArabic ? 'تأكيد حذف المستخدم' : 'Confirm user deletion'}
+      title={t('adm_254')}
       description={pendingDelete ? (isArabic ? `سيتم حذف المستخدم ${pendingDelete.fullName} نهائيًا.` : `This permanently deletes ${pendingDelete.fullName}.`) : ''}
-      confirmLabel={isArabic ? 'حذف المستخدم' : 'Delete user'}
-      cancelLabel={isArabic ? 'إلغاء' : 'Cancel'}
+      confirmLabel={t('adm_255')}
+      cancelLabel={t('adm_80')}
       onClose={() => setPendingDelete(null)}
       onConfirm={confirmDeleteUser}
     />
