@@ -7,6 +7,7 @@ import { json, requireApiSession, unauthorized } from '@/lib/api';
 import { adminHasPermission } from '@/lib/admin-auth';
 import { safeInt } from '@/lib/security';
 import { writeAuditLog } from '@/lib/audit';
+import { autoFitLogo } from '@/lib/logo-fit';
 
 export const runtime = 'nodejs';
 
@@ -42,8 +43,13 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
   const dir = uploadsPath('new-arrivals');
   await mkdir(dir, { recursive: true });
-  const filename = `${id}-${Date.now()}.${ext}`;
-  await writeFile(path.join(dir, filename), Buffer.from(await file.arrayBuffer()));
+  const originalBytes = Buffer.from(await file.arrayBuffer());
+  // Auto-fit: trim the blank/uniform border so the logo fills and centers nicely.
+  const fitted = await autoFitLogo(originalBytes);
+  const finalBytes = fitted || originalBytes;
+  const finalExt = fitted ? 'png' : ext;
+  const filename = `${id}-${Date.now()}.${finalExt}`;
+  await writeFile(path.join(dir, filename), finalBytes);
 
   const logoUrl = `/uploads/new-arrivals/${filename}`;
   const data = await prisma.newArrival.update({ where: { id }, data: { logoUrl } });
