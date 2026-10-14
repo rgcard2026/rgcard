@@ -145,6 +145,30 @@ export function applyDesignSettings(settings: DesignSettings, requestedMode?: 'l
     '--ui-banner-image',
     settings.designLoginBannerImageEnabled && settings.designLoginBannerImageUrl ? `url("${settings.designLoginBannerImageUrl}")` : 'none'
   );
+
+  // New Arrival / Coming Soon ticker (offers page).
+  root.dataset.uiArrivals = settings.designArrivalEnabled === false ? 'off' : 'on';
+  if (settings.designArrivalBannerMaxWidth !== undefined) set('--ui-arrivals-maxw', `${Math.max(40, Math.min(100, Number(settings.designArrivalBannerMaxWidth) || 100))}%`);
+  set('--ui-arrivals-radius', px(settings.designArrivalBannerRadius));
+  set('--ui-arrival-w', px(settings.designArrivalTileWidth));
+  set('--ui-arrival-h', px(settings.designArrivalTileHeight));
+  set('--ui-arrival-radius', px(settings.designArrivalTileRadius));
+  set('--ui-arrival-gap', px(settings.designArrivalTileGap));
+  const arrivalColorVars: Array<[string, keyof StoredDesignSettings]> = [
+    ['--ui-arrivals-bg', 'designArrivalBannerBg'],
+    ['--ui-arrivals-border', 'designArrivalBannerBorder'],
+    ['--ui-arrivals-title', 'designArrivalTitleColor'],
+    ['--ui-arrivals-sub', 'designArrivalSubtitleColor'],
+    ['--ui-arrival-face-bg', 'designArrivalTileBg'],
+    ['--ui-arrival-face-border', 'designArrivalTileBorder'],
+    ['--ui-arrival-name', 'designArrivalNameColor'],
+  ];
+  if (settings.designArrivalCustomColors) {
+    arrivalColorVars.forEach(([cssVar, key]) => set(cssVar, settings[key] as string));
+  } else {
+    // Inherit the theme tokens (works in both light and dark modes).
+    arrivalColorVars.forEach(([cssVar]) => root.style.removeProperty(cssVar));
+  }
 }
 
 export default function DesignThemeRuntime() {

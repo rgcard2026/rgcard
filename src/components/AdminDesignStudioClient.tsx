@@ -451,6 +451,70 @@ export default function AdminDesignStudioClient() {
 
             <Card className="rg-panel-card rg-design-studio-editor-card">
               <CardContent>
+                <Typography variant="h5" fontWeight={950}>بانر «وصل حديثًا / قريبًا»</Typography>
+                <Typography color="text.secondary" fontSize={13} sx={{ mt: 0.5 }}>
+                  تحكّم كامل في بانر وصل حديثًا الظاهر في صفحة العروض: العرض والارتفاع والانحناء والمسافات والألوان، مع إمكانية إظهاره أو إخفائه. التغييرات تظهر مباشرة في المعاينة وتُحفظ مع التصميم.
+                </Typography>
+
+                <Box className="ui-root" sx={{ mt: 2, mb: 1, p: 1.5, borderRadius: 2, bgcolor: 'rgba(0,0,0,.14)' }}>
+                  <div className="ui-arrivals" aria-hidden="true">
+                    <div className="ui-arrivals-label">
+                      <strong>وصل حديثًا</strong>
+                      <span>أحدث العلامات في الشبكة</span>
+                    </div>
+                    <div className="ui-arrivals-viewport">
+                      <div className="ui-arrivals-track">
+                        <div className="ui-arrivals-group">
+                          {[0, 1, 2, 3, 4].map((index) => (
+                            <span key={index} className="ui-arrival"><span className="ui-arrival-inner"><span className="ui-arrival-face"><span className="ui-arrival-mark" /></span></span></span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Box>
+
+                <Stack spacing={1} sx={{ mt: 1 }}>
+                  <AdminActionToggle checked={settings.designArrivalEnabled} onChange={(checked) => update('designArrivalEnabled', checked)} label="إظهار البانر في صفحة العروض" />
+                </Stack>
+
+                <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                  <Grid item xs={12} sm={6}><RangeField label="عرض البانر" value={settings.designArrivalBannerMaxWidth} min={40} max={100} suffix="%" onChange={(value) => update('designArrivalBannerMaxWidth', value)} /></Grid>
+                  <Grid item xs={12} sm={6}><RangeField label="انحناء حواف البانر" value={settings.designArrivalBannerRadius} min={0} max={60} onChange={(value) => update('designArrivalBannerRadius', value)} /></Grid>
+                  <Grid item xs={12} sm={6}><RangeField label="عرض البطاقة" value={settings.designArrivalTileWidth} min={80} max={280} onChange={(value) => update('designArrivalTileWidth', value)} /></Grid>
+                  <Grid item xs={12} sm={6}><RangeField label="ارتفاع البطاقة (وارتفاع البانر)" value={settings.designArrivalTileHeight} min={50} max={200} onChange={(value) => update('designArrivalTileHeight', value)} /></Grid>
+                  <Grid item xs={12} sm={6}><RangeField label="انحناء حواف البطاقة" value={settings.designArrivalTileRadius} min={0} max={40} onChange={(value) => update('designArrivalTileRadius', value)} /></Grid>
+                  <Grid item xs={12} sm={6}><RangeField label="المسافة بين البطاقات" value={settings.designArrivalTileGap} min={4} max={40} onChange={(value) => update('designArrivalTileGap', value)} /></Grid>
+                </Grid>
+
+                <Stack spacing={1} sx={{ mt: 1.5 }}>
+                  <AdminActionToggle checked={settings.designArrivalCustomColors} onChange={(checked) => update('designArrivalCustomColors', checked)} label="استخدام ألوان مخصصة للبانر (بدلًا من ألوان النظام)" />
+                </Stack>
+                {settings.designArrivalCustomColors && (
+                  <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
+                    {([
+                      ['designArrivalBannerBg', 'خلفية البانر'],
+                      ['designArrivalBannerBorder', 'حدود البانر'],
+                      ['designArrivalTitleColor', 'لون العنوان'],
+                      ['designArrivalSubtitleColor', 'لون الوصف'],
+                      ['designArrivalTileBg', 'خلفية البطاقة'],
+                      ['designArrivalTileBorder', 'حدود البطاقة'],
+                      ['designArrivalNameColor', 'لون اسم العلامة'],
+                    ] as Array<[keyof DesignState, string]>).map(([key, label]) => (
+                      <Grid item xs={12} sm={6} md={4} key={key}>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <Box component="input" type="color" value={String(settings[key])} onChange={(event) => update(key, event.target.value as never)} sx={{ width: 48, height: 44, border: 0, bgcolor: 'transparent', cursor: 'pointer' }} />
+                          <AdminTextField noExpand fullWidth label={label} value={String(settings[key])} onChange={(event) => update(key, event.target.value as never)} />
+                        </Stack>
+                      </Grid>
+                    ))}
+                  </Grid>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="rg-panel-card rg-design-studio-editor-card">
+              <CardContent>
                 <Typography variant="h5" fontWeight={950}>شفافية ومقاسات عناصر الواجهة</Typography>
                 <Typography color="text.secondary" fontSize={13} sx={{ mt: 0.5 }}>
                   تتحكم هذه الإعدادات في العناصر المشتركة على الموقع. الارتفاع صفر يعني استخدام الارتفاع التلقائي.

@@ -70,7 +70,23 @@ export const DESIGN_DEFAULTS = {
   designLoginBannerOpacity: 100,
   designLoginBannerContentAlign: 'center',
   designLoginBannerImageUrl: '',
-  designLoginBannerImageEnabled: false
+  designLoginBannerImageEnabled: false,
+  // New Arrival / Coming Soon ticker on the offers page.
+  designArrivalEnabled: true,
+  designArrivalBannerMaxWidth: 100, // % of container width
+  designArrivalBannerRadius: 24, // px
+  designArrivalTileWidth: 136, // px
+  designArrivalTileHeight: 84, // px
+  designArrivalTileRadius: 14, // px
+  designArrivalTileGap: 12, // px between tiles
+  designArrivalCustomColors: false,
+  designArrivalBannerBg: '#FFFFFF',
+  designArrivalBannerBorder: '#E7E1D4',
+  designArrivalTitleColor: '#A97F3A',
+  designArrivalSubtitleColor: '#77736A',
+  designArrivalTileBg: '#FBF9F4',
+  designArrivalTileBorder: '#E7E1D4',
+  designArrivalNameColor: '#8A6A2F'
 };
 
 export type DesignSettings = typeof DESIGN_DEFAULTS;

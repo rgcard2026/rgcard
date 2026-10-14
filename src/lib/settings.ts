@@ -264,6 +264,21 @@ function designSettingsFromMap(map: Record<string, string>) {
       : DESIGN_DEFAULTS.designLoginBannerContentAlign,
     designLoginBannerImageUrl: cleanLoginBannerImageUrl(map.designLoginBannerImageUrl),
     designLoginBannerImageEnabled: boolSetting(map.designLoginBannerImageEnabled, false),
+    designArrivalEnabled: boolSetting(map.designArrivalEnabled, DESIGN_DEFAULTS.designArrivalEnabled),
+    designArrivalBannerMaxWidth: intSetting(map.designArrivalBannerMaxWidth, DESIGN_DEFAULTS.designArrivalBannerMaxWidth, 40, 100),
+    designArrivalBannerRadius: intSetting(map.designArrivalBannerRadius, DESIGN_DEFAULTS.designArrivalBannerRadius, 0, 60),
+    designArrivalTileWidth: intSetting(map.designArrivalTileWidth, DESIGN_DEFAULTS.designArrivalTileWidth, 80, 280),
+    designArrivalTileHeight: intSetting(map.designArrivalTileHeight, DESIGN_DEFAULTS.designArrivalTileHeight, 50, 200),
+    designArrivalTileRadius: intSetting(map.designArrivalTileRadius, DESIGN_DEFAULTS.designArrivalTileRadius, 0, 40),
+    designArrivalTileGap: intSetting(map.designArrivalTileGap, DESIGN_DEFAULTS.designArrivalTileGap, 4, 40),
+    designArrivalCustomColors: boolSetting(map.designArrivalCustomColors, DESIGN_DEFAULTS.designArrivalCustomColors),
+    designArrivalBannerBg: cleanHexColor(map.designArrivalBannerBg, DESIGN_DEFAULTS.designArrivalBannerBg),
+    designArrivalBannerBorder: cleanHexColor(map.designArrivalBannerBorder, DESIGN_DEFAULTS.designArrivalBannerBorder),
+    designArrivalTitleColor: cleanHexColor(map.designArrivalTitleColor, DESIGN_DEFAULTS.designArrivalTitleColor),
+    designArrivalSubtitleColor: cleanHexColor(map.designArrivalSubtitleColor, DESIGN_DEFAULTS.designArrivalSubtitleColor),
+    designArrivalTileBg: cleanHexColor(map.designArrivalTileBg, DESIGN_DEFAULTS.designArrivalTileBg),
+    designArrivalTileBorder: cleanHexColor(map.designArrivalTileBorder, DESIGN_DEFAULTS.designArrivalTileBorder),
+    designArrivalNameColor: cleanHexColor(map.designArrivalNameColor, DESIGN_DEFAULTS.designArrivalNameColor),
   };
 }
 
@@ -677,6 +692,21 @@ type AdminSettingInput = {
   designLoginBannerContentAlign?: unknown;
   designLoginBannerImageUrl?: unknown;
   designLoginBannerImageEnabled?: unknown;
+  designArrivalEnabled?: unknown;
+  designArrivalBannerMaxWidth?: unknown;
+  designArrivalBannerRadius?: unknown;
+  designArrivalTileWidth?: unknown;
+  designArrivalTileHeight?: unknown;
+  designArrivalTileRadius?: unknown;
+  designArrivalTileGap?: unknown;
+  designArrivalCustomColors?: unknown;
+  designArrivalBannerBg?: unknown;
+  designArrivalBannerBorder?: unknown;
+  designArrivalTitleColor?: unknown;
+  designArrivalSubtitleColor?: unknown;
+  designArrivalTileBg?: unknown;
+  designArrivalTileBorder?: unknown;
+  designArrivalNameColor?: unknown;
 };
 
 export async function saveAdminSettings(values: AdminSettingInput) {
@@ -1015,6 +1045,38 @@ export async function saveAdminSettings(values: AdminSettingInput) {
           ? String(values.designLoginBannerContentAlign)
           : DESIGN_DEFAULTS.designLoginBannerContentAlign,
       });
+  }
+  if (values.designArrivalEnabled !== undefined)
+    updates.push({ key: "designArrivalEnabled", value: boolSetting(String(values.designArrivalEnabled), true) ? "true" : "false" });
+  if (values.designArrivalCustomColors !== undefined)
+    updates.push({ key: "designArrivalCustomColors", value: boolSetting(String(values.designArrivalCustomColors), false) ? "true" : "false" });
+  const arrivalNumberFields: Array<[keyof AdminSettingInput, string, number, number, number]> = [
+    ["designArrivalBannerMaxWidth", "designArrivalBannerMaxWidth", DESIGN_DEFAULTS.designArrivalBannerMaxWidth, 40, 100],
+    ["designArrivalBannerRadius", "designArrivalBannerRadius", DESIGN_DEFAULTS.designArrivalBannerRadius, 0, 60],
+    ["designArrivalTileWidth", "designArrivalTileWidth", DESIGN_DEFAULTS.designArrivalTileWidth, 80, 280],
+    ["designArrivalTileHeight", "designArrivalTileHeight", DESIGN_DEFAULTS.designArrivalTileHeight, 50, 200],
+    ["designArrivalTileRadius", "designArrivalTileRadius", DESIGN_DEFAULTS.designArrivalTileRadius, 0, 40],
+    ["designArrivalTileGap", "designArrivalTileGap", DESIGN_DEFAULTS.designArrivalTileGap, 4, 40],
+  ];
+  for (const [inputKey, storageKey, fallback, min, max] of arrivalNumberFields) {
+    const value = values[inputKey];
+    if (value !== undefined) updates.push({ key: storageKey, value: String(intSetting(String(value), fallback, min, max)) });
+  }
+  const arrivalColorFields: Array<[keyof AdminSettingInput, string]> = [
+    ["designArrivalBannerBg", "designArrivalBannerBg"],
+    ["designArrivalBannerBorder", "designArrivalBannerBorder"],
+    ["designArrivalTitleColor", "designArrivalTitleColor"],
+    ["designArrivalSubtitleColor", "designArrivalSubtitleColor"],
+    ["designArrivalTileBg", "designArrivalTileBg"],
+    ["designArrivalTileBorder", "designArrivalTileBorder"],
+    ["designArrivalNameColor", "designArrivalNameColor"],
+  ];
+  for (const [inputKey, storageKey] of arrivalColorFields) {
+    const value = values[inputKey];
+    if (value !== undefined) {
+      const fallback = DESIGN_DEFAULTS[storageKey as keyof typeof DESIGN_DEFAULTS] as string;
+      updates.push({ key: storageKey, value: cleanHexColor(value, fallback) });
+    }
   }
   if (values.uiTextOverrides !== undefined)
     updates.push({ key: "uiTextOverrides", value: cleanUiTextOverrides(values.uiTextOverrides) });
