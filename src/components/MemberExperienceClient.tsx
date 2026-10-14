@@ -114,7 +114,7 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
                     <span className="ui-gold-text">{firstName}</span>
                   </motion.h1>
                   <motion.p className="ui-lead" {...fade(0.2)}>
-                    {isArabic ? 'بطاقتك الرقمية جاهزة. اعرضها في أي مكان من شبكة RG-Card لتحصل على خصمك فورًا.' : 'Your digital card is ready. Show it anywhere in the RG-Card network to redeem your discount instantly.'}
+                    {isArabic ? 'بطاقتك الرقمية جاهزة. اعرضها في أي مكان من أعضاء RG-Card لتحصل على خصمك فورًا.' : 'Your digital card is ready. Show it anywhere in the RG-Card network to redeem your discount instantly.'}
                   </motion.p>
                   <motion.dl className="ui-member-meta" {...fade(0.28)}>
                     <div><dt>{isArabic ? 'رقم البطاقة' : 'Card number'}</dt><dd className="ui-ltr">{cardNumber}</dd></div>

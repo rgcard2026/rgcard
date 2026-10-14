@@ -10,7 +10,6 @@ import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded';
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import AdminPanelSettingsRoundedIcon from '@mui/icons-material/AdminPanelSettingsRounded';
 import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
-import CreditCardRoundedIcon from '@mui/icons-material/CreditCardRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
@@ -18,7 +17,6 @@ import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
 import PaletteRoundedIcon from '@mui/icons-material/PaletteRounded';
-import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import PreferenceButtons from './ui/PreferenceButtons';
 import { useUiPreferences } from './UiPreferences';
 
@@ -90,8 +88,6 @@ export default function AdminShell({ children, title }: { children: React.ReactN
     ] },
     { label: ar ? 'التصميم والإعدادات' : 'Design & settings', items: [
       { href: '/admin/design', label: t('designStudio'), icon: <PaletteRoundedIcon />, permission: 'SETTINGS' },
-      { href: '/admin/card-design', label: t('cardDesign'), icon: <CreditCardRoundedIcon />, permission: 'SETTINGS' },
-      { href: '/admin/card-settings', label: t('appCardSettings'), icon: <TuneRoundedIcon />, permission: 'SETTINGS' },
       { href: '/admin/settings', label: t('accountSecurity'), icon: <SettingsRoundedIcon /> }
     ] }
   ].map((g) => ({ ...g, items: g.items.filter((item) => !loadingMe && canAccess(me, item.permission)) })).filter((g) => g.items.length || loadingMe);

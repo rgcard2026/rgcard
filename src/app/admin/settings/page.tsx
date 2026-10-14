@@ -7,6 +7,8 @@ import { Alert, Button, Card, CardContent, CircularProgress, IconButton, InputAd
 import VisibilityRoundedIcon from '@mui/icons-material/VisibilityRounded';
 import VisibilityOffRoundedIcon from '@mui/icons-material/VisibilityOffRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
+import AdminSystemStatusCard from '@/components/AdminSystemStatusCard';
+import AdminAppSettingsCard from '@/components/AdminAppSettingsCard';
 
 async function readBody(response: Response) {
   const text = await response.text();
@@ -55,11 +57,13 @@ export default function AdminSettingsPage() {
 
   return (
     <AdminShell title="إعدادات الحساب والأمان">
-      <Card className="rg-panel-card" sx={{ maxWidth: 720, mx: 'auto' }}>
+      <Stack spacing={2.5} sx={{ maxWidth: 980, mx: 'auto' }}>
+      <AdminSystemStatusCard />
+      <AdminAppSettingsCard />
+      <Card className="rg-panel-card">
         <CardContent sx={{ p: { xs: 2, md: 3 } }}>
           <Stack component="form" onSubmit={savePassword} spacing={2}>
             <Typography variant="h5" fontWeight={950}>تغيير كلمة مرور الأدمن</Typography>
-            <Typography color="text.secondary">تم فصل إعدادات التطبيق والكارت في صفحة مستقلة داخل لوحة التحكم.</Typography>
             {msg && <Alert severity={msg.includes('تعذر') ? 'error' : 'success'}>{msg}</Alert>}
             <AdminTextField noExpand label="كلمة المرور الحالية" type={show ? 'text' : 'password'} value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} required InputProps={{ endAdornment }} />
             <AdminTextField noExpand label="كلمة المرور الجديدة" type={show ? 'text' : 'password'} value={newPassword} onChange={(event) => setNewPassword(event.target.value)} required InputProps={{ endAdornment }} />
@@ -69,6 +73,7 @@ export default function AdminSettingsPage() {
           </Stack>
         </CardContent>
       </Card>
+      </Stack>
     </AdminShell>
   );
 }

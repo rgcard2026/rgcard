@@ -322,6 +322,7 @@ export default function AdminPlacesClient({ categories: initialCategories, gover
 
     <Drawer anchor={drawerAnchor} open={panel === 'edit'} onClose={() => setPanel(null)} PaperProps={{ className: 'rg-admin-edit-drawer', sx: { width: { xs: '100%', sm: 520 }, maxWidth: '100vw' } }}>
       {selected && <Stack spacing={2} sx={{ p: { xs: 2, sm: 3 }, minHeight: '100%' }}>
+        {msg && <Alert severity={/تعذر|Unable|failed|رفض|مطلوب|required/.test(msg) ? 'error' : 'success'} onClose={() => setMsg('')} sx={{ fontWeight: 800 }}>{msg}</Alert>}
         <Stack direction="row" justifyContent="space-between" alignItems="center"><Box><Typography variant="h5" fontWeight={950}>{t('edit')}</Typography><Typography color="text.secondary">{selected.name}</Typography></Box><IconButton onClick={() => setPanel(null)}><MoreHorizRoundedIcon /></IconButton></Stack>
         <Box className="rg-admin-drawer-logo">{edit.logoUrl || selected.logoUrl ? <Box component="img" src={String(edit.logoUrl || selected.logoUrl)} alt={selected.name} /> : initials(selected.name)}</Box>
         <Button disabled={logoBusy} component="label" variant="outlined" startIcon={<UploadFileRoundedIcon />}>{logoBusy ? (isArabic ? 'جاري رفع اللوجو...' : 'Uploading logo...') : (isArabic ? 'تغيير اللوجو' : 'Change logo')}<input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { const file = event.target.files?.[0]; if (file) uploadLogo(selected, file); event.currentTarget.value = ''; }} /></Button>
@@ -364,6 +365,7 @@ export default function AdminPlacesClient({ categories: initialCategories, gover
     <Drawer anchor={drawerAnchor} open={panel === 'create'} onClose={() => setPanel(null)} PaperProps={{ className: 'rg-admin-edit-drawer', sx: { width: { xs: '100%', sm: 500 }, maxWidth: '100vw' } }}>
       <Stack component="form" onSubmit={createPlace} spacing={1.5} sx={{ p: { xs: 2, sm: 3 } }}>
         <Typography variant="h5" fontWeight={950}>{t('createPlace')}</Typography>
+        {msg && <Alert severity={/تعذر|Unable|failed|رفض|مطلوب|required/.test(msg) ? 'error' : 'success'} onClose={() => setMsg('')} sx={{ fontWeight: 800 }}>{msg}</Alert>}
         <AdminTextField label={isArabic ? 'اسم المكان' : 'Place name'} value={createForm.name} onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })} required />
         <AdminTextField label={isArabic ? 'نص الخصم' : 'Discount text'} value={createForm.discount} onChange={(e) => setCreateForm({ ...createForm, discount: e.target.value })} required />
         <AdminTextField label={isArabic ? 'الوصف' : 'Description'} multiline minRows={3} value={createForm.description} onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })} />

@@ -125,6 +125,7 @@ export default function AdminNewArrivalsClient() {
     <Drawer anchor={drawerAnchor} open={panel === 'create' || panel === 'edit'} onClose={() => setPanel(null)} PaperProps={{ className: 'rg-admin-edit-drawer', sx: { width: { xs: '100%', sm: 500 }, maxWidth: '100vw' } }}>
       <Stack component="form" onSubmit={panel === 'create' ? createItem : (e) => { e.preventDefault(); saveItem(); }} spacing={1.5} sx={{ p: { xs: 2, sm: 3 } }}>
         <Typography variant="h5" fontWeight={950}>{panel === 'create' ? t('addArrival') : t('edit')}</Typography>
+        {msg && <Alert severity={/تعذر|Unable|failed/.test(msg) ? 'error' : 'success'} onClose={() => setMsg('')} sx={{ fontWeight: 800 }}>{msg}</Alert>}
         {selected && panel === 'edit' && <Box className="rg-admin-drawer-logo">{selected.logoUrl ? <Box component="img" src={selected.logoUrl} alt={selected.title} /> : initials(selected.title)}</Box>}
         <AdminTextField label={isArabic ? 'اسم داخلي' : 'Internal title'} value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} required />
         <AdminTextField label={isArabic ? 'الرابط الخارجي' : 'External link'} value={draft.targetUrl} onChange={(e) => setDraft({ ...draft, targetUrl: e.target.value })} required helperText="https://..." />
