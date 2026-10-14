@@ -30,6 +30,21 @@ export default function AdminNewArrivalsClient() {
   const [newLogo, setNewLogo] = React.useState<File | null>(null);
   const [selectedIds, setSelectedIds] = React.useState<Set<number>>(new Set());
   const [bulkBusy, setBulkBusy] = React.useState(false);
+  const [refitBusy, setRefitBusy] = React.useState(false);
+  async function refitLogos() {
+    if (refitBusy) return;
+    setRefitBusy(true);
+    try {
+      const res = await fetch('/api/admin/new-arrivals/refit-logos', { method: 'POST' });
+      const body = await readJson(res);
+      setMsg(res.ok ? (body.message || (isArabic ? 'تم تحسين اللوجوهات' : 'Logos refitted')) : (body.message || (isArabic ? 'تعذر تحسين اللوجوهات' : 'Unable to refit logos')));
+      if (res.ok) await load();
+    } catch {
+      setMsg(isArabic ? 'تعذر الاتصال بالخادم' : 'Unable to reach the server');
+    } finally {
+      setRefitBusy(false);
+    }
+  }
   const [page, setPage] = React.useState(1); const pageSize = 12;
 
   const load = React.useCallback(async () => {
@@ -83,7 +98,10 @@ export default function AdminNewArrivalsClient() {
     <Card className="rg-panel-card rg-admin-directory-header"><CardContent sx={{ p: { xs: 2, sm: 2.7 } }}>
       <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1.5} alignItems={{ xs: 'stretch', md: 'center' }}>
         <Box><Stack direction="row" spacing={1} alignItems="center"><AutoAwesomeRoundedIcon color="secondary" /><Typography variant="h5" fontWeight={950}>{t('arrivals')}</Typography></Stack><Typography color="text.secondary" fontSize={13} sx={{ mt: .5 }}>{t('newArrivalInfo')}</Typography></Box>
-        <Button className="rg-royal-button" variant="contained" startIcon={<AddRoundedIcon />} onClick={() => { setDraft({ title: '', targetUrl: '', isActive: true }); setNewLogo(null); setPanel('create'); }}>{t('addArrival')}</Button>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+          <Button variant="outlined" disabled={refitBusy} onClick={refitLogos}>{refitBusy ? (isArabic ? 'جارٍ التحسين…' : 'Refitting…') : (isArabic ? 'ضبط كل اللوجوهات' : 'Re-fit all logos')}</Button>
+          <Button className="rg-royal-button" variant="contained" startIcon={<AddRoundedIcon />} onClick={() => { setDraft({ title: '', targetUrl: '', isActive: true }); setNewLogo(null); setPanel('create'); }}>{t('addArrival')}</Button>
+        </Stack>
       </Stack>
       <Stack direction="row" alignItems="center" spacing={.75} flexWrap="wrap" useFlexGap sx={{ mt: 1.5 }}>
         <FormControlLabel

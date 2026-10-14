@@ -864,11 +864,11 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
   .ui-place-hero { grid-template-columns: auto minmax(0, 1fr); }
   .ui-discount { grid-column: 1 / -1; grid-auto-flow: column; justify-content: space-between; align-items: center; min-width: 0; }
   .ui-discount strong { max-width: none; }
-  .ui-place-grid { grid-template-columns: 1fr; }
+  .ui-place-grid { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 520px) {
-  .ui-place-hero { grid-template-columns: 1fr; justify-items: start; }
-  .ui-branch { grid-template-columns: 1fr; }
+  .ui-place-hero { grid-template-columns: minmax(0, 1fr); justify-items: start; }
+  .ui-branch { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* PDF preview */
@@ -906,3 +906,11 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
 .rg-popup-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 2px; }
 @keyframes rg-popup-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes rg-popup-pop { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+
+/* Mobile overflow safety: let panels shrink and long text wrap instead of
+   pushing the layout wider than the viewport. */
+.ui-panel { min-width: 0; }
+.ui-place-grid > * { min-width: 0; }
+.ui-desc, .ui-branch-name, .ui-offer p, .ui-offer-top strong { overflow-wrap: anywhere; word-break: break-word; }
+.ui-branch-addr { min-width: 0; }
+.ui-branch-addr span { overflow-wrap: anywhere; word-break: break-word; min-width: 0; }
