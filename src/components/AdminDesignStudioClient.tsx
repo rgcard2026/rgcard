@@ -289,6 +289,30 @@ export default function AdminDesignStudioClient() {
     }
   }
 
+  async function uploadCardTemplate(file?: File) {
+    if (!file || busy) return;
+    setBusy(true);
+    setNotice(null);
+    try {
+      const form = new FormData();
+      form.append('template', file);
+      const response = await fetch('/api/admin/card-design/template', { method: 'POST', body: form });
+      const body = await readJson(response);
+      if (!response.ok) {
+        setNotice({ text: body.message || 'تعذر رفع تصميم الكارت', severity: 'error' });
+        return;
+      }
+      const next = { ...defaults, ...settings, ...body.data } as DesignState;
+      setSettings(next);
+      applyDesignSettings(next);
+      setNotice({ text: 'تم رفع تصميم الكارت الجديد واعتماده بنجاح. تظهر نفس الصورة في المعاينة وملفات PDF.', severity: 'success' });
+    } catch {
+      setNotice({ text: 'تعذر الاتصال بالخادم أثناء رفع تصميم الكارت', severity: 'error' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const colors: Array<[keyof DesignState, string]> = [
     ['designPrimaryColor', 'اللون الأساسي'],
     ['designSecondaryColor', 'اللون الثانوي'],
@@ -482,6 +506,16 @@ export default function AdminDesignStudioClient() {
                     validUntil="2027-12-31"
                     layout={cardLayout}
                   />
+                </Box>
+                <Box sx={{ p: 2, mb: 2, borderRadius: 3, border: '1px solid rgba(214,166,79,.32)', bgcolor: 'rgba(214,166,79,.06)' }}>
+                  <Typography fontWeight={900}>رفع تصميم كارت جديد</Typography>
+                  <Typography color="text.secondary" fontSize={13} sx={{ mt: 0.5 }}>
+                    ارفع صورة PNG أو JPG بنفس مقاس التصميم الحالي 1573×1000 للحصول على أفضل نتيجة. تُطبّق نفس الصورة على المعاينة وملفات PDF فورًا.
+                  </Typography>
+                  <Button component="label" variant="contained" startIcon={<UploadFileRoundedIcon />} disabled={busy} sx={{ mt: 1.5 }}>
+                    اختيار ورفع التصميم
+                    <input hidden type="file" accept="image/png,image/jpeg" onChange={(event) => { uploadCardTemplate(event.target.files?.[0]); event.currentTarget.value = ''; }} />
+                  </Button>
                 </Box>
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>

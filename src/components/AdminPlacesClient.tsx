@@ -3,7 +3,7 @@
 import * as React from 'react';
 import AdminTextField from '@/components/AdminTextField';
 import AdminActionToggle from '@/components/AdminActionToggle';
-import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Divider, Drawer, FormControl, FormControlLabel, Grid, IconButton, InputLabel, MenuItem, Pagination, Select, Stack, Tooltip, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, Divider, Drawer, FormControl, FormControlLabel, Grid, IconButton, InputLabel, MenuItem, Pagination, Select, Snackbar, Stack, Tooltip, Typography } from '@mui/material';
 import AddBusinessRoundedIcon from '@mui/icons-material/AddBusinessRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import CategoryRoundedIcon from '@mui/icons-material/CategoryRounded';
@@ -107,7 +107,7 @@ export default function AdminPlacesClient({ categories: initialCategories, gover
     const res = await fetch(`/api/admin/places/${selected.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify((({ logoUrl: _logoUrl, ...payload }) => payload)(edit)) });
     const body = await readJson(res);
     if (!res.ok) return setMsg(body.message || (isArabic ? 'تعذر الحفظ' : 'Unable to save changes'));
-    setMsg(isArabic ? 'تم حفظ المكان' : 'Place saved');
+    setMsg(isArabic ? 'تم حفظ تعديلات المكان بنجاح' : 'Place changes saved successfully');
     await load();
     if (body.data) {
       setSelected(body.data);
@@ -155,7 +155,7 @@ export default function AdminPlacesClient({ categories: initialCategories, gover
       if (!res.ok) return setMsg(body.message || (isArabic ? 'تعذر إضافة المكان' : 'Unable to add place'));
       if (newLogo && body.data?.id) await uploadLogo(body.data, newLogo);
       setCreateForm({ ...createForm, name: '', discount: '', description: '', governorateIds: [], branchName: '', address: '', phone: '', mapUrl: '', exclusiveText: '' });
-      setNewLogo(null); setPanel(null); setMsg(isArabic ? 'تمت إضافة المكان' : 'Place added'); await load();
+      setNewLogo(null); setPanel(null); setMsg(isArabic ? 'تمت إضافة المكان وحفظه بنجاح' : 'Place added and saved successfully'); await load();
     } catch {
       setMsg(isArabic ? 'تعذر الاتصال بالخادم أثناء إضافة المكان' : 'Unable to reach the server while adding the place');
     }
@@ -289,7 +289,21 @@ export default function AdminPlacesClient({ categories: initialCategories, gover
       </Stack>
     </CardContent></Card>
 
-    {msg && <Alert severity={/تعذر|Unable|failed|رفض|Delete/.test(msg) ? 'error' : 'success'} sx={{ mt: 1.5 }}>{msg}</Alert>}
+    <Snackbar
+      open={!!msg}
+      autoHideDuration={/جاري|Uploading|Importing/.test(msg) ? null : 5000}
+      onClose={(_event, reason) => { if (reason !== 'clickaway') setMsg(''); }}
+      anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+    >
+      <Alert
+        variant="filled"
+        severity={/تعذر|Unable|failed|رفض|مطلوب|required/.test(msg) ? 'error' : 'success'}
+        onClose={() => setMsg('')}
+        sx={{ width: '100%', fontWeight: 900 }}
+      >
+        {msg}
+      </Alert>
+    </Snackbar>
     <Grid container spacing={1.5} className="rg-admin-directory-grid" sx={{ mt: .2 }}>
       {shown.map((place, index) => <Grid item xs={6} sm={4} md={3} lg={2} key={place.id}>
         <Card className="rg-admin-logo-card rg-logo-intro" style={{ '--rg-logo-delay': `${(index % 12) * 45}ms` } as React.CSSProperties}>
@@ -328,6 +342,10 @@ export default function AdminPlacesClient({ categories: initialCategories, gover
             {governorates.map((governorate) => <MenuItem key={governorate.id} value={governorate.id}><Checkbox checked={(edit.governorateIds || []).includes(governorate.id)} />{governorate.name}</MenuItem>)}
           </Select>
         </FormControl>
+        <Stack direction="row" spacing={1}>
+          <Button size="small" variant="outlined" onClick={() => setEdit({ ...edit, governorateIds: governorates.map((governorate) => governorate.id) })} disabled={(edit.governorateIds || []).length === governorates.length}>{isArabic ? 'اختيار كل المحافظات' : 'Select all governorates'}</Button>
+          <Button size="small" variant="text" color="inherit" onClick={() => setEdit({ ...edit, governorateIds: [] })} disabled={!(edit.governorateIds || []).length}>{isArabic ? 'مسح الكل' : 'Clear all'}</Button>
+        </Stack>
         <Typography color="text.secondary" fontSize={12}>{isArabic ? 'حدد كل المحافظات التي يتوفر فيها البراند دفعة واحدة. لا يتم حذف بيانات الفروع عند إزالة محافظة.' : 'Assign all governorates for this brand in one save. Branch records are never deleted when a governorate is unchecked.'}</Typography>
         <AdminActionToggle checked={Boolean(edit.isActive)} onChange={(checked) => setEdit({ ...edit, isActive: checked })} label={isArabic ? 'مفعل للمستخدمين' : 'Visible to users'} />
         <Stack direction="row" spacing={1} className="rg-admin-drawer-actions"><Button fullWidth variant="contained" startIcon={<SaveRoundedIcon />} onClick={saveSelected}>{t('save')}</Button><Button color="error" variant="outlined" onClick={removeSelected}>{t('delete')}</Button></Stack>
@@ -362,6 +380,10 @@ export default function AdminPlacesClient({ categories: initialCategories, gover
             {governorates.map((governorate) => <MenuItem key={governorate.id} value={governorate.id}><Checkbox checked={createForm.governorateIds.includes(governorate.id)} />{governorate.name}</MenuItem>)}
           </Select>
         </FormControl>
+        <Stack direction="row" spacing={1}>
+          <Button size="small" variant="outlined" onClick={() => setCreateForm({ ...createForm, governorateIds: governorates.map((governorate) => governorate.id) })} disabled={createForm.governorateIds.length === governorates.length}>{isArabic ? 'اختيار كل المحافظات' : 'Select all governorates'}</Button>
+          <Button size="small" variant="text" color="inherit" onClick={() => setCreateForm({ ...createForm, governorateIds: [] })} disabled={!createForm.governorateIds.length}>{isArabic ? 'مسح الكل' : 'Clear all'}</Button>
+        </Stack>
         <Button component="label" variant="outlined" startIcon={<UploadFileRoundedIcon />}>{newLogo?.name || (isArabic ? 'رفع لوجو' : 'Upload logo')}<input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setNewLogo(event.target.files?.[0] || null)} /></Button>
         <Divider /><Typography fontWeight={950}>{isArabic ? 'أول فرع (اختياري)' : 'First branch (optional)'}</Typography>
         <AdminTextField size="small" label={isArabic ? 'اسم الفرع' : 'Branch name'} value={createForm.branchName} onChange={(e) => setCreateForm({ ...createForm, branchName: e.target.value })} />

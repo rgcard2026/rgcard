@@ -5,7 +5,6 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { motion, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion';
 import LocalOfferRoundedIcon from '@mui/icons-material/LocalOfferRounded';
-import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import ThreeSixtyRoundedIcon from '@mui/icons-material/ThreeSixtyRounded';
@@ -92,7 +91,6 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
 
   const actions = [
     { href: '/offers', icon: <LocalOfferRoundedIcon />, title: t('viewOffers'), body: isArabic ? 'كل الأماكن والخصومات المتاحة لعضويتك، مع البحث بالمحافظة والفئة.' : 'Every place and discount available to you, filterable by governorate and category.' },
-    { href: '/member-card-pdf', icon: <PictureAsPdfRoundedIcon />, title: t('downloadPdf'), body: isArabic ? 'نسخة PDF من بطاقتك جاهزة للعرض عند الحاجة.' : 'A PDF copy of your card, ready whenever you need it.' },
     { href: supportLink, external: true, icon: <WhatsAppIcon />, title: t('whatsapp'), body: isArabic ? 'فريق الدعم متاح لأي استفسار بخصوص حسابك أو الخصومات.' : 'Our team is on hand for any question about your account or discounts.' }
   ];
 
@@ -125,7 +123,6 @@ export default function MemberExperienceClient({ name, cardNumber, isVip, member
                   </motion.dl>
                   <motion.div className="ui-member-actions" {...fade(0.36)}>
                     <Link href="/offers" className="ui-btn ui-btn--primary"><LocalOfferRoundedIcon />{t('viewOffers')}</Link>
-                    <Link href="/member-card-pdf" className="ui-btn ui-btn--ghost"><PictureAsPdfRoundedIcon />{t('downloadPdf')}</Link>
                   </motion.div>
                 </div>
 
