@@ -61,6 +61,23 @@ function cleanLoginBannerImageUrl(value: unknown) {
   return raw.startsWith("/uploads/design-login-banner/") ? raw : "";
 }
 
+function cleanPopupImageUrl(value: unknown) {
+  const raw = String(value || "").trim();
+  return raw.startsWith("/uploads/design-popup/") ? raw : "";
+}
+
+function cleanHttpsUrl(value: unknown) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return "";
+    return url.toString().slice(0, 500);
+  } catch {
+    return "";
+  }
+}
+
 function cleanText(value: unknown, fallback: string, maxLength: number) {
   const text = String(value ?? "").replace(/[\r\n]+/g, " ").trim().slice(0, maxLength);
   return text || fallback;
@@ -264,6 +281,11 @@ function designSettingsFromMap(map: Record<string, string>) {
       : DESIGN_DEFAULTS.designLoginBannerContentAlign,
     designLoginBannerImageUrl: cleanLoginBannerImageUrl(map.designLoginBannerImageUrl),
     designLoginBannerImageEnabled: boolSetting(map.designLoginBannerImageEnabled, false),
+    designPopupEnabled: boolSetting(map.designPopupEnabled, false),
+    designPopupTitle: cleanText(map.designPopupTitle, DESIGN_DEFAULTS.designPopupTitle, 120),
+    designPopupText: cleanText(map.designPopupText, DESIGN_DEFAULTS.designPopupText, 600),
+    designPopupImageUrl: cleanPopupImageUrl(map.designPopupImageUrl),
+    designPopupLinkUrl: cleanHttpsUrl(map.designPopupLinkUrl),
     designArrivalEnabled: boolSetting(map.designArrivalEnabled, DESIGN_DEFAULTS.designArrivalEnabled),
     designArrivalBannerMaxWidth: intSetting(map.designArrivalBannerMaxWidth, DESIGN_DEFAULTS.designArrivalBannerMaxWidth, 40, 100),
     designArrivalBannerRadius: intSetting(map.designArrivalBannerRadius, DESIGN_DEFAULTS.designArrivalBannerRadius, 0, 60),
@@ -693,6 +715,11 @@ type AdminSettingInput = {
   designLoginBannerContentAlign?: unknown;
   designLoginBannerImageUrl?: unknown;
   designLoginBannerImageEnabled?: unknown;
+  designPopupEnabled?: unknown;
+  designPopupTitle?: unknown;
+  designPopupText?: unknown;
+  designPopupImageUrl?: unknown;
+  designPopupLinkUrl?: unknown;
   designArrivalEnabled?: unknown;
   designArrivalBannerMaxWidth?: unknown;
   designArrivalBannerRadius?: unknown;
@@ -1048,6 +1075,16 @@ export async function saveAdminSettings(values: AdminSettingInput) {
           : DESIGN_DEFAULTS.designLoginBannerContentAlign,
       });
   }
+  if (values.designPopupEnabled !== undefined)
+    updates.push({ key: "designPopupEnabled", value: boolSetting(String(values.designPopupEnabled), false) ? "true" : "false" });
+  if (values.designPopupTitle !== undefined)
+    updates.push({ key: "designPopupTitle", value: cleanText(values.designPopupTitle, "", 120) });
+  if (values.designPopupText !== undefined)
+    updates.push({ key: "designPopupText", value: cleanText(values.designPopupText, "", 600) });
+  if (values.designPopupImageUrl !== undefined)
+    updates.push({ key: "designPopupImageUrl", value: cleanPopupImageUrl(values.designPopupImageUrl) });
+  if (values.designPopupLinkUrl !== undefined)
+    updates.push({ key: "designPopupLinkUrl", value: cleanHttpsUrl(values.designPopupLinkUrl) });
   if (values.designArrivalEnabled !== undefined)
     updates.push({ key: "designArrivalEnabled", value: boolSetting(String(values.designArrivalEnabled), true) ? "true" : "false" });
   if (values.designArrivalCustomColors !== undefined)

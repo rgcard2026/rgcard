@@ -40,6 +40,8 @@ export default function LoginPage() {
   const supportLink = useSupportLink(idNumber);
 
   React.useEffect(() => {
+    // Reset the post-login popup so it shows again on this fresh sign-in.
+    try { window.sessionStorage.removeItem('rg-login-popup-seen'); } catch { /* ignore */ }
     const cardFromQr = String(new URLSearchParams(window.location.search).get('card') || '').trim().slice(0, 80);
     if (cardFromQr) {
       setQrCard(cardFromQr);

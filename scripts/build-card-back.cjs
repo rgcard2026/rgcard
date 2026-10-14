@@ -105,7 +105,7 @@ const { createCanvas, loadImage, GlobalFonts } = require(path.join(root, 'node_m
   x.fillText('بطاقة عضوية شخصية — لا يجوز التنازل عنها', W / 2, 540);
   x.font = '400 24px "Segoe UI", Tahoma, Arial, sans-serif';
   x.fillStyle = 'rgba(243, 219, 164, .6)';
-  x.fillText('تُعرض عند الطلب للاستفادة من خصومات الشبكة', W / 2, 590);
+  x.fillText('تُعرض عند الطلب للاستفادة من خصومات أعضاء RG-Card', W / 2, 590);
   x.direction = 'ltr';
 
   fs.writeFileSync(path.join(root, 'public/card-back.png'), await c.encode('png'));

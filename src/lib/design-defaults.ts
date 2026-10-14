@@ -71,6 +71,12 @@ export const DESIGN_DEFAULTS = {
   designLoginBannerContentAlign: 'center',
   designLoginBannerImageUrl: '',
   designLoginBannerImageEnabled: false,
+  // Post-login popup message (shown once per login on the member area).
+  designPopupEnabled: false,
+  designPopupTitle: '',
+  designPopupText: '',
+  designPopupImageUrl: '',
+  designPopupLinkUrl: '',
   // New Arrival / Coming Soon ticker on the offers page.
   designArrivalEnabled: true,
   designArrivalBannerMaxWidth: 100, // % of container width

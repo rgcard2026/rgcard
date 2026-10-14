@@ -9,6 +9,7 @@ import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import TravelExploreRoundedIcon from '@mui/icons-material/TravelExploreRounded';
 import PublicShell from '@/components/PublicShell';
 import CountUp from '@/components/ui/CountUp';
+import DateWeatherCard from '@/components/ui/DateWeatherCard';
 import { useUiPreferences } from '@/components/UiPreferences';
 
 type AnyItem = Record<string, any>;
@@ -307,20 +308,13 @@ export default function OffersPage() {
   const safePage = Math.min(currentPage, totalPages);
   const visiblePlaces = filteredPlaces.slice((safePage - 1) * pageSize, safePage * pageSize);
   const pageItems = buildPageItems(safePage - 1, totalPages);
-  // Banner = admin-curated "New Arrival / Coming Soon" items first, then the 8 most
-  // recently added places that have a logo (linking to their details page).
+  // Banner = ONLY the admin-curated "New Arrival / Coming Soon" items (managed in
+  // the admin New Arrivals page). Places are intentionally not used here.
   const bannerArrivals = useMemo(() => {
-    const curated = newArrivals
+    return newArrivals
       .filter((item) => textOf(item?.logoUrl) && textOf(item?.targetUrl))
       .map((item) => ({ key: `n-${item.id}`, title: textOf(item.title), logoUrl: textOf(item.logoUrl), href: textOf(item.targetUrl), external: true }));
-    const curatedNames = new Set(curated.map((item) => normalizeArabicSearch(item.title)));
-    const latest = places
-      .filter((place) => pickLogo(place) && !curatedNames.has(normalizeArabicSearch(pickName(place))))
-      .sort((a, b) => (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0) || Number(b.id || 0) - Number(a.id || 0))
-      .slice(0, 8)
-      .map((place) => ({ key: `p-${place.id}`, title: pickName(place), logoUrl: pickLogo(place), href: `/places/${place.id}`, external: false }));
-    return [...curated, ...latest];
-  }, [newArrivals, places]);
+  }, [newArrivals]);
   const bannerVisualItems = useMemo(() => {
     if (!bannerArrivals.length) return [] as typeof bannerArrivals;
     // A sufficiently long, repeated sequence guarantees that the viewport is always
@@ -416,6 +410,7 @@ export default function OffersPage() {
               <h1 className="ui-display">{isArabic ? <>اكتشف <span className="ui-gold-text">امتيازاتك</span></> : <>Discover your <span className="ui-gold-text">privileges</span></>}</h1>
               <p className="ui-lead">{t('mem_18')}</p>
             </div>
+            <DateWeatherCard />
             <div className="ui-stat">
               <strong>{loading ? '—' : <CountUp value={places.length} />}</strong>
               <span>{t('mem_19')}</span>

@@ -290,6 +290,30 @@ export default function AdminDesignStudioClient() {
     }
   }
 
+  async function uploadPopupImage(file?: File) {
+    if (!file || busy) return;
+    setBusy(true);
+    setNotice(null);
+    try {
+      const form = new FormData();
+      form.append('image', file);
+      const response = await fetch('/api/admin/design/popup-image', { method: 'POST', body: form });
+      const body = await readJson(response);
+      if (!response.ok) {
+        setNotice({ text: body.message || 'تعذر رفع صورة الرسالة', severity: 'error' });
+        return;
+      }
+      const next = { ...defaults, ...settings, ...body.data } as DesignState;
+      setSettings(next);
+      applyDesignSettings(next);
+      setNotice({ text: 'تم رفع صورة الرسالة المنبثقة وتفعيلها بنجاح', severity: 'success' });
+    } catch {
+      setNotice({ text: 'تعذر الاتصال بالخادم أثناء رفع صورة الرسالة', severity: 'error' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function uploadCardTemplate(file?: File) {
     if (!file || busy) return;
     setBusy(true);
@@ -512,6 +536,44 @@ export default function AdminDesignStudioClient() {
                     ))}
                   </Grid>
                 )}
+              </CardContent>
+            </Card>
+
+            <Card className="rg-panel-card rg-design-studio-editor-card">
+              <CardContent>
+                <Typography variant="h5" fontWeight={950}>رسالة منبثقة عند تسجيل الدخول</Typography>
+                <Typography color="text.secondary" fontSize={13} sx={{ mt: 0.5 }}>
+                  تظهر هذه الرسالة للعضو مرة واحدة بعد كل تسجيل دخول. يمكن أن تحتوي على صورة ونص ورابط، مع إمكانية تشغيلها أو إيقافها.
+                </Typography>
+                <Stack spacing={1} sx={{ mt: 1.5 }}>
+                  <AdminActionToggle checked={settings.designPopupEnabled} onChange={(checked) => update('designPopupEnabled', checked)} label="تفعيل الرسالة المنبثقة" />
+                </Stack>
+                {settings.designPopupImageUrl && (
+                  <Box sx={{ mt: 1.5, p: 1, borderRadius: 2, border: '1px solid rgba(214,166,79,.32)', bgcolor: '#090b10' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={settings.designPopupImageUrl} alt="معاينة صورة الرسالة" style={{ display: 'block', width: '100%', maxHeight: 220, objectFit: 'contain', borderRadius: 10 }} />
+                  </Box>
+                )}
+                <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
+                  <Grid item xs={12} md={6}>
+                    <AdminTextField noExpand fullWidth label="عنوان الرسالة (اختياري)" value={settings.designPopupTitle} onChange={(event) => update('designPopupTitle', event.target.value)} inputProps={{ maxLength: 120 }} />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <AdminTextField noExpand fullWidth label="رابط الصورة/الرسالة (اختياري)" value={settings.designPopupLinkUrl} onChange={(event) => update('designPopupLinkUrl', event.target.value)} placeholder="https://..." inputProps={{ maxLength: 500 }} />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <AdminTextField noExpand fullWidth multiline minRows={3} label="نص الرسالة (اختياري)" value={settings.designPopupText} onChange={(event) => update('designPopupText', event.target.value)} inputProps={{ maxLength: 600 }} />
+                  </Grid>
+                </Grid>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 1.5 }} alignItems={{ sm: 'center' }}>
+                  <Button component="label" variant="outlined" startIcon={<UploadFileRoundedIcon />} disabled={busy}>
+                    رفع / تغيير صورة الرسالة
+                    <input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { uploadPopupImage(event.target.files?.[0]); event.currentTarget.value = ''; }} />
+                  </Button>
+                  {settings.designPopupImageUrl && (
+                    <Button variant="text" color="inherit" onClick={() => update('designPopupImageUrl', '')}>إزالة الصورة</Button>
+                  )}
+                </Stack>
               </CardContent>
             </Card>
 

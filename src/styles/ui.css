@@ -698,7 +698,15 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
 /* ========================================================================
    OFFERS CATALOGUE
    ======================================================================== */
-.ui-catalog-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 20px; }
+.ui-catalog-head { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: end; gap: 20px; }
+.ui-datew { display: grid; gap: 2px; padding: 12px 16px; border-radius: var(--ui-radius-lg); background: var(--ui-surface); border: 1px solid var(--ui-line); min-width: 190px; align-self: stretch; align-content: center; }
+.ui-datew-day { font-family: var(--ui-font-display); font-weight: 600; font-size: 16px; color: var(--ui-gold); }
+.ui-datew-date { font-size: 13px; color: var(--ui-text-2); }
+.ui-datew-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; flex-wrap: wrap; }
+.ui-datew-time { font-size: 13px; color: var(--ui-muted); font-variant-numeric: tabular-nums; }
+.ui-datew-weather { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--ui-text-2); }
+.ui-datew-weather strong { font-size: 15px; color: var(--ui-text); }
+.ui-datew-place { font-size: 11px; color: var(--ui-muted); }
 .ui-stat { display: grid; justify-items: end; gap: 2px; text-align: end; }
 .ui-stat strong { font-family: var(--ui-font-display); font-size: clamp(28px, 3.4vw, 40px); font-weight: 600; line-height: 1; }
 .ui-stat > span { font-size: calc(var(--ui-fs-caption) + 1px); color: var(--ui-muted); }
@@ -743,6 +751,7 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
 }
 @media (max-width: 760px) {
   .ui-catalog-head { grid-template-columns: 1fr; }
+  .ui-datew { min-width: 0; }
   .ui-stat { justify-items: start; text-align: start; grid-auto-flow: column; align-items: baseline; justify-content: start; gap: 8px; }
   .ui-arrivals { grid-template-columns: 1fr; }
   .ui-arrivals-label { border-inline-end: 0; border-bottom: 1px solid var(--ui-line); padding: 10px 16px; grid-auto-flow: column; justify-content: start; gap: 10px; align-items: baseline; min-width: 0; }
@@ -884,3 +893,16 @@ html[data-ui-box-size='custom'] .ui-box { width: var(--ui-box-width); height: va
   .ui-dot--pulse, .ui-scroll-cue, .ui-skeleton::after { animation: none; }
   .ui-arrival:hover .ui-arrival-inner { animation-duration: 5s; }
 }
+
+/* Post-login popup message (controlled from Design Studio) */
+.rg-popup-overlay { position: fixed; inset: 0; z-index: 1600; display: grid; place-items: center; padding: 20px; background: rgba(4, 5, 8, 0.72); backdrop-filter: blur(4px); animation: rg-popup-fade 0.25s ease; }
+.rg-popup-card { position: relative; width: min(460px, 100%); max-height: 90vh; overflow-y: auto; border-radius: var(--ui-radius-lg); background: var(--ui-surface); border: 1px solid var(--ui-gold-line); box-shadow: var(--ui-shadow-lg, 0 24px 70px rgba(0,0,0,.5)); padding: 18px; display: grid; gap: 12px; animation: rg-popup-pop 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+.rg-popup-close { position: absolute; top: 10px; inset-inline-end: 10px; z-index: 2; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--ui-line); background: var(--ui-surface-2, var(--ui-surface)); color: var(--ui-text); cursor: pointer; }
+.rg-popup-close:hover { border-color: var(--ui-gold-line); }
+.rg-popup-image, .rg-popup-image-link { display: block; width: 100%; border-radius: 14px; }
+.rg-popup-image { height: auto; object-fit: contain; }
+.rg-popup-title { font-family: var(--ui-font-display); font-weight: 600; font-size: 20px; color: var(--ui-gold); margin: 2px 0 0; }
+.rg-popup-text { font-size: 14px; color: var(--ui-text-2); line-height: 1.6; white-space: pre-wrap; margin: 0; }
+.rg-popup-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 2px; }
+@keyframes rg-popup-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rg-popup-pop { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }

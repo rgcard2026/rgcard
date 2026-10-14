@@ -9,6 +9,7 @@ import LocalOfferRoundedIcon from '@mui/icons-material/LocalOfferRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import ClientProtection from './ClientProtection';
+import LoginPopup from './LoginPopup';
 import PreferenceButtons from './ui/PreferenceButtons';
 import { useUiPreferences } from './UiPreferences';
 import { useSupportLink } from './ui/useSupportLink';
@@ -78,6 +79,7 @@ export default function PublicShell({ children, watermarkText, page = 'public' }
     <div onClickCapture={handleLogoNavigation} className={`ui-root rg-public-shell-${page}`} dir={dir}>
       <div className="ui-ambient" aria-hidden="true" />
       <ClientProtection watermarkText={watermarkText} page={page} />
+      <LoginPopup />
 
       <header className="ui-header">
         <div className="ui-container ui-header-inner">
