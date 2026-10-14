@@ -61,7 +61,7 @@ export default function LoginPage() {
         body = { payload: await encryptForLogin({ idNumber, password }) };
       } catch {
         setLoading(false);
-        return setError(isArabic ? 'تعذر تشفير بيانات الدخول. استخدم HTTPS أو عطّل التشفير في بيئة التطوير.' : 'Unable to encrypt the sign-in request. Use HTTPS or disable encryption in development.');
+        return setError(t('loginEncryptError'));
       }
     }
 
@@ -70,27 +70,27 @@ export default function LoginPage() {
       const responseBody = await res.json();
       if (!res.ok) {
         setLoading(false);
-        return setError(responseBody.message || (isArabic ? 'بيانات الدخول غير صحيحة' : 'Invalid sign-in details'));
+        return setError(responseBody.message || t('loginInvalid'));
       }
       setSignedIn(true);
       router.push(responseBody.redirectTo || '/valid');
     } catch {
       setLoading(false);
-      setError(isArabic ? 'تعذر الاتصال بالخادم. حاول مرة أخرى.' : 'Could not reach the server. Please try again.');
+      setError(t('loginServerError'));
     }
   }
 
   const footer = (
     <div className="ui-auth-foot">
-      <span>{isArabic ? 'تواجه مشكلة في الدخول؟' : 'Trouble signing in?'}</span>
+      <span>{t('loginTrouble')}</span>
       <a href={supportLink} target="_blank" rel="noopener noreferrer"><WhatsAppIcon />{t('whatsapp')}</a>
     </div>
   );
 
   return (
     <AuthLayout
-      title={isArabic ? 'تسجيل الدخول' : 'Sign in'}
-      subtitle={isArabic ? 'ادخل رقم البطاقة أو الرقم التعريفي وكلمة المرور.' : 'Enter your card number or ID with your password.'}
+      title={t('loginTitle')}
+      subtitle={t('loginSubtitle')}
       brandTitle={banner.designLoginBannerTitle || 'RG-Card'}
       brandSubtitle={isArabic ? banner.designLoginBannerSubtitleAr : banner.designLoginBannerSubtitleEn}
       align={banner.designLoginBannerContentAlign}
@@ -102,31 +102,31 @@ export default function LoginPage() {
           <div className="ui-alert ui-alert--error" role="alert"><ErrorOutlineRoundedIcon />{error}</div>
         )}
         {!enableLoginEncryption && process.env.NODE_ENV === 'development' && (
-          <div className="ui-hint">{isArabic ? 'بيئة تطوير: تشفير طلب الدخول معطّل.' : 'Development: login encryption disabled.'}</div>
+          <div className="ui-hint">{t('loginDevHint')}</div>
         )}
 
         <div className="ui-field">
-          <label className="ui-label" htmlFor="login-id">{qrCard ? (isArabic ? 'رقم البطاقة من QR' : 'Card number from QR') : (isArabic ? 'رقم البطاقة / الرقم التعريفي' : 'Card number / ID')}</label>
+          <label className="ui-label" htmlFor="login-id">{qrCard ? t('loginCardFromQr') : t('loginCardOrId')}</label>
           <div className="ui-input-wrap">
             {qrCard ? <QrCode2RoundedIcon /> : <BadgeRoundedIcon />}
             <input id="login-id" className="ui-input" value={idNumber} onChange={(e) => setIdNumber(e.target.value)} readOnly={Boolean(qrCard)} required autoComplete="username" inputMode="text" />
           </div>
-          {qrCard && <span className="ui-hint">{isArabic ? 'تم إدخال رقم البطاقة تلقائيًا من QR. اكتب كلمة المرور فقط.' : 'Your card number was filled from the QR code. Enter your password only.'}</span>}
+          {qrCard && <span className="ui-hint">{t('loginQrHint')}</span>}
         </div>
 
         <div className="ui-field">
-          <label className="ui-label" htmlFor="login-password">{isArabic ? 'كلمة المرور' : 'Password'}</label>
+          <label className="ui-label" htmlFor="login-password">{t('passwordLabel')}</label>
           <div className="ui-input-wrap">
             <LockRoundedIcon />
             <input id="login-password" className="ui-input" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" autoFocus={Boolean(qrCard)} />
-            <button type="button" className="ui-input-action" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? (isArabic ? 'إخفاء كلمة المرور' : 'Hide password') : (isArabic ? 'إظهار كلمة المرور' : 'Show password')}>
+            <button type="button" className="ui-input-action" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? t('hidePassword') : t('showPassword')}>
               {showPassword ? <VisibilityOffRoundedIcon /> : <VisibilityRoundedIcon />}
             </button>
           </div>
         </div>
 
         <button className="ui-btn ui-btn--primary ui-btn--block" type="submit" disabled={loading} style={{ marginTop: 6 }}>
-          {loading ? (isArabic ? 'جاري التحقق...' : 'Verifying...') : (isArabic ? 'دخول' : 'Sign in')}
+          {loading ? t('verifying') : t('signIn')}
           {!loading && <ArrowBackRoundedIcon className="ui-flip-ltr" />}
         </button>
       </form>
@@ -134,7 +134,7 @@ export default function LoginPage() {
         {signedIn && (
           <motion.div className="ui-welcome" role="status" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }}>
             <motion.span className="ui-welcome-mark" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }} />
-            <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>{isArabic ? 'مرحبًا بعودتك' : 'Welcome back'}</motion.p>
+            <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>{t('welcomeBack')}</motion.p>
           </motion.div>
         )}
       </AnimatePresence>

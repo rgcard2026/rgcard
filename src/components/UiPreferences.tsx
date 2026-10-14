@@ -18,7 +18,11 @@ type CopyKey =
   | 'cardValid' | 'activeMembership' | 'search' | 'filters' | 'allCategories' | 'allGovernorates'
   | 'clear' | 'previous' | 'next' | 'openDetails' | 'save' | 'delete' | 'add' | 'close'
   | 'adminSubtitle' | 'newArrivalInfo' | 'details' | 'edit' | 'createPlace' | 'createCategory'
-  | 'importCsv' | 'replaceData' | 'addArrival' | 'addAdmin' | 'userActivityLogs' | 'exports' | 'designStudio' | 'appCardSettings';
+  | 'importCsv' | 'replaceData' | 'addArrival' | 'addAdmin' | 'userActivityLogs' | 'exports' | 'designStudio' | 'appCardSettings'
+  // Member-facing: login + change password
+  | 'loginTitle' | 'loginSubtitle' | 'loginTrouble' | 'loginEncryptError' | 'loginInvalid' | 'loginServerError'
+  | 'loginDevHint' | 'loginCardFromQr' | 'loginCardOrId' | 'loginQrHint' | 'passwordLabel' | 'showPassword'
+  | 'hidePassword' | 'verifying' | 'signIn' | 'welcomeBack';
 
 const copy: Record<UiLanguage, Record<CopyKey, string>> = {
   ar: {
@@ -32,7 +36,13 @@ const copy: Record<UiLanguage, Record<CopyKey, string>> = {
     openDetails: 'فتح التفاصيل', save: 'حفظ', delete: 'حذف', add: 'إضافة', close: 'إغلاق',
     adminSubtitle: 'إدارة بيانات RG-Card من مكان واحد', newArrivalInfo: 'يظهر للمستخدم اللوجو فقط، والضغط عليه يفتح الرابط الذي تحدده.',
     details: 'التفاصيل', edit: 'تعديل', createPlace: 'إضافة مكان', createCategory: 'إضافة فئة', importCsv: 'استيراد CSV',
-    replaceData: 'استبدال البيانات', addArrival: 'إضافة عنصر', addAdmin: 'إضافة مسؤول', userActivityLogs: 'سجلات نشاط المستخدم', exports: 'التصدير والكروت', designStudio: 'استوديو التصميم', appCardSettings: 'إعدادات التطبيق والكارت'
+    replaceData: 'استبدال البيانات', addArrival: 'إضافة عنصر', addAdmin: 'إضافة مسؤول', userActivityLogs: 'سجلات نشاط المستخدم', exports: 'التصدير والكروت', designStudio: 'استوديو التصميم', appCardSettings: 'إعدادات التطبيق والكارت',
+    loginTitle: 'تسجيل الدخول', loginSubtitle: 'ادخل رقم البطاقة أو الرقم التعريفي وكلمة المرور.', loginTrouble: 'تواجه مشكلة في الدخول؟',
+    loginEncryptError: 'تعذر تشفير بيانات الدخول. استخدم HTTPS أو عطّل التشفير في بيئة التطوير.', loginInvalid: 'بيانات الدخول غير صحيحة',
+    loginServerError: 'تعذر الاتصال بالخادم. حاول مرة أخرى.', loginDevHint: 'بيئة تطوير: تشفير طلب الدخول معطّل.',
+    loginCardFromQr: 'رقم البطاقة من QR', loginCardOrId: 'رقم البطاقة / الرقم التعريفي',
+    loginQrHint: 'تم إدخال رقم البطاقة تلقائيًا من QR. اكتب كلمة المرور فقط.', passwordLabel: 'كلمة المرور',
+    showPassword: 'إظهار كلمة المرور', hidePassword: 'إخفاء كلمة المرور', verifying: 'جاري التحقق...', signIn: 'دخول', welcomeBack: 'مرحبًا بعودتك'
   },
   en: {
     dashboard: 'Dashboard', places: 'Places & Offers', arrivals: 'New Arrival / Coming Soon', users: 'Users & Cards',
@@ -45,7 +55,13 @@ const copy: Record<UiLanguage, Record<CopyKey, string>> = {
     openDetails: 'Open details', save: 'Save', delete: 'Delete', add: 'Add', close: 'Close',
     adminSubtitle: 'Manage RG-Card data from one place', newArrivalInfo: 'Only the logo is shown to users; selecting it opens the link you choose.',
     details: 'Details', edit: 'Edit', createPlace: 'Add place', createCategory: 'Add category', importCsv: 'Import CSV',
-    replaceData: 'Replace data', addArrival: 'Add item', addAdmin: 'Add admin', userActivityLogs: 'User activity logs', exports: 'Exports & cards', designStudio: 'Design Studio', appCardSettings: 'App & Card Settings'
+    replaceData: 'Replace data', addArrival: 'Add item', addAdmin: 'Add admin', userActivityLogs: 'User activity logs', exports: 'Exports & cards', designStudio: 'Design Studio', appCardSettings: 'App & Card Settings',
+    loginTitle: 'Sign in', loginSubtitle: 'Enter your card number or ID with your password.', loginTrouble: 'Trouble signing in?',
+    loginEncryptError: 'Unable to encrypt the sign-in request. Use HTTPS or disable encryption in development.', loginInvalid: 'Invalid sign-in details',
+    loginServerError: 'Could not reach the server. Please try again.', loginDevHint: 'Development: login encryption disabled.',
+    loginCardFromQr: 'Card number from QR', loginCardOrId: 'Card number / ID',
+    loginQrHint: 'Your card number was filled from the QR code. Enter your password only.', passwordLabel: 'Password',
+    showPassword: 'Show password', hidePassword: 'Hide password', verifying: 'Verifying...', signIn: 'Sign in', welcomeBack: 'Welcome back'
   }
 };
 

@@ -87,7 +87,7 @@ export function cleanUiTextOverrides(value: unknown): string {
     const cleanBucket: Record<string, string> = {};
     let count = 0;
     for (const [key, text] of Object.entries(bucket as Record<string, unknown>)) {
-      if (count >= 200) break;
+      if (count >= 2000) break;
       const safeKey = String(key).trim().slice(0, 60);
       const safeText = String(text ?? "").replace(/[\r\n]+/g, " ").trim().slice(0, 240);
       if (safeKey && safeText) {
