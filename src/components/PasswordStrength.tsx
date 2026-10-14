@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { Box, Stack, Typography } from '@mui/material';
+import { useUiPreferences } from '@/components/UiPreferences';
 
 type Props = { value: string; confirmValue?: string; language: 'ar' | 'en'; required?: boolean };
 
@@ -17,18 +18,15 @@ export function getPasswordScore(value: string) {
 
 export function isStrongEnough(value: string) { return getPasswordScore(value) >= 3; }
 
-export default function PasswordStrength({ value, confirmValue, language, required = false }: Props) {
+export default function PasswordStrength({ value, confirmValue, required = false }: Props) {
+  const { t } = useUiPreferences();
   const score = getPasswordScore(value);
   const hasPassword = Boolean(value);
   const matching = confirmValue === undefined || (!hasPassword && !required) || value === confirmValue;
-  const labels = language === 'ar'
-    ? ['ضعيفة', 'مقبولة', 'جيدة', 'قوية']
-    : ['Weak', 'Fair', 'Good', 'Strong'];
-  const requirements = language === 'ar'
-    ? '٨ أحرف على الأقل، مع اثنين على الأقل من: أحرف كبيرة وصغيرة، رقم، رمز.'
-    : 'Use 8+ characters plus any two: mixed case, a number, or a symbol.';
+  const labels = [t('pw_weak'), t('pw_fair'), t('pw_good'), t('pw_strong')];
+  const requirements = t('pw_requirements');
   const label = !hasPassword ? requirements : labels[Math.max(0, score - 1)];
-  const matchLabel = matching ? (language === 'ar' ? 'كلمتا المرور متطابقتان' : 'Passwords match') : (language === 'ar' ? 'كلمتا المرور غير متطابقتين' : 'Passwords do not match');
+  const matchLabel = matching ? t('pw_match') : t('pw_nomatch');
 
   return (
     <Stack spacing={.45} className="rg-password-strength" aria-live="polite">
