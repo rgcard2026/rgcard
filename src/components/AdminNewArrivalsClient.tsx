@@ -53,19 +53,6 @@ export default function AdminNewArrivalsClient() {
     setItems(body.data || []);
   }, [isArabic]);
   React.useEffect(() => { load(); }, [load]);
-  // One-time auto re-fit of existing logos (trims blank borders) so they fill
-  // and center their tiles without the admin having to click the button.
-  React.useEffect(() => {
-    let done = true;
-    try { done = window.localStorage.getItem('rg-arrivals-refit-v1') === '1'; } catch { /* ignore */ }
-    if (done) return;
-    (async () => {
-      try {
-        const res = await fetch('/api/admin/new-arrivals/refit-logos', { method: 'POST' });
-        if (res.ok) { try { window.localStorage.setItem('rg-arrivals-refit-v1', '1'); } catch { /* ignore */ } await load(); }
-      } catch { /* best effort */ }
-    })();
-  }, [load]);
   const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
   const shown = items.slice((page - 1) * pageSize, page * pageSize);
   React.useEffect(() => { if (page > totalPages) setPage(totalPages); }, [page, totalPages]);
