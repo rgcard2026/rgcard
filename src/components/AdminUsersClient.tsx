@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 import AdminTextField, { type AdminTextFieldProps } from '@/components/AdminTextField';
-import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, CircularProgress, Divider, FormControl, Grid, IconButton, InputAdornment, MenuItem, Pagination, Select, Snackbar, Stack, Tooltip, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, CircularProgress, Divider, FormControl, Grid, IconButton, InputAdornment, Menu, MenuItem, Pagination, Select, Snackbar, Stack, Tooltip, Typography } from '@mui/material';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import CreditCardRoundedIcon from '@mui/icons-material/CreditCardRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -183,6 +183,16 @@ export default function AdminUsersClient() {
   const { language, t } = useUiPreferences(); const isArabic = language === 'ar';
   const [users, setUsers] = React.useState<User[]>([]); const [places, setPlaces] = React.useState<PlaceOption[]>([]);
   const [total, setTotal] = React.useState(0); const [q, setQ] = React.useState(''); const [page, setPage] = React.useState(1); const pageSize = 12;
+  const CARDS_BATCH = 500;
+  const [cardsMenu, setCardsMenu] = React.useState<{ anchor: HTMLElement; endpoint: string } | null>(null);
+  function openCards(event: React.MouseEvent<HTMLElement>, endpoint: string) {
+    if (total <= CARDS_BATCH) {
+      window.open(`${endpoint}?includeInactive=1&download=1`, '_blank', 'noopener,noreferrer');
+    } else {
+      setCardsMenu({ anchor: event.currentTarget, endpoint });
+    }
+  }
+  const cardBatches = Math.max(1, Math.ceil(total / CARDS_BATCH));
   const [panel, setPanel] = React.useState<'create' | 'edit' | 'tools' | null>(null); const [selected, setSelected] = React.useState<User | null>(null);
   const [editTab, setEditTab] = React.useState<'profile' | 'benefits'>('profile');
   const [edit, setEdit] = React.useState<EditState>({}); const [msg, setMsg] = React.useState('');
@@ -424,7 +434,7 @@ export default function AdminUsersClient() {
 
   return <>
     <Card className="rg-panel-card rg-admin-directory-header"><CardContent sx={{ p: { xs: 2, sm: 2.7 } }}>
-      <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1.5} alignItems={{ xs: 'stretch', md: 'center' }}><Box><Typography variant="h5" fontWeight={950}>{t('users')}</Typography><Typography color="text.secondary" fontSize={13}>{t('adm_197')}</Typography></Box><Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}><Button variant="outlined" component="a" href="/api/admin/users/cards-pdf?includeInactive=1" target="_blank" startIcon={<PictureAsPdfRoundedIcon />}>{t('adm_198')}</Button><Button variant="outlined" component="a" href="/api/admin/users/back-cards-pdf?includeInactive=1&download=1" target="_blank" startIcon={<PictureAsPdfRoundedIcon />}>{t('adm_backcards')}</Button><Button variant="outlined" component="a" href="/admin/exports" startIcon={<FileDownloadRoundedIcon />}>{t('adm_199')}</Button><Button type="button" variant="outlined" onClick={() => { setMsg(''); setPanel('tools'); }} startIcon={<UploadFileRoundedIcon />}>{t('adm_165')}</Button><Button type="button" variant="contained" className="rg-royal-button" startIcon={<PersonAddAltRoundedIcon />} onClick={() => { setMsg(''); setPanel('create'); }}>{t('adm_200')}</Button></Stack></Stack>
+      <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1.5} alignItems={{ xs: 'stretch', md: 'center' }}><Box><Typography variant="h5" fontWeight={950}>{t('users')}</Typography><Typography color="text.secondary" fontSize={13}>{t('adm_197')}</Typography></Box><Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}><Button variant="outlined" startIcon={<PictureAsPdfRoundedIcon />} onClick={(e) => openCards(e, '/api/admin/users/cards-pdf')}>{t('adm_198')}</Button><Button variant="outlined" startIcon={<PictureAsPdfRoundedIcon />} onClick={(e) => openCards(e, '/api/admin/users/back-cards-pdf')}>{t('adm_backcards')}</Button><Button variant="outlined" component="a" href="/admin/exports" startIcon={<FileDownloadRoundedIcon />}>{t('adm_199')}</Button><Button type="button" variant="outlined" onClick={() => { setMsg(''); setPanel('tools'); }} startIcon={<UploadFileRoundedIcon />}>{t('adm_165')}</Button><Button type="button" variant="contained" className="rg-royal-button" startIcon={<PersonAddAltRoundedIcon />} onClick={() => { setMsg(''); setPanel('create'); }}>{t('adm_200')}</Button></Stack></Stack>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 2 }}><AdminTextField size="small" placeholder={t('adm_201')} value={q} onChange={(e) => setQ(e.target.value)} sx={{ flex: 1 }} /><Chip label={`${total} ${t('adm_202')}`} /></Stack>
       <Stack direction="row" spacing={.75} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 1.4 }}><Checkbox disabled={busyAction === 'bulk'} checked={users.length > 0 && users.every((user) => selectedIds.has(user.id))} indeterminate={users.some((user) => selectedIds.has(user.id)) && !users.every((user) => selectedIds.has(user.id))} onChange={(event) => setSelectedIds(event.target.checked ? new Set([...Array.from(selectedIds), ...users.map((user) => user.id)]) : new Set(Array.from(selectedIds).filter((id) => !users.some((user) => user.id === id))))} /><Typography fontSize={13} fontWeight={900}>{t('adm_90')}</Typography>{selectedIds.size > 0 && <><Button size="small" variant="outlined" startIcon={<PictureAsPdfRoundedIcon />} onClick={() => window.open(`/api/admin/users/cards-pdf?ids=${encodeURIComponent(Array.from(selectedIds).join(','))}&download=1`, '_blank', 'noopener,noreferrer')}>{t('adm_203')}</Button><Button size="small" variant="outlined" startIcon={<PictureAsPdfRoundedIcon />} onClick={() => window.open(`/api/admin/users/back-cards-pdf?ids=${encodeURIComponent(Array.from(selectedIds).join(','))}&download=1`, '_blank', 'noopener,noreferrer')}>{t('adm_backcards')}</Button><Button size="small" color="success" variant="outlined" disabled={busyAction === 'bulk'} onClick={() => bulk('activate')}>{t('adm_91')}</Button><Button size="small" color="warning" variant="outlined" disabled={busyAction === 'bulk'} onClick={() => bulk('deactivate')}>{t('adm_92')}</Button><Button size="small" color="error" variant="outlined" disabled={busyAction === 'bulk'} onClick={() => bulk('delete')}>{t('delete')}</Button></>}</Stack>
     </CardContent></Card>
@@ -588,6 +598,17 @@ export default function AdminUsersClient() {
     >
       <Alert severity={messageIsError ? 'error' : 'success'} variant="filled" onClose={() => setMsg('')} sx={{ width: '100%', fontWeight: 850 }}>{msg}</Alert>
     </Snackbar>
+    <Menu anchorEl={cardsMenu?.anchor} open={Boolean(cardsMenu)} onClose={() => setCardsMenu(null)}>
+      <MenuItem disabled dense>{isArabic ? `التحميل على دفعات (${CARDS_BATCH} لكل ملف)` : `Download in batches of ${CARDS_BATCH}`}</MenuItem>
+      {Array.from({ length: cardBatches }).map((_, i) => {
+        const from = i * CARDS_BATCH;
+        return (
+          <MenuItem key={i} onClick={() => { window.open(`${cardsMenu!.endpoint}?includeInactive=1&download=1&skip=${from}`, '_blank', 'noopener,noreferrer'); setCardsMenu(null); }}>
+            {isArabic ? `البطاقات ${from + 1} - ${Math.min(from + CARDS_BATCH, total)}` : `Cards ${from + 1} - ${Math.min(from + CARDS_BATCH, total)}`}
+          </MenuItem>
+        );
+      })}
+    </Menu>
     <ConfirmActionDialog
       open={Boolean(pendingDelete)}
       title={t('adm_254')}

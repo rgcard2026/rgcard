@@ -23,11 +23,17 @@ export async function GET(request: NextRequest) {
     .slice(0, 200);
   const includeInactive = request.nextUrl.searchParams.get('includeInactive') === '1';
   const download = request.nextUrl.searchParams.get('download') === '1';
+  // Cap each PDF to a safe batch size to keep memory bounded on large accounts;
+  // the UI downloads bigger sets in batches via `skip`.
+  const BATCH = 500;
+  const skip = ids.length ? 0 : Math.max(0, Number(request.nextUrl.searchParams.get('skip') || 0));
   const where = ids.length ? { id: { in: ids } } : (includeInactive ? {} : { isActive: true });
   const users = await prisma.user.findMany({
     where,
     select: { cardNumber: true, isVip: true, membershipClass: true, validUntil: true },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
+    take: BATCH,
+    skip,
   });
   const layout = await getCardRenderSettings();
   const buffer = await createBulkCardsPdfBuffer(users, layout, getRequestPublicOrigin(request));
@@ -36,7 +42,7 @@ export async function GET(request: NextRequest) {
     selected: ids.length || null,
     includeInactive
   });
-  const fileName = ids.length ? 'rg-card-selected-users.pdf' : 'rg-card-all-users.pdf';
+  const fileName = ids.length ? 'rg-card-selected-users.pdf' : `rg-card-users-${skip + 1}-${skip + users.length}.pdf`;
   return new NextResponse(new Uint8Array(buffer), {
     status: 200,
     headers: {

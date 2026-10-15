@@ -9,7 +9,7 @@ export async function generateCardQrBuffer(cardNumber: string, publicOrigin?: st
     type: 'png',
     errorCorrectionLevel: 'H',
     margin: 0,
-    width: 900,
+    width: 360,
     color: { dark: '#f2c15f', light: '#090b10' }
   });
 }
@@ -81,9 +81,36 @@ export async function createMemberCardPdfBuffer(cardNumber: string, options?: { 
 }
 
 export async function createBulkCardsPdfBuffer(users: { cardNumber: string; isVip?: boolean; membershipClass?: string | null; validUntil?: string | Date | null }[], layout?: CardRenderLayout, publicOrigin?: string): Promise<Buffer> {
+  const tpl = layout || CARD_TEMPLATE;
   const pdf = await PDFDocument.create();
+
+  // Embed the shared template image and font ONCE (not per page) so large
+  // batches do not blow up memory with thousands of duplicate embeds.
+  const templateUrl = tpl.templateUrl || '/card-template.png';
+  const safeTemplateUrl = templateUrl.startsWith('/') ? templateUrl.slice(1) : templateUrl;
+  let templateBytes: Buffer;
+  let templatePath = path.join(process.cwd(), 'public', safeTemplateUrl);
+  try {
+    templateBytes = await readFile(templatePath);
+  } catch {
+    templatePath = path.join(process.cwd(), 'public', 'card-template.png');
+    templateBytes = await readFile(templatePath);
+  }
+  const ext = path.extname(templatePath).toLowerCase();
+  const image = ext === '.jpg' || ext === '.jpeg' ? await pdf.embedJpg(templateBytes) : await pdf.embedPng(templateBytes);
+  const font = await pdf.embedFont(StandardFonts.HelveticaBold);
+
   for (const user of users) {
-    await drawMemberCardPage(pdf, user.cardNumber, { isVip: user.isVip, membershipClass: user.membershipClass, validUntil: user.validUntil, layout, publicOrigin });
+    const qr = await pdf.embedPng(await generateCardQrBuffer(user.cardNumber, publicOrigin));
+    const page = pdf.addPage([tpl.width, tpl.height]);
+    page.drawImage(image, { x: 0, y: 0, width: tpl.width, height: tpl.height, opacity: tpl.templateOpacity ?? 1 });
+    const qrY = tpl.height - tpl.qr.y - tpl.qr.size;
+    page.drawImage(qr, { x: tpl.qr.x, y: qrY, width: tpl.qr.size, height: tpl.qr.size, opacity: tpl.qr.opacity ?? 1 });
+    drawCenteredTextInBox(page, font, `ID NO.${user.cardNumber}`, tpl.id, tpl.height, { letterSpacing: 1.5 });
+    const classText = membershipLabel(user.membershipClass, user.isVip);
+    if (classText) drawLeftTextInBox(page, font, classText, tpl.membershipClass, tpl.height);
+    const expiryText = formatCardExpiry(user.validUntil);
+    if (expiryText) drawLeftTextInBox(page, font, expiryText, tpl.expiry, tpl.height);
   }
   return Buffer.from(await pdf.save());
 }
@@ -125,11 +152,17 @@ export async function createMemberCardBackPdfBuffer(cardNumber: string, backImag
   return Buffer.from(await pdf.save());
 }
 
-export async function createBulkBackCardsPdfBuffer(users: { cardNumber: string }[], backImageUrl?: string, num?: BackNumberConfig): Promise<Buffer> {
+export async function createBulkBackCardsPdfBuffer(users: { cardNumber: string }[], backImageUrl?: string, num: BackNumberConfig = DEFAULT_BACK_NUMBER): Promise<Buffer> {
   const pdf = await PDFDocument.create();
   const backBytes = await readCardBackBytes(backImageUrl);
+  // Embed the back image + font ONCE and reuse across all pages.
+  const image = await pdf.embedPng(backBytes);
+  const font = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const box = { x: num.x - 250, y: num.y - (num.size + 20) / 2, width: 500, height: num.size + 20, fontSize: num.size, opacity: Math.max(0, Math.min(100, num.opacity)) / 100 };
   for (const user of users) {
-    await drawMemberCardBackPage(pdf, user.cardNumber, backBytes, num);
+    const page = pdf.addPage([BACK_WIDTH, BACK_HEIGHT]);
+    page.drawImage(image, { x: 0, y: 0, width: BACK_WIDTH, height: BACK_HEIGHT });
+    drawCenteredTextInBox(page, font, `NO.${user.cardNumber}`, box, BACK_HEIGHT, { letterSpacing: 2.4 });
   }
   return Buffer.from(await pdf.save());
 }
