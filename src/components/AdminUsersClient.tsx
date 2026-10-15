@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 import AdminTextField, { type AdminTextFieldProps } from '@/components/AdminTextField';
-import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, CircularProgress, Divider, FormControl, Grid, IconButton, InputAdornment, Menu, MenuItem, Pagination, Select, Snackbar, Stack, Tooltip, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, IconButton, InputAdornment, Menu, MenuItem, Pagination, Select, Snackbar, Stack, Tooltip, Typography } from '@mui/material';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import CreditCardRoundedIcon from '@mui/icons-material/CreditCardRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -193,6 +193,13 @@ export default function AdminUsersClient() {
     }
   }
   const cardBatches = Math.max(1, Math.ceil(total / CARDS_BATCH));
+  const [cardsByNumberOpen, setCardsByNumberOpen] = React.useState(false);
+  const [cardNumbersInput, setCardNumbersInput] = React.useState('');
+  const parsedCardNumbers = cardNumbersInput.split(/[\s,;\n]+/).map((v) => v.trim()).filter(Boolean);
+  function downloadByNumbers(endpoint: string) {
+    if (!parsedCardNumbers.length) return;
+    window.open(`${endpoint}?cards=${encodeURIComponent(parsedCardNumbers.slice(0, 500).join(','))}&download=1`, '_blank', 'noopener,noreferrer');
+  }
   const [panel, setPanel] = React.useState<'create' | 'edit' | 'tools' | null>(null); const [selected, setSelected] = React.useState<User | null>(null);
   const [editTab, setEditTab] = React.useState<'profile' | 'benefits'>('profile');
   const [edit, setEdit] = React.useState<EditState>({}); const [msg, setMsg] = React.useState('');
@@ -434,7 +441,7 @@ export default function AdminUsersClient() {
 
   return <>
     <Card className="rg-panel-card rg-admin-directory-header"><CardContent sx={{ p: { xs: 2, sm: 2.7 } }}>
-      <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1.5} alignItems={{ xs: 'stretch', md: 'center' }}><Box><Typography variant="h5" fontWeight={950}>{t('users')}</Typography><Typography color="text.secondary" fontSize={13}>{t('adm_197')}</Typography></Box><Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}><Button variant="outlined" startIcon={<PictureAsPdfRoundedIcon />} onClick={(e) => openCards(e, '/api/admin/users/cards-pdf')}>{t('adm_198')}</Button><Button variant="outlined" startIcon={<PictureAsPdfRoundedIcon />} onClick={(e) => openCards(e, '/api/admin/users/back-cards-pdf')}>{t('adm_backcards')}</Button><Button variant="outlined" component="a" href="/admin/exports" startIcon={<FileDownloadRoundedIcon />}>{t('adm_199')}</Button><Button type="button" variant="outlined" onClick={() => { setMsg(''); setPanel('tools'); }} startIcon={<UploadFileRoundedIcon />}>{t('adm_165')}</Button><Button type="button" variant="contained" className="rg-royal-button" startIcon={<PersonAddAltRoundedIcon />} onClick={() => { setMsg(''); setPanel('create'); }}>{t('adm_200')}</Button></Stack></Stack>
+      <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1.5} alignItems={{ xs: 'stretch', md: 'center' }}><Box><Typography variant="h5" fontWeight={950}>{t('users')}</Typography><Typography color="text.secondary" fontSize={13}>{t('adm_197')}</Typography></Box><Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}><Button variant="outlined" startIcon={<PictureAsPdfRoundedIcon />} onClick={(e) => openCards(e, '/api/admin/users/cards-pdf')}>{t('adm_198')}</Button><Button variant="outlined" startIcon={<PictureAsPdfRoundedIcon />} onClick={(e) => openCards(e, '/api/admin/users/back-cards-pdf')}>{t('adm_backcards')}</Button><Button variant="outlined" startIcon={<PictureAsPdfRoundedIcon />} onClick={() => { setCardNumbersInput(''); setCardsByNumberOpen(true); }}>{isArabic ? 'كروت بأرقام محددة' : 'Cards by numbers'}</Button><Button variant="outlined" component="a" href="/admin/exports" startIcon={<FileDownloadRoundedIcon />}>{t('adm_199')}</Button><Button type="button" variant="outlined" onClick={() => { setMsg(''); setPanel('tools'); }} startIcon={<UploadFileRoundedIcon />}>{t('adm_165')}</Button><Button type="button" variant="contained" className="rg-royal-button" startIcon={<PersonAddAltRoundedIcon />} onClick={() => { setMsg(''); setPanel('create'); }}>{t('adm_200')}</Button></Stack></Stack>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 2 }}><AdminTextField size="small" placeholder={t('adm_201')} value={q} onChange={(e) => setQ(e.target.value)} sx={{ flex: 1 }} /><Chip label={`${total} ${t('adm_202')}`} /></Stack>
       <Stack direction="row" spacing={.75} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 1.4 }}><Checkbox disabled={busyAction === 'bulk'} checked={users.length > 0 && users.every((user) => selectedIds.has(user.id))} indeterminate={users.some((user) => selectedIds.has(user.id)) && !users.every((user) => selectedIds.has(user.id))} onChange={(event) => setSelectedIds(event.target.checked ? new Set([...Array.from(selectedIds), ...users.map((user) => user.id)]) : new Set(Array.from(selectedIds).filter((id) => !users.some((user) => user.id === id))))} /><Typography fontSize={13} fontWeight={900}>{t('adm_90')}</Typography>{selectedIds.size > 0 && <><Button size="small" variant="outlined" startIcon={<PictureAsPdfRoundedIcon />} onClick={() => window.open(`/api/admin/users/cards-pdf?ids=${encodeURIComponent(Array.from(selectedIds).join(','))}&download=1`, '_blank', 'noopener,noreferrer')}>{t('adm_203')}</Button><Button size="small" variant="outlined" startIcon={<PictureAsPdfRoundedIcon />} onClick={() => window.open(`/api/admin/users/back-cards-pdf?ids=${encodeURIComponent(Array.from(selectedIds).join(','))}&download=1`, '_blank', 'noopener,noreferrer')}>{t('adm_backcards')}</Button><Button size="small" color="success" variant="outlined" disabled={busyAction === 'bulk'} onClick={() => bulk('activate')}>{t('adm_91')}</Button><Button size="small" color="warning" variant="outlined" disabled={busyAction === 'bulk'} onClick={() => bulk('deactivate')}>{t('adm_92')}</Button><Button size="small" color="error" variant="outlined" disabled={busyAction === 'bulk'} onClick={() => bulk('delete')}>{t('delete')}</Button></>}</Stack>
     </CardContent></Card>
@@ -609,6 +616,32 @@ export default function AdminUsersClient() {
         );
       })}
     </Menu>
+    <Dialog open={cardsByNumberOpen} onClose={() => setCardsByNumberOpen(false)} fullWidth maxWidth="sm">
+      <DialogTitle sx={{ fontWeight: 950 }}>{isArabic ? 'إنشاء كروت بأرقام محددة' : 'Generate cards by numbers'}</DialogTitle>
+      <DialogContent>
+        <Typography color="text.secondary" fontSize={13} sx={{ mb: 1.5 }}>
+          {isArabic ? 'الصق أرقام الكروت أو الأرقام التعريفية (مفصولة بفاصلة أو سطر). حتى 500 رقم في الملف الواحد.' : 'Paste card numbers or ID numbers (separated by comma or new line). Up to 500 per file.'}
+        </Typography>
+        <AdminTextField
+          noExpand
+          fullWidth
+          multiline
+          minRows={5}
+          label={isArabic ? 'أرقام الكروت' : 'Card numbers'}
+          value={cardNumbersInput}
+          onChange={(e) => setCardNumbersInput(e.target.value)}
+          placeholder={'3320568\n1026179\n...'}
+        />
+        <Typography color="text.secondary" fontSize={12} sx={{ mt: 0.5 }}>
+          {isArabic ? `عدد الأرقام: ${parsedCardNumbers.length}` : `Numbers entered: ${parsedCardNumbers.length}`}
+        </Typography>
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 2, gap: 1, flexWrap: 'wrap' }}>
+        <Button onClick={() => setCardsByNumberOpen(false)}>{t('adm_80')}</Button>
+        <Button variant="outlined" startIcon={<PictureAsPdfRoundedIcon />} disabled={!parsedCardNumbers.length} onClick={() => downloadByNumbers('/api/admin/users/cards-pdf')}>{isArabic ? 'كروت الوجه PDF' : 'Front cards PDF'}</Button>
+        <Button variant="contained" className="rg-royal-button" startIcon={<PictureAsPdfRoundedIcon />} disabled={!parsedCardNumbers.length} onClick={() => downloadByNumbers('/api/admin/users/back-cards-pdf')}>{isArabic ? 'كروت الظهر PDF' : 'Back cards PDF'}</Button>
+      </DialogActions>
+    </Dialog>
     <ConfirmActionDialog
       open={Boolean(pendingDelete)}
       title={t('adm_254')}
